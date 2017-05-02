@@ -1,0 +1,347 @@
+/* Features checkbox and radio buttons */
+
+.featureCheckBox div {
+    clear: both;
+    overflow: hidden;
+}
+
+.featureCheckBox label {
+    width: 100%;
+    border-radius: 3px;
+    border: 1px solid #D1D3D4;
+    font-weight: normal;
+}
+
+.featureCheckBox input[type="radio"]:empty, .featureCheckBox input[type="checkbox"]:empty {
+    display: none;
+}
+
+.featureCheckBox input[type="radio"]:empty~label, .featureCheckBox input[type="checkbox"]:empty~label {
+    position: relative;
+    line-height: 2.5em;
+    text-indent: 3em;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.featureCheckBox input[type="radio"]:empty~label:before, .featureCheckBox input[type="checkbox"]:empty~label:before {
+    position: absolute;
+    display: block;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    content: '';
+    width: 2.5em;
+    background: #D1D3D4;
+    border-radius: 3px 0 0 3px;
+}
+
+.featureCheckBox input[type="radio"]:hover:not(:checked)~label, .featureCheckBox input[type="checkbox"]:hover:not(:checked)~label {
+    color: #888;
+}
+
+.featureCheckBox input[type="radio"]:hover:not(:checked)~label:before, .featureCheckBox input[type="checkbox"]:hover:not(:checked)~label:before {
+    content: '\2714';
+    text-indent: .9em;
+    color: #C2C2C2;
+}
+
+.featureCheckBox input[type="radio"]:checked~label, .featureCheckBox input[type="checkbox"]:checked~label {
+    color: #777;
+}
+
+.featureCheckBox input[type="radio"]:checked~label:before, .featureCheckBox input[type="checkbox"]:checked~label:before {
+    content: '\2714';
+    text-indent: .9em;
+    color: #333;
+    background-color: #ccc;
+}
+
+.featureCheckBox input[type="radio"]:focus~label:before, .featureCheckBox input[type="checkbox"]:focus~label:before {
+    box-shadow: 0 0 0 3px #999;
+}
+
+.featureCheckBox-default input[type="radio"]:checked~label:before, .featureCheckBox-default input[type="checkbox"]:checked~label:before {
+    color: #333;
+    background-color: #ccc;
+}
+
+
+/* SVG elements and text */
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    /* aspect ratio */
+    vertical-align: top;
+    overflow: visible;
+}
+
+.svg-content {
+    display: inline-block;
+    position: absolute;
+    border: 1px solid #000;
+}
+
+.svg-content-legend {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+.svg-legendContainer {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    height: auto;
+    /* depends on svg ratio */
+    padding-bottom: 10%;
+    /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+
+.svg-LineChartContainer {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    height: auto;
+    /* depends on svg ratio */
+    padding-bottom: 17%;
+    /* aspect ratio */
+    vertical-align: top;
+    overflow: visible;
+}
+
+.axis path {
+    display: none;
+}
+
+.axis line {
+    stroke-opacity: 0.3;
+    shape-rendering: crispEdges;
+}
+
+.x {
+    font-size: 1em;
+}
+
+.y {
+    font-size: 1em;
+}
+
+.axisLineChart path line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke-width: 5px;
+}
+
+
+/* Time  */
+
+.frameText {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 2em;
+    color: inherit;
+    font-family: inherit;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+
+/* Slider ticks  */
+
+.ui-slider-tick {
+    display: inline-block;
+    width: 3px;
+    background: #337ab7;
+    height: 0.8em;
+    position: absolute;
+}
+
+
+/* Laoding gif   */
+
+#loading {
+    display: block;
+    text-align: center;
+}
+
+
+/* Color legend    */
+
+.legend {
+    font-size: 12px;
+    stroke: #000;
+}
+
+.legendText {
+    font-size: 1.5em;
+    color: inherit;
+    font-family: inherit;
+    line-height: 1.1;
+}
+
+.lineChartlegendText {
+    font-size: 3em;
+    color: inherit;
+    font-family: inherit;
+    line-height: 1.1;
+}
+
+.timeLine {
+    fill: none;
+    stroke-width: 5px;
+    stroke: #000;
+}
+
+
+/*swarm features */
+
+.centroid {
+    fill-opacity: 0;
+    stroke: #e7298a;
+    stroke-width: 3px;
+}
+
+.medoid {
+    fill: #e7298a !important;
+    stroke: #e7298a !important;
+}
+
+.hullPath {
+    fill: #fff;
+    fill-opacity: 0;
+    stroke-width: 3;
+    stroke: #252525;
+    stroke-opacity: 0.5;
+}
+
+.delaunayTriangulation {
+    fill-opacity: 0;
+    stroke-width: 2;
+    stroke: #000;
+    stroke-opacity: 0.4;
+}
+
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: scale(1) rotate(0deg);
+    }
+    to {
+        transform: scale(1) rotate(360deg);
+    }
+}
+
+#background-color span.glyphicon {
+    opacity: 0;
+}
+
+#background-color .btn {
+    border-color: #bdbdbd;
+}
+
+#background-color .active span.glyphicon {
+    opacity: 1;
+}
+
+#btn-grey1 {
+    background: #d9d9d9;
+}
+
+#btn-grey2 {
+    background: #969696;
+}
+
+#btn-dark {
+    background: #4d4d4d;
+}
+
+
+/* Color brewer picker div */
+
+.palette {
+    cursor: pointer;
+    display: table;
+    vertical-align: bottom;
+    margin: 4px 0 4px 4px;
+    background: #fff;
+    border: solid 1px #aaa;
+}
+
+.swatch {
+    display: inline-block;
+    vertical-align: middle;
+    width: 22px;
+    height: 22px;
+}
+
+.voronoi {
+    fill-opacity: 0;
+    stroke-width: 3;
+    stroke: #000;
+    stroke-opacity: 0.2;
+}
+
+.btn-circle {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 12px;
+    line-height: 1.428571429;
+    border-radius: 15px;
+}
+
+.btn-circle.btn-lg {
+    width: 50px;
+    height: 50px;
+    padding: 13px 13px;
+    font-size: 18px;
+    line-height: 1.33;
+    border-radius: 25px;
+}
+
+
+/* Tooltip */
+
+div.tooltip {
+    pointer-events: none;
+    opacity: 0;
+    background: rgb(255, 255, 255) !important;
+    border-left-color: #1b809e !important;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+    position: absolute;
+}
+
+div.tooltip table td:nth-child(2) {
+    text-align: center;
+    font-weight: bold;
+}

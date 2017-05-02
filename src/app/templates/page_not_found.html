@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+
+{% endblock %}
+
+{% block body %}
+
+<div class="jumbotron">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>
+                    <strong>404 - Page not found</strong>
+                </h1>
+                <h2>
+                    Something is wrong
+                </h2>
+                <p class="lead">Return to the <a href="/">Homepage</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>What happened?</h2>
+            <p class="lead">The page you are looking for does not exist. </p>
+        </div>
+        <div class="col-md-6">
+            <h2>What can I do?</h2>
+            <p class="lead">If you are typing in the url, check your spelling.</p>
+            <p class="lead">If you found a bug in the system, please contact
+                <a href="mailto:cakmak@dbvis.inf.uni-konstanz.de" class="btn btn-default btn-lg"><span
+                        class="glyphicon glyphicon-envelope"></span> Support</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+
+{% endblock body %}

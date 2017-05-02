@@ -1,0 +1,92 @@
+{% extends 'admin/master.html' %}
+{% import 'admin/lib.html' as lib with context %}
+{% import 'admin/actions.html' as actionslib with context %}
+
+{% block body %}
+
+<script>
+      var user_id = {{ current_user.id|tojson }};
+</script>
+
+<h3>Hi
+    {% if current_user.first_name -%}
+    {{ current_user.first_name }},
+    {% else -%}
+    {{ current_user.email }},
+    {%- endif %}
+    your datasets:
+</h3>
+{% block file_list_table %}
+<table class="table table-striped table-bordered model-list">
+    <thead>
+    <tr>
+        {% block list_header scoped %}
+        <th class="col-md-3">Name</th>
+        <th class="col-md-3">Status</th>
+        <th class="col-md-6">Progress Bar</th>
+        {% endblock %}
+    </tr>
+    </thead>
+    {% for data in datasets %}
+    <tr id="dataset{{data.id}}">
+        {% block list_row scoped %}
+        <td>
+            {{ data.name }}
+        </td>
+        <td>
+            <em> {{ data.status }} </em>
+        </td>
+        <td>
+            {% if not data.error -%}
+            <div class="progress">
+                {% if data.progress == 100 -%}
+                <div class="progress-bar progress-bar-success active" aria-valuenow={{
+                     data.progress }}
+                     aria-valuemin="0" aria-valuemax="100"
+                     style="min-width: 2em; width:{{ data.progress }}%">
+                    {{data.progress}}%
+                </div>
+                {% else -%}
+                <div class="progress-bar progress-bar-striped active" aria-valuenow={{ data.progress }}
+                     aria-valuemin="0" aria-valuemax="100"
+                     style="min-width: 2em; width:{{ data.progress }}%">
+                    {{data.progress}}%
+                </div>
+                {%- endif %}
+            </div>
+            {% else -%}
+            <div class="progress">
+                <div class="progress-bar progress-bar-danger progress-bar-striped active" aria-valuenow={{ data.progress
+                     }}
+                     aria-valuemin="0" aria-valuemax="100"
+                     style="min-width: 2em; width:{{ data.progress }}%">
+                    {{data.progress}}%
+                </div>
+            </div>
+            {%- endif %}
+
+        </td>
+        {% endblock %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
+<hr>
+{% block toolbar %}
+<div class="btn-toolbar">
+
+    {% if admin_view.can_upload %}
+    <div class="btn-group">
+        <a class="btn btn-default btn-large" href="{{ get_dir_url('.upload', path=dir_path) }}">{{ _gettext('Upload New
+            Dataset') }}</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% endblock %}
+
+
+{% block tail_js %}
+{{ super() }}
+<script src="{{url_for('static', filename='js/upload_list.js')}}"></script>
+{% endblock %}

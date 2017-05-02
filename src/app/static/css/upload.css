@@ -1,0 +1,213 @@
+    /* Drag and drop upload */
+
+    .drop {
+        position: relative;
+        width: 300px;
+        height: 200px;
+        border: 4px dashed #E0E0E0;
+    }
+
+    .drop:hover {
+        box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.1);
+        border: 4px dashed #737373;
+    }
+
+    .drop p {
+        width: 100%;
+        text-align: center;
+        line-height: 130px;
+        color: #333;
+    }
+
+    .drop span {
+        top: 50px;
+        width: 100%;
+        font-size: 2.5em;
+        text-align: center;
+        color: #D9D9D9;
+    }
+
+    .drop input {
+        position: absolute;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        outline: none;
+        opacity: 0;
+    }
+
+    .blue {
+        box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.1);
+        border: 4px dashed #337ab7;
+    }
+
+    .dropped {
+        color: #333 !important;
+    }
+
+    .panel-heading .accordion-toggle:after {
+        font-family: 'Glyphicons Halflings';
+        content: "\e114";
+        float: right;
+        color: grey;
+    }
+
+    .panel-heading .accordion-toggle.collapsed:after {
+        content: "\e080";
+    }
+
+    .required:after {
+        content: "*";
+        color: #cb181d;
+    }
+
+    .upload-wizard {
+        margin: 20px auto;
+        background: #fff;
+    }
+
+    .upload-wizard .nav-tabs {
+        position: relative;
+        margin: 40px auto;
+        margin-bottom: 0;
+        border-bottom-color: #e0e0e0;
+    }
+
+    .upload-wizard>div.upload-wizard-inner {
+        position: relative;
+    }
+
+    .connecting-line {
+        height: 2px;
+        background: #e0e0e0;
+        position: absolute;
+        width: 80%;
+        margin: 0 auto;
+        left: 0;
+        right: 0;
+        top: 50%;
+        z-index: 1;
+    }
+
+    .upload-wizard .nav-tabs>li.active>a, .upload-wizard .nav-tabs>li.active>a:hover, .upload-wizard .nav-tabs>li.active>a:focus {
+        color: #555555;
+        cursor: default;
+        border: 0;
+        border-bottom-color: transparent;
+    }
+
+    span.round-tab {
+        width: 70px;
+        height: 70px;
+        line-height: 70px;
+        display: inline-block;
+        border-radius: 100px;
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        z-index: 2;
+        position: absolute;
+        left: 0;
+        text-align: center;
+        font-size: 25px;
+    }
+
+    span.round-tab i {
+        color: #555555;
+    }
+
+    .upload-wizard li.active span.round-tab {
+        background: #fff;
+        border: 2px solid #337ab7;
+    }
+
+    .upload-wizard li.active span.round-tab i {
+        color: #337ab7;
+    }
+
+    span.round-tab:hover {
+        color: #333;
+        border: 2px solid #333;
+    }
+
+    .upload-wizard .nav-tabs>li {
+        width: 25%;
+    }
+
+    .upload-wizard li:after {
+        content: " ";
+        position: absolute;
+        left: 46%;
+        opacity: 0;
+        margin: 0 auto;
+        bottom: 0px;
+        border: 5px solid transparent;
+        border-bottom-color: #337ab7;
+        transition: 0.1s ease-in-out;
+    }
+
+    .upload-wizard li.active:after {
+        content: " ";
+        position: absolute;
+        left: 46%;
+        opacity: 1;
+        margin: 0 auto;
+        bottom: 0px;
+        border: 10px solid transparent;
+        border-bottom-color: #337ab7;
+    }
+
+    .upload-wizard .nav-tabs>li a {
+        width: 70px;
+        height: 70px;
+        margin: 20px auto;
+        border-radius: 100%;
+        padding: 0;
+    }
+
+    .upload-wizard .nav-tabs>li a:hover {
+        background: transparent;
+    }
+
+    .upload-wizard .tab-pane {
+        position: relative;
+        padding-top: 50px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 50px;
+    }
+
+    .upload-wizard h3 {
+        margin-top: 0;
+    }
+
+    @media( max-width: 585px) {
+        .upload-wizard {
+            width: 90%;
+            height: auto !important;
+        }
+        span.round-tab {
+            font-size: 16px;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+        }
+        .upload-wizard .nav-tabs>li a {
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+        }
+        .upload-wizard li.active:after {
+            content: " ";
+            position: absolute;
+            left: 35%;
+        }
+    }
+
+    body.modal-open .main-container {
+        filter: blur(3px);
+        -webkit-filter: blur(3px);
+        -ms-filter: blur(3px);
+        filter: url("data:image/svg+xml;utf9,<svg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'><filter%20id='blur'><feGaussianBlur%20stdDeviation='3'%20/></filter></svg>#blur");
+        filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');
+    }
