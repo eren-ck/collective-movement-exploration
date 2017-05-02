@@ -26,7 +26,7 @@
 
 ## Demo
 
-You can test a fully working live demo [here](https://animal.dbvis.de/ )
+You can test a fully working live demo [here](https://animals.dbvis.de/)
 
 ## Installation
 
