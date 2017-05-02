@@ -6,8 +6,12 @@
 <br>
 
 ## Visualize the Collective Movement
-<p align="center"><img src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/Fish5.gif" width=50%></p>
-<p align="center"><img src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/Fish151-dc.gif" width=50%></p>
+
+5 Stickelback fish             |  151 Goldenshiner fish
+:-------------------------:|:-------------------------:
+ <img src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/Fish5.gif" width=100%> |  <img src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/Fish151-dc.gif" width=100%>
+
+
 
 ## Main Features
 
@@ -30,21 +34,20 @@ You can test a fully working live demo [here](https://animals.dbvis.de/)
 
 ## Installation
 
-TODO write nice installation guide
+Please read [Installation](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/installation.md)
 
 ## How to use
 
-TODO write nice tutorial
+Please read [How to use](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/HowTo.md)
 
 ## Built With
 
 * [Flask](http://flask.pocoo.org/) - The web framework used
 * [D3](https://d3js.org/) - Visualizations
-* Other libs
-
-## Contributing
-
-TODO
+* [jQuery](http://jquery.com/)
+* [jQuery UI](http://jqueryui.com/)
+* [Bootstrap 4](http://getbootstrap.com/)
+* [Papaparse](http://papaparse.com/)
 
 ## Authors
 
@@ -57,3 +60,5 @@ See also the list of [contributors](https://github.com/dbvis-eren-ck/collective-
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
+
+Thanks to Juri Buchmüller, Prof. Daniel Keim, Jolle Jolles and Prof. Dr. Iain Couzin for their direct support of this project
