@@ -1,13 +1,13 @@
 # Collective Movement Exploration
 > A web application to explore and analyze collective movement datasets.
 
-<p align="center"><img width=60% src="https://github.com/dbvis-eren-ck/collective-movement-exploration/tree/master/media/collective-movement-exploration-pipeline.png"></p>
+<p align="center"><img width=100% src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/collective-movement-exploration-pipeline.png"></p>
 
 <br>
 
 ## Visualize the Collective Movement
-<img src="https://github.com/dbvis-eren-ck/collective-movement-exploration/tree/master/media/Fish5.gif" width=40%>
-<img src="https://github.com/dbvis-eren-ck/collective-movement-exploration/tree/master/media/Fish151-dc.gif" width=40%>
+<p align="center"><img src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/Fish5.gif" width=50%></p>
+<p align="center"><img src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/Fish151-dc.gif" width=50%></p>
 
 ## Main Features
 
