@@ -32,13 +32,13 @@
 
 You can test a fully working live demo [here](https://animals.dbvis.de/)
 
-## Installation
+## Documentation
 
-Please read [Installation](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/installation.md)
-
-## How to use
-
-Please read [How to use](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/HowTo.md)
+*  __[How to use](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/HowTo.md)__
+*  __[Database](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/database.md)__
+* __[Installation](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/installation.md)__
+* __[Input Files](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/input.md)__
+* __[Rest API](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/doc/rest.md)__
 
 ## Built With
 
