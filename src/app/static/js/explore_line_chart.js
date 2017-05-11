@@ -333,8 +333,57 @@ animalNameSpace.lineChart = function() {
      *
      */
     function addTrendChart(elem) {
-        console.log(elem);
-        console.log('ADDD TREND CHART');
+        // which feature to display in the trend chart
+        let feature = '';
+        if (elem['id'].toLowerCase().includes('speed')) {
+            feature = 'speed';
+        } else if (elem['id'].toLowerCase().includes('acceleration')) {
+            feature = 'acceleration';
+        } else if (elem['id'].toLowerCase().includes('distancecentroid')) {
+            feature = 'distance_centroid';
+        }
+        // get the data for the trend chart
+        let trendChartData = [];
+        // calculate the percetiles for every time step
+        for (let i = 0; i < self.swarmData.length; i++) {
+            let tmp = [];
+            for (let j = 0; j < self.num_animals; j++) {
+                if (self.dataset[i * self.num_animals + j]) {
+                    tmp.push(self.dataset[i * self.num_animals + j][feature]);
+                }
+            }
+            trendChartData.push(percentiles(tmp));
+        }
+        console.log(trendChartData);
+
+
+    }
+
+    /**
+     * Return the 05, 25, 50, 75, 95 percentiles of the array
+     *
+     */
+    function percentiles(arr) {
+        let p = [0.5, 0.25, 0.5, 0.75, 0.95];
+        let result = [];
+        if (arr.length === 0) {
+            return 0;
+        }
+        arr.sort(function(a, b) {
+            return a - b;
+        });
+        for (let i = 0; i < p.length; i++) {
+            let index = (arr.length - 1) * p[i];
+            let lower = Math.floor(index);
+            let upper = lower + 1;
+            let weight = index % 1;
+            if (upper >= arr.length) {
+                result.push(arr[lower]);
+            } else {
+                result.push(arr[lower] * (1 - weight) + arr[upper] * weight);
+            }
+        }
+        return result;
     }
 
     /**

@@ -17,7 +17,6 @@ animalNameSpace.spatialView = function() {
     let tank;
     let tooltip; // the tooltip
     let playBoolean = true; // pause and play boolean
-    let num_animals;
     var activeScale = 'black'; // no color scales
     var colorScales = {
         type: 'Linear',
@@ -77,7 +76,7 @@ animalNameSpace.spatialView = function() {
             .hide();
 
         // number of distinct animal ids
-        num_animals = new Set();
+        let num_animals = new Set();
         for (let i = 0; i < self.dataset.length; i++) {
             if (self.dataset[i]['t'] === self.dataset[0]['t']) {
                 num_animals.add(self.dataset[i]['a']);
@@ -85,7 +84,7 @@ animalNameSpace.spatialView = function() {
                 i = self.dataset.length;
             }
         }
-        num_animals = num_animals.size;
+        self.num_animals = num_animals.size;
 
         // initialize the slider
         $slider = $('#slider')
@@ -303,7 +302,7 @@ animalNameSpace.spatialView = function() {
             .val();
 
         //get the next animals
-        arrayAnimals = self.dataset.slice(num_animals * self.indexTime, num_animals * self.indexTime + num_animals);
+        arrayAnimals = self.dataset.slice(self.num_animals * self.indexTime, self.num_animals * self.indexTime + self.num_animals);
 
         //the timeout is set after one update 30 ms
         setTimeout(function() {
@@ -917,7 +916,7 @@ animalNameSpace.spatialView = function() {
     function brushend() {
         var rect = d3.event.selection;
         //iterate over the 151 fish to check which are in the brush
-        for (var i = 0; i < num_animals; i++) {
+        for (var i = 0; i < self.num_animals; i++) {
             var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
             //check which fish are in  the brushed area
             if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
@@ -1051,37 +1050,6 @@ animalNameSpace.spatialView = function() {
         }
     });
 
-    /**
-     * Line chart details click listener
-     *
-     */
-    $('.draw-details').click(function() {
-        if (!$(this).hasClass('active')) {
-            disableLineChart();
-        } else {
-            enableLineChart();
-        }
-    });
-
-    /**
-     * Line chart details click listener
-     *
-     */
-    function disableLineChart() {
-        $('.lineChartButton').prop('checked', false).prop('disabled', true);
-        $('.lineChartCheckBox').addClass('disabled');
-        $('.lineChartLine').attr('visibility', 'hidden');
-    }
-
-    /**
-     * Line chart details click listener
-     *
-     */
-    function enableLineChart() {
-        $('.lineChartButton').prop('checked', true).prop('disabled', false);
-        $('.lineChartCheckBox').removeClass('disabled');
-        $('.lineChartLine').attr('visibility', 'visible');
-    }
 
     /**
      * Disable the play button --> Loading symbol
