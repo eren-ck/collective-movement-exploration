@@ -627,13 +627,16 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
+            $('.draw-details').addClass('hidden');
+            $('#drawSpeedDetails').removeClass('hidden');
             $('#drawAcceleration').prop('checked', false);
             $('#drawDistanceCentroid').prop('checked', false);
-            $('#drawDirectionChange').prop('checked', false);
             activeScale = 'speed';
         } else {
+            $('#drawSpeedDetails').addClass('hidden');
             activeScale = 'black';
         }
+        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -672,13 +675,16 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
+            $('.draw-details').addClass('hidden');
+            $('#drawAccelerationDetails').removeClass('hidden');
             $('#drawSpeed').prop('checked', false);
             $('#drawDistanceCentroid').prop('checked', false);
-            $('#drawDirectionChange').prop('checked', false);
             activeScale = 'acceleration';
         } else {
+            $('#drawAccelerationDetails').addClass('hidden');
             activeScale = 'black';
         }
+        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -717,13 +723,16 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
+            $('.draw-details').addClass('hidden');
+            $('#drawDistanceCentroidDetails').removeClass('hidden');
             $('#drawSpeed').prop('checked', false);
             $('#drawAcceleration').prop('checked', false);
-            $('#drawDirectionChange').prop('checked', false);
             activeScale = 'distance_centroid';
         } else {
+            $('#drawDistanceCentroidDetails').addClass('hidden');
             activeScale = 'black';
         }
+        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -1042,6 +1051,37 @@ animalNameSpace.spatialView = function() {
         }
     });
 
+    /**
+     * Line chart details click listener
+     *
+     */
+    $('.draw-details').click(function() {
+        if (!$(this).hasClass('active')) {
+            disableLineChart();
+        } else {
+            enableLineChart();
+        }
+    });
+
+    /**
+     * Line chart details click listener
+     *
+     */
+    function disableLineChart() {
+        $('.lineChartButton').prop('checked', false).prop('disabled', true);
+        $('.lineChartCheckBox').addClass('disabled');
+        $('.lineChartLine').attr('visibility', 'hidden');
+    }
+
+    /**
+     * Line chart details click listener
+     *
+     */
+    function enableLineChart() {
+        $('.lineChartButton').prop('checked', true).prop('disabled', false);
+        $('.lineChartCheckBox').removeClass('disabled');
+        $('.lineChartLine').attr('visibility', 'visible');
+    }
 
     /**
      * Disable the play button --> Loading symbol

@@ -146,7 +146,7 @@ animalNameSpace.lineChart = function() {
     swarmLineChart.append('path')
         .data([lineChartData])
         .attr('id', 'convexHullAreaLine')
-        .attr('class', 'line')
+        .attr('class', 'line lineChartLine')
         .attr('transform', 'translate(' + marginLineChart + ',0)')
         .style('stroke', '#1f78b4')
         .attr('d', line)
@@ -173,7 +173,7 @@ animalNameSpace.lineChart = function() {
     swarmLineChart.append('path')
         .data([lineChartData])
         .attr('id', 'speedLine')
-        .attr('class', 'line')
+        .attr('class', 'line lineChartLine')
         .attr('transform', 'translate(' + marginLineChart + ',0)')
         .style('stroke', '#33a02c')
         .attr('d', line)
@@ -200,7 +200,7 @@ animalNameSpace.lineChart = function() {
     swarmLineChart.append('path')
         .data([lineChartData])
         .attr('id', 'accelerationLine')
-        .attr('class', 'line')
+        .attr('class', 'line lineChartLine')
         .attr('transform', 'translate(' + marginLineChart + ',0)')
         .style('stroke', '#ff7f00')
         .attr('d', line)
@@ -294,4 +294,55 @@ animalNameSpace.lineChart = function() {
                 .attr('visibility', 'hidden');
         }
     });
+    /**
+     * Line chart details click listener
+     *
+     */
+    $('.draw-details').click(function() {
+        if (!$(this).hasClass('active')) {
+            disableLineChart();
+            addTrendChart(this);
+        } else {
+            removeTrendChart();
+            enableLineChart();
+        }
+    });
+
+    /**
+     * Line chart details click listener
+     *
+     */
+    function disableLineChart() {
+        $('.lineChartButton').prop('checked', false).prop('disabled', true);
+        $('.lineChartCheckBox').addClass('disabled');
+        $('.lineChartLine').attr('visibility', 'hidden');
+    }
+
+    /**
+     * Line chart details click listener
+     *
+     */
+    function enableLineChart() {
+        $('.lineChartButton').prop('checked', true).prop('disabled', false);
+        $('.lineChartCheckBox').removeClass('disabled');
+        $('.lineChartLine').attr('visibility', 'visible');
+    }
+
+    /**
+     * Add a trend chart showing median and percentiles
+     *
+     */
+    function addTrendChart(elem) {
+        console.log(elem);
+        console.log('ADDD TREND CHART');
+    }
+
+    /**
+     * Remove the trend chart
+     *
+     */
+    function removeTrendChart() {
+        console.log('REMOVE TREND CHART');
+    }
+
 };

@@ -345,3 +345,7 @@ div.tooltip table td:nth-child(2) {
     text-align: center;
     font-weight: bold;
 }
+
+.lineChartCheckBox.disabled {
+    color: #ccc;
+}
