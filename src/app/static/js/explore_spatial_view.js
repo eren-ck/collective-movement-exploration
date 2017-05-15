@@ -17,7 +17,6 @@ animalNameSpace.spatialView = function() {
     let tank;
     let tooltip; // the tooltip
     let playBoolean = true; // pause and play boolean
-    let num_animals;
     var activeScale = 'black'; // no color scales
     var colorScales = {
         type: 'Linear',
@@ -77,7 +76,7 @@ animalNameSpace.spatialView = function() {
             .hide();
 
         // number of distinct animal ids
-        num_animals = new Set();
+        let num_animals = new Set();
         for (let i = 0; i < self.dataset.length; i++) {
             if (self.dataset[i]['t'] === self.dataset[0]['t']) {
                 num_animals.add(self.dataset[i]['a']);
@@ -85,7 +84,7 @@ animalNameSpace.spatialView = function() {
                 i = self.dataset.length;
             }
         }
-        num_animals = num_animals.size;
+        self.num_animals = num_animals.size;
 
         // initialize the slider
         $slider = $('#slider')
@@ -303,7 +302,7 @@ animalNameSpace.spatialView = function() {
             .val();
 
         //get the next animals
-        arrayAnimals = self.dataset.slice(num_animals * self.indexTime, num_animals * self.indexTime + num_animals);
+        arrayAnimals = self.dataset.slice(self.num_animals * self.indexTime, self.num_animals * self.indexTime + self.num_animals);
 
         //the timeout is set after one update 30 ms
         setTimeout(function() {
@@ -627,13 +626,16 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
+            $('.draw-details').addClass('hidden');
+            $('#drawSpeedDetails').removeClass('hidden');
             $('#drawAcceleration').prop('checked', false);
             $('#drawDistanceCentroid').prop('checked', false);
-            $('#drawDirectionChange').prop('checked', false);
             activeScale = 'speed';
         } else {
+            $('#drawSpeedDetails').addClass('hidden');
             activeScale = 'black';
         }
+        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -672,13 +674,16 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
+            $('.draw-details').addClass('hidden');
+            $('#drawAccelerationDetails').removeClass('hidden');
             $('#drawSpeed').prop('checked', false);
             $('#drawDistanceCentroid').prop('checked', false);
-            $('#drawDirectionChange').prop('checked', false);
             activeScale = 'acceleration';
         } else {
+            $('#drawAccelerationDetails').addClass('hidden');
             activeScale = 'black';
         }
+        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -717,13 +722,16 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
+            $('.draw-details').addClass('hidden');
+            $('#drawDistanceCentroidDetails').removeClass('hidden');
             $('#drawSpeed').prop('checked', false);
             $('#drawAcceleration').prop('checked', false);
-            $('#drawDirectionChange').prop('checked', false);
             activeScale = 'distance_centroid';
         } else {
+            $('#drawDistanceCentroidDetails').addClass('hidden');
             activeScale = 'black';
         }
+        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -908,7 +916,7 @@ animalNameSpace.spatialView = function() {
     function brushend() {
         var rect = d3.event.selection;
         //iterate over the 151 fish to check which are in the brush
-        for (var i = 0; i < num_animals; i++) {
+        for (var i = 0; i < self.num_animals; i++) {
             var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
             //check which fish are in  the brushed area
             if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&

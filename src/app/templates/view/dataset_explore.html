@@ -15,6 +15,11 @@
     var parameters = {{ parameters | tojson}}
 
 
+
+
+
+
+
 </script>
 {{dataset}}
 </div>
@@ -63,42 +68,59 @@
 
                                 <div class="featureCheckBox-default">
                                     <input type="checkbox" name="checkbox" id="drawSpeed"/>
-                                    <label for="drawSpeed">Speed</label>
+                                    <label for="drawSpeed">
+                                        Speed
+                                        <button type="button" id="drawSpeedDetails"
+                                                class="btn btn-default pull-right hidden draw-details"
+                                                data-toggle="button"
+                                                aria-pressed="false" autocomplete="off">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </label>
                                 </div>
+
                                 <div class="featureCheckBox-default">
                                     <input type="checkbox" name="checkbox" id="drawAcceleration"/>
-                                    <label for="drawAcceleration">Acceleration</label>
+                                    <label for="drawAcceleration">
+                                        Acceleration
+                                        <button type="button" id="drawAccelerationDetails"
+                                                class="btn btn-default pull-right hidden draw-details"
+                                                data-toggle="button"
+                                                aria-pressed="false" autocomplete="off">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </label>
                                 </div>
-                                <!--<div class="featureCheckBox-default">-->
-                                <!--<input type="checkbox" name="checkbox" id="drawDirectionChange"/>-->
-                                <!--<label for="drawDirectionChange">Direction Change</label>-->
-                                <!--</div>-->
+
                                 <div class="featureCheckBox-default">
                                     <input type="checkbox" name="checkbox" id="drawDistanceCentroid"/>
-                                    <label for="drawDistanceCentroid">Distance to Centroid</label>
+                                    <label for="drawDistanceCentroid">
+                                        Distance to Centroid
+                                        <button type="button" id="drawDistanceCentroidDetails"
+                                                class="btn btn-default pull-right hidden draw-details"
+                                                data-toggle="button"
+                                                aria-pressed="false" autocomplete="off">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </label>
                                 </div>
 
                                 <!-- Draw swarm features -->
                                 <br>
                                 <strong>Line Chart AVG </strong>
                                 <br>
-                                <div class="featureCheckBox-default">
+                                <div class="featureCheckBox-default lineChartCheckBox">
                                     <input id="drawSwarmConvexHullArea" class="lineChartButton" type="checkbox">
                                     <label for="drawSwarmConvexHullArea">Convex Hull Area</label>
                                 </div>
-                                <div class="featureCheckBox-default">
+                                <div class="featureCheckBox-default lineChartCheckBox">
                                     <input id="drawSwarmSpeed" class="lineChartButton" type="checkbox">
                                     <label for="drawSwarmSpeed">Speed</label>
                                 </div>
-                                <div class="featureCheckBox-default">
+                                <div class="featureCheckBox-default lineChartCheckBox">
                                     <input id="drawSwarmAcceleration" class="lineChartButton" type="checkbox">
                                     <label for="drawSwarmAcceleration">Acceleration</label>
                                 </div>
-                                <!--<div class="featureCheckBox-default">-->
-                                <!--<input id="drawSwarmDirectionChange" class="lineChartButton" type="checkbox">-->
-                                <!--<label for="drawSwarmDirectionChange">Direction Change</label>-->
-                                <!--</div>-->
-
                             </div>
                         </div>
                     </div>
@@ -230,52 +252,51 @@
 </div>
 
 
-
-    <!-- Tooltip -->
-    <div class="tooltip">
-        <div class="container-small">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th><em>Feature</em></th>
-                        <th lass="info">Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            Animal ID
-                        </td>
-                        <td id="tooltip-animal-id" class="info"></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Species
-                        </td>
-                        <td id="tooltip-species" class="info"></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Sex
-                        </td>
-                        <td id="tooltip-sex" class="info"></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Size
-                        </td>
-                        <td id="tooltip-size" class="info"></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Weight
-                        </td>
-                        <td id="tooltip-weight" class="info"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<!-- Tooltip -->
+<div class="tooltip">
+    <div class="container-small">
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th><em>Feature</em></th>
+                <th lass="info">Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>
+                    Animal ID
+                </td>
+                <td id="tooltip-animal-id" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Species
+                </td>
+                <td id="tooltip-species" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Sex
+                </td>
+                <td id="tooltip-sex" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Size
+                </td>
+                <td id="tooltip-size" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Weight
+                </td>
+                <td id="tooltip-weight" class="info"></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
+</div>
 
 
 <!--Modal for settings -->
@@ -392,8 +413,6 @@
         </div>
     </div>
 </div>
-
-
 
 
 {% endblock %}
