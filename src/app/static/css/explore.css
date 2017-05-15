@@ -349,3 +349,23 @@ div.tooltip table td:nth-child(2) {
 .lineChartCheckBox.disabled {
     color: #ccc;
 }
+
+.area {
+    stroke-width: 1;
+}
+
+.area.outer, .legend .outer {
+    fill: #74a9cfcc;
+    stroke: #3690c0cc;
+}
+
+.area.inner, .legend .inner {
+    fill: #045a8dcc;
+    stroke: #023858cc;
+}
+
+.median-line, .legend .median-line {
+    fill: none;
+    stroke: #525252cc;
+    stroke-width: 3;
+}

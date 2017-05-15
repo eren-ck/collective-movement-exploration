@@ -254,6 +254,42 @@ animalNameSpace.lineChart = function() {
                 .text('0.0');
         });
 
+    //append a legend group for the trend charts
+    swarmLineChart
+        .append('g')
+        .attr('id', 'trendChartLegend')
+        .attr('transform', 'translate(' + marginLineChart + ',' + lineChartHeight + ')')
+        .selectAll('rect.legend')
+        .data(['5% - 95%', '25% - 75%', 'Median'])
+        .enter()
+        //append the whole legend in a each function
+        .each(function(d, i) {
+            let spacing = 800;
+            let textSpace = 40;
+            // append the rectangles for the legend
+            d3.select(this).append('rect')
+                .attr('class', 'legend')
+                .attr('width', legendWidth)
+                .attr('height', legendHeight)
+                .attr('x', (spacing * i) + 'px')
+                .style('fill', function() {
+                    if (i === 0) {
+                        return '#74a9cf';
+                    } else if (i === 1) {
+                        return '#045a8d';
+                    } else {
+                        return '#525252';
+                    }
+                });
+
+            // append the text for the legend
+            d3.select(this).append('text')
+                .attr('class', 'lineChartlegendText')
+                .attr('y', textSpace)
+                .attr('x', (spacing * i + legendWidth + 10) + 'px')
+                .text(d);
+        });
+    $('#trendChartLegend').hide();
 
     /**
      * Draw line chart convex hull area line
@@ -333,7 +369,7 @@ animalNameSpace.lineChart = function() {
      *
      */
     function addTrendChart(elem) {
-        // which feature to display in the trend chart
+        // check which feature to display in the trend chart
         let feature = '';
         if (elem['id'].toLowerCase().includes('speed')) {
             feature = 'speed';
@@ -341,22 +377,153 @@ animalNameSpace.lineChart = function() {
             feature = 'acceleration';
         } else if (elem['id'].toLowerCase().includes('distancecentroid')) {
             feature = 'distance_centroid';
+        } else {
+            return;
         }
-        // get the data for the trend chart
-        let trendChartData = [];
-        // calculate the percetiles for every time step
-        for (let i = 0; i < self.swarmData.length; i++) {
-            let tmp = [];
-            for (let j = 0; j < self.num_animals; j++) {
-                if (self.dataset[i * self.num_animals + j]) {
-                    tmp.push(self.dataset[i * self.num_animals + j][feature]);
+        // data is not loaded fully -- return
+        if (!self.dataset[0][feature]) {
+            return;
+        }
+        // change to the trend chart legend
+        $('#lineChartLegend').hide();
+        $('#trendChartLegend').show();
+        // check if already computed and only hidden
+        if (!$(('#' + feature + 'TrendChart')).length) {
+            // get the data for the trend chart
+            let trendChartData = [];
+            // calculate the percetiles for every time step
+            for (let i = 0; i < self.swarmData.length; i++) {
+                let tmp = [];
+                for (let j = 0; j < self.num_animals; j++) {
+                    if (self.dataset[i * self.num_animals + j]) {
+                        tmp.push(self.dataset[i * self.num_animals + j][feature]);
+                    }
                 }
+                trendChartData.push(percentiles(tmp));
             }
-            trendChartData.push(percentiles(tmp));
+            //aggregate and average the trendChartData to 500 data points
+            if (trendChartData.length > 5000) {
+                let tmpTrendChartData = [];
+                ratio = Math.ceil(trendChartData.length / 5000);
+
+                // [perc05,perc25,perc50,perc75,perc95]
+                let tmp = [0, 0, 0, 0, 0];
+
+                for (let i = 0; i < trendChartData.length; i++) {
+                    // aggregate
+                    for (let j = 0; j < tmp.length; j++) {
+                        tmp[j] += trendChartData[i][j];
+                    }
+                    // divide
+                    if (i % ratio === 0) {
+                        for (let j = 0; j < tmp.length; j++) {
+                            tmp[j] += tmp[j] / ratio;
+                        }
+                        //add to the
+                        tmpTrendChartData.push(tmp);
+                        // [perc05,perc25,perc50,perc75,perc95]
+                        tmp = [0, 0, 0, 0, 0];
+                    }
+                }
+                trendChartData = tmpTrendChartData;
+            }
+            // get min and max for the normalization
+            let min = d3.min(trendChartData, function(d) {
+                return d[0];
+            });
+            let max = d3.max(trendChartData, function(d) {
+                return d[4];
+            });
+            let normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
+
+            // add a group for the trend chart
+            let trendChart = swarmLineChart.append('g')
+                .attr('id', (feature + 'TrendChart'))
+                .attr('class', 'trendChartData')
+                .attr('transform', 'translate(' + marginLineChart + ',0)');
+            // functions for the upper and inner areas and the median
+            var upperOuterArea = d3.area()
+                .x(function(d, i) {
+                    return xLineChart(i);
+                })
+                .y0(function(d) {
+                    return yLineChart(normalizationScale(d[4]));
+                })
+                .y1(function(d) {
+                    return yLineChart(normalizationScale(d[3]));
+                });
+
+            var upperInnerArea = d3.area()
+                .x(function(d, i) {
+                    return xLineChart(i);
+                })
+                .y0(function(d) {
+                    return yLineChart(normalizationScale(d[3]));
+                })
+                .y1(function(d) {
+                    return yLineChart(normalizationScale(d[2]));
+                });
+
+            var medianLine = d3.line()
+                .x(function(d, i) {
+                    return xLineChart(i);
+                })
+                .y(function(d) {
+                    return yLineChart(normalizationScale(d[2]));
+                });
+
+            var lowerInnerArea = d3.area()
+                .x(function(d, i) {
+                    return xLineChart(i);
+                })
+                .y0(function(d) {
+                    return yLineChart(normalizationScale(d[2]));
+                })
+                .y1(function(d) {
+                    return yLineChart(normalizationScale(d[1]));
+                });
+
+            var lowerOuterArea = d3.area()
+                .x(function(d, i) {
+                    return xLineChart(i);
+                })
+                .y0(function(d) {
+                    return yLineChart(normalizationScale(d[1]));
+                })
+                .y1(function(d) {
+                    return yLineChart(normalizationScale(d[0]));
+                });
+
+            // add the paths to the line chart
+            trendChart.append('path')
+                .data([trendChartData])
+                .attr('class', 'area upper outer')
+                .attr('d', upperOuterArea);
+
+            trendChart.append('path')
+                .data([trendChartData])
+                .attr('class', 'area lower outer')
+                .attr('d', lowerOuterArea);
+
+            trendChart.append('path')
+                .data([trendChartData])
+                .attr('class', 'area upper inner')
+                .attr('d', upperInnerArea);
+
+            trendChart.append('path')
+                .data([trendChartData])
+                .attr('class', 'area lower inner')
+                .attr('d', lowerInnerArea);
+
+            trendChart.append('path')
+                .data([trendChartData])
+                .attr('class', 'median-line')
+                .attr('d', medianLine);
+
+        } else {
+            // show the trend chart 
+            $(('#' + feature + 'TrendChart')).show();
         }
-        console.log(trendChartData);
-
-
     }
 
     /**
@@ -364,7 +531,7 @@ animalNameSpace.lineChart = function() {
      *
      */
     function percentiles(arr) {
-        let p = [0.5, 0.25, 0.5, 0.75, 0.95];
+        let p = [0.05, 0.25, 0.5, 0.75, 0.95];
         let result = [];
         if (arr.length === 0) {
             return 0;
@@ -387,11 +554,13 @@ animalNameSpace.lineChart = function() {
     }
 
     /**
-     * Remove the trend chart
+     * Hide the trend chart
      *
      */
     function removeTrendChart() {
-        console.log('REMOVE TREND CHART');
+        $('.trendChartData').hide();
+        $('#trendChartLegend').hide();
+        $('#lineChartLegend').show();
     }
 
 };
