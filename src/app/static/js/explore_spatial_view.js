@@ -43,20 +43,22 @@ animalNameSpace.spatialView = function() {
      */
     function initialize() {
 
-        $(function() {
-            $('#mainVis').draggable({
-                containment: 'parent'
-            }).resizable({
-                aspectRatio: true,
-            });
-        });
-
         let minPoint = parameters['min']['geometry']['coordinates'];
         let maxPoint = parameters['max']['geometry']['coordinates'];
         // let coordinateOrigin = parameters['coordinate_origin']['geometry']['coordinates'];
         // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
         tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
         tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
+
+        $(function() {
+            $('#mainVis').draggable({
+                    containment: 'parent'
+                }).resizable({
+                    aspectRatio: true,
+                }).height(tankHeight * 0.5)
+                .width(tankWidth * 0.5);
+
+        });
 
         //reset all checkboxes
         $('input[type=checkbox]')
