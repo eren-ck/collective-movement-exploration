@@ -369,3 +369,11 @@ div.tooltip table td:nth-child(2) {
     stroke: #525252cc;
     stroke-width: 3;
 }
+
+.selected {
+    background: #999;
+    border: 4px solid #4d4d4d;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, .4);
+}

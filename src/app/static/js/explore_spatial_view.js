@@ -256,6 +256,9 @@ animalNameSpace.spatialView = function() {
                 return d.key;
             })
             .on('click', function(d) {
+                // hightlight the right palette
+                $('.palette').removeClass('selected');
+                $('.palette[title=\"' + d.key + '\"]').addClass('selected');
                 colorScales.color = colorbrewer[d.key];
                 changeLegend();
                 if (!$('#playButton')
@@ -276,9 +279,12 @@ animalNameSpace.spatialView = function() {
             .style('background-color', function(d) {
                 return d;
             });
+        // highlight the selected color scheme
+        $('.palette[title=\"BuYlBu\"]').addClass('selected');
 
         //Draw the fish swarm line chart
         self.lineChart();
+
 
         draw();
 
