@@ -72,10 +72,12 @@ $(document).ready(function() {
             }
         }
     });
+
     // get the swarm features for the line chart
+    let swarm_features = ['swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area', 'swarm_distance_centroid'];
 
     $.ajax({
-        url: '/api/dataset/' + parameters['id'] + '/swarm_speed',
+        url: '/api/dataset/' + parameters['id'] + '/' + swarm_features[0],
         dataType: 'json',
         type: 'GET',
         contentType: 'application/json; charset=utf-8',
@@ -83,6 +85,8 @@ $(document).ready(function() {
             'Accept': JSONAPI_MIMETYPE
         },
         success: function(data) {
+            // this has to be done first - do not remove
+            // TODO find a better solution for this
             // add the speed feature to the dataset
             for (let i = 0; i < data.length; i++) {
                 animalNameSpace.swarmData.push({
@@ -90,38 +94,25 @@ $(document).ready(function() {
                     'speed': +data[i]
                 });
             }
-
-            $.ajax({
-                url: '/api/dataset/' + parameters['id'] + '/swarm_acceleration',
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'Accept': JSONAPI_MIMETYPE
-                },
-                success: function(data) {
-                    // add the speed feature to the dataset
-                    for (let i = 0; i < animalNameSpace.swarmData.length; i++) {
-                        animalNameSpace.swarmData[i]['acceleration'] = +data[i];
+            // get all the other swarm features for the line chart
+            for (let i = 1; i < swarm_features.length; i++) {
+                $.ajax({
+                    url: '/api/dataset/' + parameters['id'] + '/' + swarm_features[i],
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: {
+                        'Accept': JSONAPI_MIMETYPE
+                    },
+                    success: function(data) {
+                        let string_feature = swarm_features[i].replace('swarm_', '');
+                        // add the speed feature to the dataset
+                        for (let i = 0; i < animalNameSpace.swarmData.length; i++) {
+                            animalNameSpace.swarmData[i][string_feature] = +data[i];
+                        }
                     }
-                }
-            });
-
-            $.ajax({
-                url: '/api/dataset/' + parameters['id'] + '/swarm_convex_hull_area',
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'Accept': JSONAPI_MIMETYPE
-                },
-                success: function(data) {
-                    // add the speed feature to the dataset
-                    for (let i = 0; i < animalNameSpace.swarmData.length; i++) {
-                        animalNameSpace.swarmData[i]['convex_hull_area'] = +data[i];
-                    }
-                }
-            });
+                });
+            }
 
             //get metadata information
             $.ajax({

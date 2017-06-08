@@ -36,6 +36,8 @@ def calculate_swarm_features(id):
         calculate_voronoi_diagram(id, session)
         # calculate metric distance, speed and acceleration
         calculate_speed_acceleration(id, session)
+        #  calculate the mean distance to centorid for the whole swarm
+        calculate_mean_distance_centroid(id,session)
         # ToDO change this here sometime
         dataset[0].status = 'Complete'
         dataset[0].progress = 100
@@ -217,6 +219,23 @@ def calculate_speed_acceleration(id, session):
     query = '''UPDATE group_data
                 SET acceleration = subquery.acceleration
                 FROM (  SELECT "time", SUM(acceleration) as acceleration
+                        FROM movement_data
+                        WHERE dataset_id = :id
+                        GROUP BY "time") as subquery
+                WHERE group_data.time = subquery.time
+                      AND group_data.dataset_id = :id;'''
+    session.execute(query, {'id': id})
+
+def calculate_mean_distance_centroid(id, session):
+    """ Calculate the mean distance to the centroid for the whole swarm
+
+    Keyword arguments:
+    id - id of the dataset
+    session - db session
+    """
+    query = '''UPDATE group_data
+                SET distance_centroid = subquery.distance
+                FROM (  SELECT "time", AVG(distance_centroid) as distance
                         FROM movement_data
                         WHERE dataset_id = :id
                         GROUP BY "time") as subquery

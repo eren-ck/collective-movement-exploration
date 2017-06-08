@@ -66,9 +66,6 @@ animalNameSpace.spatialView = function() {
         //set the color scale function to linear
         $('#colorScaleLinear')
             .prop('checked', true);
-        //check line chart draw all lines
-        $('.lineChartButton')
-            .prop('checked', true);
         $('#group-size-m')
             .prop('checked', true);
         $('#background-white')
@@ -554,12 +551,15 @@ animalNameSpace.spatialView = function() {
                     let tmp = Math.ceil(self.indexTime / lineChartRatio);
                     //update the line chart legend text values per second
                     if (self.indexTime % 25 === 0) {
-                        d3.select('#convexHullAreaLineValue')
+                        // TODO change this to a more modular way 
+                        d3.select('#convex_hull_areaLineValue')
                             .text((self.swarmData[tmp]['convex_hull_area']) + 'mm²');
                         d3.select('#speedLineValue')
                             .text(self.swarmData[tmp]['speed'] + 'mm/s');
                         d3.select('#accelerationLineValue')
                             .text(self.swarmData[tmp]['acceleration'] + 'mm/s²');
+                        d3.select('#distance_centroidLineValue')
+                            .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
                     }
 
                     d3.select('#lineChartTimeLine')

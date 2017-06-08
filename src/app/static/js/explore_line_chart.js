@@ -15,32 +15,51 @@ animalNameSpace.lineChart = function() {
      * Draw the line chart for the averaged swarm features
      *
      */
+    let swarm_features = Object.keys(self.swarmData[0]);
+    // remove the time key
+    let index = swarm_features.indexOf('time');
+    swarm_features.splice(index, 1);
+
+    // add the Line chart buttons to the feature panel
+    for (let i = 0; i < swarm_features.length; i++) {
+        let capitalized_feature_string = swarm_features[i].split('_').join(' ');
+        capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
+
+        $('.featureCheckBox').append(`<div class="featureCheckBox-default lineChartCheckBox">
+                                       <input id="drawSwarm` + swarm_features[i] + `" class="lineChartButton" type="checkbox">
+                                       <label for="drawSwarm` + swarm_features[i] + '">' + capitalized_feature_string + `</label>
+                     </div>`);
+    }
+    //check line chart draw all lines
+    $('.lineChartButton')
+        .prop('checked', true);
+
     let lineChartData = [];
     let ratio = 1;
     // aggregate and average the swarm data to 5000 points in the line chart
     if (self.swarmData.length > 5000) {
         ratio = Math.ceil(self.swarmData.length / 5000);
-        // tmp array with index 0 = acceleration, 1= convex_hull_area, 2 = speed
-        let tmp = [0, 0, 0];
+        // tmp array for the aggregated and averaged features
+        let tmp = new Array(swarm_features.length).fill(0);
 
         for (let i = 0; i < self.swarmData.length; i++) {
-            tmp[0] += self.swarmData[i]['acceleration'];
-            tmp[1] += self.swarmData[i]['convex_hull_area'];
-            tmp[2] += self.swarmData[i]['speed'];
+            // aggregate the features in the temp array
+            for (let j = 0; j < swarm_features.length; j++) {
+                tmp[j] += self.swarmData[i][swarm_features[j]];
+            }
+            // if the ratio is zero then average it and set it to zero
             if (i % ratio === 0) {
-                tmp[0] = tmp[0] / ratio;
-                tmp[1] = tmp[1] / ratio;
-                tmp[2] = tmp[2] / ratio;
-
-                lineChartData.push({
-                    'acceleration': tmp[0],
-                    'convex_hull_area': tmp[1],
-                    'speed': tmp[2],
+                let tmp_object = {
                     'time': i / ratio
-                });
-                tmp[0] = 0;
-                tmp[1] = 0;
-                tmp[2] = 0;
+                };
+
+                for (let j = 0; j < swarm_features.length; j++) {
+                    tmp[j] = tmp[j] / ratio;
+                    tmp_object[swarm_features[j]] = tmp[j];
+                }
+
+                lineChartData.push(tmp_object);
+                tmp = new Array(swarm_features.length).fill(0);
             }
         }
     } else {
@@ -126,85 +145,35 @@ animalNameSpace.lineChart = function() {
         .attr('y2', lineChartHeight);
 
     // **
-    // convexHullArea
-    let min = d3.min(lineChartData, function(d) {
-        return d['convex_hull_area'];
-    });
-    let max = d3.max(lineChartData, function(d) {
-        return d['convex_hull_area'];
-    });
-
-    let normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
-    let line = d3.line()
-        .x(function(d) {
-            return xLineChart(d['time']);
-        })
-        .y(function(d) {
-            return yLineChart(normalizationScale(d['convex_hull_area']));
+    // colors for the lines
+    let line_colors = d3.scaleOrdinal(d3.schemeCategory10);
+    // add the lines to the line chart
+    for (let i = 0; i < swarm_features.length; i++) {
+        let min = d3.min(lineChartData, function(d) {
+            return d[swarm_features[i]];
         });
-    //append the first line Convex Hull Area line
-    swarmLineChart.append('path')
-        .data([lineChartData])
-        .attr('id', 'convexHullAreaLine')
-        .attr('class', 'line lineChartLine')
-        .attr('transform', 'translate(' + marginLineChart + ',0)')
-        .style('stroke', '#1f78b4')
-        .attr('d', line)
-        .attr('name', 'Convex Hull Area');
-
-    // **
-    //second line speed
-    min = d3.min(lineChartData, function(d) {
-        return d['speed'];
-    });
-    max = d3.max(lineChartData, function(d) {
-        return d['speed'];
-    });
-
-    normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
-    line = d3.line()
-        .x(function(d) {
-            return xLineChart(d['time']);
-        })
-        .y(function(d) {
-            return yLineChart(normalizationScale(d['speed']));
+        let max = d3.max(lineChartData, function(d) {
+            return d[swarm_features[i]];
         });
 
-    swarmLineChart.append('path')
-        .data([lineChartData])
-        .attr('id', 'speedLine')
-        .attr('class', 'line lineChartLine')
-        .attr('transform', 'translate(' + marginLineChart + ',0)')
-        .style('stroke', '#33a02c')
-        .attr('d', line)
-        .attr('name', 'Averaged Speed');
-
-    // **
-    // thrid line acceleration line
-    min = d3.min(lineChartData, function(d) {
-        return d['acceleration'];
-    });
-    max = d3.max(lineChartData, function(d) {
-        return d['acceleration'];
-    });
-
-    normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
-    line = d3.line()
-        .x(function(d) {
-            return xLineChart(d['time']);
-        })
-        .y(function(d) {
-            return yLineChart(normalizationScale(d['acceleration']));
-        });
-
-    swarmLineChart.append('path')
-        .data([lineChartData])
-        .attr('id', 'accelerationLine')
-        .attr('class', 'line lineChartLine')
-        .attr('transform', 'translate(' + marginLineChart + ',0)')
-        .style('stroke', '#ff7f00')
-        .attr('d', line)
-        .attr('name', 'Averaged Acceleration');
+        let normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
+        let line = d3.line()
+            .x(function(d) {
+                return xLineChart(d['time']);
+            })
+            .y(function(d) {
+                return yLineChart(normalizationScale(d[swarm_features[i]]));
+            });
+        //append the line to the line chart
+        swarmLineChart.append('path')
+            .data([lineChartData])
+            .attr('id', (swarm_features[i] + 'Line'))
+            .attr('class', 'line lineChartLine')
+            .attr('transform', 'translate(' + marginLineChart + ',0)')
+            .style('stroke', line_colors(i))
+            .attr('d', line)
+            .attr('name', swarm_features[i]);
+    }
 
     // append the legend for the line chart
     // vars for the legend
@@ -292,44 +261,21 @@ animalNameSpace.lineChart = function() {
     $('#trendChartLegend').hide();
 
     /**
-     * Draw line chart convex hull area line
+     * Draw line chart button listeners
      */
-    $('#drawSwarmConvexHullArea').click(function() {
-        if ($('#drawSwarmConvexHullArea').is(':checked')) {
-            $('#convexHullAreaLine')
-                .attr('visibility', 'visible');
-        } else {
-            $('#convexHullAreaLine')
-                .attr('visibility', 'hidden');
-        }
+    for (let i = 0; i < swarm_features.length; i++) {
+        $(('#drawSwarm' + swarm_features[i])).click(function() {
+            if ($(('#drawSwarm' + swarm_features[i])).is(':checked')) {
+                $(('#' + swarm_features[i] + 'Line'))
+                    .attr('visibility', 'visible');
+            } else {
+                $(('#' + swarm_features[i] + 'Line'))
+                    .attr('visibility', 'hidden');
+            }
 
-    });
+        });
+    }
 
-    /**
-     * Draw line chart speed averaged line
-     */
-    $('#drawSwarmSpeed').click(function() {
-        if ($('#drawSwarmSpeed').is(':checked')) {
-            $('#speedLine')
-                .attr('visibility', 'visible');
-        } else {
-            $('#speedLine')
-                .attr('visibility', 'hidden');
-        }
-    });
-
-    /**
-     * Draw line chart acceleration averaged line
-     */
-    $('#drawSwarmAcceleration').click(function() {
-        if ($('#drawSwarmAcceleration').is(':checked')) {
-            $('#accelerationLine')
-                .attr('visibility', 'visible');
-        } else {
-            $('#accelerationLine')
-                .attr('visibility', 'hidden');
-        }
-    });
     /**
      * Line chart details click listener
      *
@@ -521,7 +467,7 @@ animalNameSpace.lineChart = function() {
                 .attr('d', medianLine);
 
         } else {
-            // show the trend chart 
+            // show the trend chart
             $(('#' + feature + 'TrendChart')).show();
         }
     }
