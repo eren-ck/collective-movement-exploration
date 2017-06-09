@@ -70,6 +70,8 @@ animalNameSpace.spatialView = function() {
             .prop('checked', true);
         $('#background-white')
             .prop('checked', true);
+        $('#settingsDiv input[type=checkbox]')
+            .prop('checked', true);
         //hide the loading gif
         $('#loading')
             .hide();
@@ -551,7 +553,7 @@ animalNameSpace.spatialView = function() {
                     let tmp = Math.ceil(self.indexTime / lineChartRatio);
                     //update the line chart legend text values per second
                     if (self.indexTime % 25 === 0) {
-                        // TODO change this to a more modular way 
+                        // TODO change this to a more modular way
                         d3.select('#convex_hull_areaLineValue')
                             .text((self.swarmData[tmp]['convex_hull_area']) + 'mm²');
                         d3.select('#speedLineValue')
@@ -994,6 +996,31 @@ animalNameSpace.spatialView = function() {
     $('#background-color').change(function() {
         let color = $('input[type="radio"].group-background:checked').val();
         $('#mainVis-svg').css('background-color', color);
+    });
+
+    /**
+     * Show the spatial view axis button
+     */
+    $('#drawAxis').on('change', function() {
+        if (this.checked) {
+            $('#mainVis g.x.axis').show();
+            $('#mainVis g.y.axis').show();
+        } else {
+            $('#mainVis g.x.axis').hide();
+            $('#mainVis g.y.axis').hide();
+        }
+
+    });
+
+    /**
+     * Show the frame (time) number in the spatial view button
+     */
+    $('#drawTime').on('change', function() {
+        if (this.checked) {
+            $('#mainVis .frameText').show();
+        } else {
+            $('#mainVis .frameText').hide();
+        }
     });
 
     /**

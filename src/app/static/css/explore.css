@@ -355,18 +355,18 @@ div.tooltip table td:nth-child(2) {
 }
 
 .area.outer, .legend .outer {
-    fill: #74a9cfcc;
-    stroke: #3690c0cc;
+    fill: #74a9cf;
+    stroke: #3690c0;
 }
 
 .area.inner, .legend .inner {
-    fill: #045a8dcc;
-    stroke: #023858cc;
+    fill: #045a8d;
+    stroke: #023858;
 }
 
 .median-line, .legend .median-line {
     fill: none;
-    stroke: #525252cc;
+    stroke: #525252;
     stroke-width: 3;
 }
 

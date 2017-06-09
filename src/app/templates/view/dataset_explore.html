@@ -14,6 +14,8 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
+
+
 </script>
 {{dataset}}
 </div>
@@ -387,6 +389,19 @@
                                     </label>
                                 </div>
                             </form>
+
+                            <strong>Spatial View</strong>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="drawAxis"/> Show Axis
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="drawTime"/> Show Time
+                                </label>
+                            </div>
+
                         </td>
                     </tr>
                 </table>
