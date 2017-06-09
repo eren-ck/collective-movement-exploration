@@ -372,6 +372,15 @@ function changeAlertSuccess(sel) {
         .addClass('alert-success');
 }
 
+/**
+ * Show the uploading icon after clicking on submit
+ */
+$('#submit').click(function() {
+    $(this).hide();
+    $('#submit-button').removeClass('hidden');
+});
+
+
 // upload from upload-wizard using tab
 $(document).ready(function() {
     //Initialize tooltips

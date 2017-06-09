@@ -11,10 +11,6 @@
 <div class="form-group {% if field.errors %}error{% endif %}">
 
 
-    <label class="control-label{% if field.flags.required %} required{% endif %}">
-        {{ field.label.text }}
-    </label>
-
     {% if field.type == 'BooleanField' %}
     <div class="checkbox">
         <label>
@@ -23,6 +19,10 @@
         </label>
     </div>
     {% else %}
+
+    <label class="control-label{% if field.flags.required %} required{% endif %}">
+        {{ field.label.text }}
+    </label>
 
     {% if field.type in ('TextField', 'TextAreaField', 'PasswordField',
     'IntegerField') %}

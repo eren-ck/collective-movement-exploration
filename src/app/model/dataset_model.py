@@ -17,7 +17,8 @@ class Dataset(db.Model):
     max = db.Column(Geometry('POINT'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     progress = db.Column(db.Integer, nullable=False)
-    inverted = db.Column(db.Boolean)
+    inverted_x = db.Column(db.Boolean)
+    inverted_y = db.Column(db.Boolean)
     status = db.Column(db.String(255))
     error = db.Column(db.Boolean)
     fps = db.Column(db.Integer, nullable=False)
@@ -30,7 +31,8 @@ class Dataset(db.Model):
         self.max = 'POINT(' + str(form.max_x.data) + ' ' + str(form.max_y.data) + ')'
         self.user_id = user_id
         self.progress = 0
-        self.inverted = form.inverted.data
+        self.inverted_x = form.inverted_x.data
+        self.inverted_y = form.inverted_y.data
         self.status = 'Loading into database'
         self.error = False
         self.background = ''
@@ -54,7 +56,8 @@ class Dataset(db.Model):
             'coordinate_origin': geojson.Feature(geometry=(to_shape(self.coordinate_origin)), properties={}),
             'min': geojson.Feature(geometry=(to_shape(self.min)), properties={}),
             'max': geojson.Feature(geometry=(to_shape(self.max)), properties={}),
-            'inverted': self.inverted,
+            'inverted_x': self.inverted_x,
+            'inverted_y': self.inverted_y,
             'fps': self.fps,
             'background_image': self.background
         }

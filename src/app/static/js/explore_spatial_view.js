@@ -185,7 +185,17 @@ animalNameSpace.spatialView = function() {
         //append the tank group with a transformation which rotates the y axis
         tank = zoomGroup.append('svg:g')
             .attr('class', 'tank')
-            .attr('transform', 'scale(1,-1)');
+            .attr('transform', function() {
+                let x = 1;
+                let y = 1;
+                if (parameters.inverted_x) {
+                    x = -1;
+                }
+                if (parameters.inverted_y) {
+                    y = -1;
+                }
+                return 'scale(' + x + ',' + y + ')';
+            });
 
         //add the centroid
         tank
