@@ -71,21 +71,24 @@ animalNameSpace.lineChart = function() {
     let marginLineChart = 60; // the margin to the right side
 
     // x axis scale - minus marginLineChart  needed
-    let xLineChart = d3.scaleLinear()
+    let x = d3.scaleLinear()
         .domain([0, lineChartData.length])
         .range([0, lineChartData.length - marginLineChart]);
+    let x2 = d3.scaleLinear()
+        .domain([0, lineChartData.length])
+        .range([0, lineChartData.length]);
     // define where the axis is etc
-    let xAxisLineChart = d3.axisBottom(xLineChart)
+    let xAxis = d3.axisBottom(x)
         .ticks(0)
         .tickSize(10)
         .tickPadding(5);
 
     // y axis scale which is normalized
-    let yLineChart = d3.scaleLinear()
+    let y = d3.scaleLinear()
         .domain([0, 100])
         .range([lineChartHeight, 0]);
     // define where the axis is etc
-    let yAxisLineChart = d3.axisLeft(yLineChart)
+    let yAxis = d3.axisLeft(y)
         .ticks(0)
         .tickSize(10)
         .tickPadding(5);
@@ -101,6 +104,33 @@ animalNameSpace.lineChart = function() {
         //     draw();
         // }
     };
+    let zoomGroup;
+    let zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .on('zoom', function() {
+            // TODO change this stuff here - make it work
+            if (d3.event.transform.k > 1) {
+                $('#lineChartTimeLine').hide();
+            } else {
+                $('#lineChartTimeLine').show();
+            }
+            d3.event.transform.y = 0;
+            // let width = +d3.select(this).attr('width');
+            // d3.event.transform.x = Math.min(0, Math.max(d3.event.transform.x, width - width * d3.event.transform.k));
+            // zoomGroup
+            //     .select('#lineChartTimeLine')
+            //     .attr('transform', d3.event.transform);
+            d3.event.transform.x = 0;
+
+            x.domain(d3.event.transform.rescaleX(x2).domain());
+            for (var key in lines) {
+                if (lines.hasOwnProperty(key)) {
+                    zoomGroup.select(('#' + key + 'Line')).attr('d', lines[key]);
+                }
+            }
+            // gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+        });
+
     // make the svg resizable
     let swarmLineChart = d3.select('#swarmVis')
         .classed('svg-LineChartContainer', true)
@@ -122,21 +152,26 @@ animalNameSpace.lineChart = function() {
             .on('drag', dragged)
         );
 
-    //append a group for the x axis
-    swarmLineChart.append('g')
+    zoomGroup = swarmLineChart
+        .append('svg:g')
+        .attr('id', 'lineChartZoom')
+        .attr('transform', 'translate(' + marginLineChart + ',0)');
+
+    // append a group for the x axis
+    // add the axis
+    zoomGroup.append('g')
         .attr('class', 'x axisLineChart')
-        .attr('transform', 'translate(' + marginLineChart + ',' + lineChartHeight + ')')
-        .call(xAxisLineChart);
+        .attr('transform', 'translate(0,' + lineChartHeight + ')')
+        .call(xAxis);
 
     // append a group for the y axis
-    swarmLineChart.append('g')
+    zoomGroup.append('g')
         .attr('class', 'y axisLineChart')
-        .attr('transform', 'translate(' + marginLineChart + ',0)')
-        .call(yAxisLineChart);
+        .call(yAxis);
 
 
     // the time line append the line
-    swarmLineChart.append('line')
+    zoomGroup.append('line')
         .attr('class', 'timeLine')
         .attr('id', 'lineChartTimeLine')
         .attr('x1', marginLineChart)
@@ -147,6 +182,7 @@ animalNameSpace.lineChart = function() {
     // **
     // colors for the lines
     let line_colors = d3.scaleOrdinal(d3.schemeCategory10);
+    let lines = {};
     // add the lines to the line chart
     for (let i = 0; i < swarm_features.length; i++) {
         let min = d3.min(lineChartData, function(d) {
@@ -159,21 +195,28 @@ animalNameSpace.lineChart = function() {
         let normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
         let line = d3.line()
             .x(function(d) {
-                return xLineChart(d['time']);
+                return x(d['time']);
             })
             .y(function(d) {
-                return yLineChart(normalizationScale(d[swarm_features[i]]));
+                return y(normalizationScale(d[swarm_features[i]]));
             });
+        lines[swarm_features[i]] = line;
         //append the line to the line chart
-        swarmLineChart.append('path')
+        zoomGroup.append('path')
             .data([lineChartData])
             .attr('id', (swarm_features[i] + 'Line'))
             .attr('class', 'line lineChartLine')
-            .attr('transform', 'translate(' + marginLineChart + ',0)')
             .style('stroke', line_colors(i))
             .attr('d', line)
             .attr('name', swarm_features[i]);
     }
+
+    // append the zoom rectangle 
+    zoomGroup.append('rect')
+        .attr('class', 'zoom')
+        .attr('width', lineChartData.length)
+        .attr('height', lineChartHeight)
+        .call(zoom);
 
     // append the legend for the line chart
     // vars for the legend
@@ -390,54 +433,54 @@ animalNameSpace.lineChart = function() {
             // functions for the upper and inner areas and the median
             var upperOuterArea = d3.area()
                 .x(function(d, i) {
-                    return xLineChart(i);
+                    return x(i);
                 })
                 .y0(function(d) {
-                    return yLineChart(normalizationScale(d[4]));
+                    return y(normalizationScale(d[4]));
                 })
                 .y1(function(d) {
-                    return yLineChart(normalizationScale(d[3]));
+                    return y(normalizationScale(d[3]));
                 });
 
             var upperInnerArea = d3.area()
                 .x(function(d, i) {
-                    return xLineChart(i);
+                    return x(i);
                 })
                 .y0(function(d) {
-                    return yLineChart(normalizationScale(d[3]));
+                    return y(normalizationScale(d[3]));
                 })
                 .y1(function(d) {
-                    return yLineChart(normalizationScale(d[2]));
+                    return y(normalizationScale(d[2]));
                 });
 
             var medianLine = d3.line()
                 .x(function(d, i) {
-                    return xLineChart(i);
+                    return x(i);
                 })
                 .y(function(d) {
-                    return yLineChart(normalizationScale(d[2]));
+                    return y(normalizationScale(d[2]));
                 });
 
             var lowerInnerArea = d3.area()
                 .x(function(d, i) {
-                    return xLineChart(i);
+                    return x(i);
                 })
                 .y0(function(d) {
-                    return yLineChart(normalizationScale(d[2]));
+                    return y(normalizationScale(d[2]));
                 })
                 .y1(function(d) {
-                    return yLineChart(normalizationScale(d[1]));
+                    return y(normalizationScale(d[1]));
                 });
 
             var lowerOuterArea = d3.area()
                 .x(function(d, i) {
-                    return xLineChart(i);
+                    return x(i);
                 })
                 .y0(function(d) {
-                    return yLineChart(normalizationScale(d[1]));
+                    return y(normalizationScale(d[1]));
                 })
                 .y1(function(d) {
-                    return yLineChart(normalizationScale(d[0]));
+                    return y(normalizationScale(d[0]));
                 });
 
             // add the paths to the line chart
