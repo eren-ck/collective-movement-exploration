@@ -42,6 +42,15 @@ class Dataset(db.Model):
         else:
             self.fps = form.fps.data
 
+    def edit_update(self, form, image_name):
+        self.name = form.name.data
+        self.coordinate_origin = 'POINT(' + str(form.origin_x.data) + ' ' + str(form.origin_y.data) + ')'
+        self.min = 'POINT(' + str(form.min_x.data) + ' ' + str(form.min_y.data) + ')'
+        self.max = 'POINT(' + str(form.max_x.data) + ' ' + str(form.max_y.data) + ')'
+        self.inverted_x = form.inverted_x.data
+        self.inverted_y = form.inverted_y.data
+        self.background = image_name or ''
+
     def __repr__(self):
         return '<Dataset %r>' % (self.name)
 

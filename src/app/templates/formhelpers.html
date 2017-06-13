@@ -10,14 +10,16 @@
 
 <div class="form-group {% if field.errors %}error{% endif %}">
 
-
     {% if field.type == 'BooleanField' %}
-    <div class="checkbox">
-        <label>
-            {{ field(class_=class_, **kwargs) }}
-            {{ field.label.text|safe }}
-        </label>
-    </div>
+    {% set value = kwargs.pop('value', field.data) %}
+     {{field.label}}
+        <input class="checkbox"
+      {% if value %}checked="checked"{% endif %}
+      type="checkbox"
+      id="{{ field.name }}"
+      name="{{ field.name }}"
+      value="{{ value }}">
+
     {% else %}
 
     <label class="control-label{% if field.flags.required %} required{% endif %}">

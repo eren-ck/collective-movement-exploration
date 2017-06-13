@@ -51,6 +51,7 @@
             {% endfor %}
             {% if admin_view.column_display_actions %}
             <th class="col-md-1">Delete</th>
+            <th class="col-md-1">Edit</th>
             <th class="col-md-1">Export</th>
             <th class="col-md-1">Explore</th>
             {% endif %}
@@ -85,13 +86,17 @@
             </td>
             {% endfor %}
             {% endblock %}
-
+            <!--Delete Button-->
             {% block list_row_actions_column scoped %}
             {% if admin_view.column_display_actions %}
-            <!--Delete Button-->
+            <td class="list-buttons-column">
+                {{ list_row_actions[2].render_ctx(get_pk_value(row), row) }}
+            </td>
+            <!--Edit Button-->
             <td class="list-buttons-column">
                 {{ list_row_actions[1].render_ctx(get_pk_value(row), row) }}
             </td>
+
             <!--Export Button-->
             <td class="list-buttons-column">
                 <a href="export/{{ get_pk_value(row) }} " style="color:black;">
