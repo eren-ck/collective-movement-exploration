@@ -68,18 +68,24 @@ animalNameSpace.lineChart = function() {
 
     // Swarm features line chart
     let lineChartHeight = 500; // the line chart height
-    let marginLineChart = 60; // the margin to the right side
+    let margin = {
+        top: 10,
+        right: 0,
+        bottom: 100,
+        left: 10
+    };
+    let marginToLegend = 50;
 
     // x axis scale - minus marginLineChart  needed
     let x = d3.scaleLinear()
         .domain([0, lineChartData.length])
-        .range([0, lineChartData.length - marginLineChart]);
+        .range([0, lineChartData.length]);
     let x2 = d3.scaleLinear()
         .domain([0, lineChartData.length])
         .range([0, lineChartData.length]);
     // define where the axis is etc
     let xAxis = d3.axisBottom(x)
-        .ticks(0)
+        .ticks(10)
         .tickSize(10)
         .tickPadding(5);
 
@@ -94,41 +100,42 @@ animalNameSpace.lineChart = function() {
         .tickPadding(5);
 
     let dragged = function() {
+        // dragged function get the coordinates and calculate the time moment from this
         let coords = d3.mouse(this);
-        if (coords[0] < marginLineChart || coords[0] > lineChartData.length || coords[1] < 0 || coords[1] > lineChartHeight) {
+        if (coords[0] < margin.left || coords[0] > lineChartData.length || coords[1] < 0 || coords[1] > lineChartHeight) {
             return;
         }
-        self.indexTime = Math.floor((coords[0] - marginLineChart) * ratio);
-        // if (!$('#playButton').hasClass('active')) {
-        //     //this applys the changes
-        //     draw();
-        // }
+        // tmp scale to include the zoom factor
+        let tmpScale = d3.scaleLinear()
+            .domain(self.zoomFunction.range())
+            .range(self.zoomFunction.domain());
+        // set the new time 
+        self.indexTime = Math.floor((tmpScale(coords[0] - margin.left)) * ratio);
     };
     let zoomGroup;
     let zoom = d3.zoom()
-        .scaleExtent([1, 10])
+        .scaleExtent([1, 20])
+        .translateExtent([
+            [0, 0],
+            [lineChartData.length, lineChartHeight]
+        ])
+        .extent([
+            [0, 0],
+            [lineChartData.length, lineChartHeight]
+        ])
         .on('zoom', function() {
-            // TODO change this stuff here - make it work
-            if (d3.event.transform.k > 1) {
-                $('#lineChartTimeLine').hide();
-            } else {
-                $('#lineChartTimeLine').show();
-            }
-            d3.event.transform.y = 0;
-            // let width = +d3.select(this).attr('width');
-            // d3.event.transform.x = Math.min(0, Math.max(d3.event.transform.x, width - width * d3.event.transform.k));
-            // zoomGroup
-            //     .select('#lineChartTimeLine')
-            //     .attr('transform', d3.event.transform);
-            d3.event.transform.x = 0;
-
-            x.domain(d3.event.transform.rescaleX(x2).domain());
+            // get the transform factor
+            let t = d3.event.transform;
+            // change scaling function
+            self.zoomFunction = x.domain(t.rescaleX(x2).domain());
+            // zoom each avaiable line
             for (var key in lines) {
                 if (lines.hasOwnProperty(key)) {
                     zoomGroup.select(('#' + key + 'Line')).attr('d', lines[key]);
                 }
             }
-            // gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+            // rescale the axis
+            gXaxis.call(xAxis);
         });
 
     // make the svg resizable
@@ -140,26 +147,23 @@ animalNameSpace.lineChart = function() {
 
         .attr('viewBox', function() {
             if (lineChartData.length < 3000) {
-                return '0 0 ' + 3000 + ' ' + (lineChartHeight + marginLineChart);
+                return '0 0 ' + 3000 + ' ' + (lineChartHeight + margin.bottom);
             } else {
-                return '0 0 ' + lineChartData.length + ' ' + (lineChartHeight + marginLineChart);
+                return '0 0 ' + lineChartData.length + ' ' + (lineChartHeight + margin.bottom);
             }
         })
         // add the class svg-content
-        .classed('svg-content', true)
-        .on('click', dragged)
-        .call(d3.drag()
-            .on('drag', dragged)
-        );
+        .classed('svg-content', true);
+
 
     zoomGroup = swarmLineChart
         .append('svg:g')
         .attr('id', 'lineChartZoom')
-        .attr('transform', 'translate(' + marginLineChart + ',0)');
+        .attr('transform', 'translate(' + margin.left + ',0)');
 
     // append a group for the x axis
     // add the axis
-    zoomGroup.append('g')
+    let gXaxis = zoomGroup.append('g')
         .attr('class', 'x axisLineChart')
         .attr('transform', 'translate(0,' + lineChartHeight + ')')
         .call(xAxis);
@@ -174,9 +178,9 @@ animalNameSpace.lineChart = function() {
     zoomGroup.append('line')
         .attr('class', 'timeLine')
         .attr('id', 'lineChartTimeLine')
-        .attr('x1', marginLineChart)
+        .attr('x1', 0)
         .attr('y1', 0)
-        .attr('x2', marginLineChart)
+        .attr('x2', 0)
         .attr('y2', lineChartHeight);
 
     // **
@@ -211,12 +215,16 @@ animalNameSpace.lineChart = function() {
             .attr('name', swarm_features[i]);
     }
 
-    // append the zoom rectangle 
+    // append the zoom rectangle
     zoomGroup.append('rect')
         .attr('class', 'zoom')
         .attr('width', lineChartData.length)
         .attr('height', lineChartHeight)
-        .call(zoom);
+        .call(zoom)
+        .on('click', dragged)
+        .call(d3.drag()
+            .on('drag', dragged)
+        );
 
     // append the legend for the line chart
     // vars for the legend
@@ -230,7 +238,7 @@ animalNameSpace.lineChart = function() {
     swarmLineChart
         .append('g')
         .attr('id', 'lineChartLegend')
-        .attr('transform', 'translate(' + marginLineChart + ',' + lineChartHeight + ')')
+        .attr('transform', 'translate(' + margin.bottom + ',' + (lineChartHeight + marginToLegend) + ')')
         .selectAll('rect.legend')
         .data(chartLines._groups[0])
         .enter()
@@ -270,7 +278,7 @@ animalNameSpace.lineChart = function() {
     swarmLineChart
         .append('g')
         .attr('id', 'trendChartLegend')
-        .attr('transform', 'translate(' + marginLineChart + ',' + lineChartHeight + ')')
+        .attr('transform', 'translate(' + margin.bottom + ',' + (lineChartHeight + marginToLegend) + ')')
         .selectAll('rect.legend')
         .data(['5% - 95%', '25% - 75%', 'Median'])
         .enter()
@@ -429,7 +437,7 @@ animalNameSpace.lineChart = function() {
             let trendChart = swarmLineChart.append('g')
                 .attr('id', (feature + 'TrendChart'))
                 .attr('class', 'trendChartData')
-                .attr('transform', 'translate(' + marginLineChart + ',0)');
+                .attr('transform', 'translate(' + margin.left + ',0)');
             // functions for the upper and inner areas and the median
             var upperOuterArea = d3.area()
                 .x(function(d, i) {

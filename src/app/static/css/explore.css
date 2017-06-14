@@ -382,3 +382,10 @@ div.tooltip table td:nth-child(2) {
     fill: none;
     pointer-events: all;
 }
+
+.x.axisLineChart>g>text {
+    font-size: 3em;
+    color: inherit;
+    font-family: inherit;
+    line-height: 1.1;
+}

@@ -11,6 +11,7 @@ animalNameSpace.datasetMetadata = [];
 animalNameSpace.swarmData = [];
 animalNameSpace.dataSetPercentile = {};
 animalNameSpace.indexTime = 0;
+animalNameSpace.zoomFunction;
 var source;
 
 /**

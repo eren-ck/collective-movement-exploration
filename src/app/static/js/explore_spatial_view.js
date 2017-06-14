@@ -26,8 +26,6 @@ animalNameSpace.spatialView = function() {
     let tankWidth;
     let tankHeight;
     let medoidAnimal = -1;
-    let lineTimeScale;
-    let marginCharts = 40;
     let lineChartRatio = Math.ceil(self.swarmData.length / 5000);
     let arrayAnimals;
     let activeAnimals = []; // active selected animals
@@ -253,9 +251,9 @@ animalNameSpace.spatialView = function() {
 
 
         //definte the line chart time scale
-        lineTimeScale = d3.scaleLinear()
+        self.zoomFunction = d3.scaleLinear()
             .domain([0, self.swarmData.length])
-            .range([0, self.swarmData.length - marginCharts]);
+            .range([0, self.swarmData.length]);
 
         d3.select('.colors-body')
             .selectAll('.palette')
@@ -574,8 +572,17 @@ animalNameSpace.spatialView = function() {
                             .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
                     }
 
+                    // if () {
+                    //     lineTimeScale = d3.scaleLinear()
+                    //         .domain([0, self.swarmData.length])
+                    //         .range([0, self.swarmData.length]);
+                    // } else {
+                    //     lineTimeScale = d3.scaleLinear()
+                    //         .domain([0, self.swarmData.length])
+                    //         .range([0, self.swarmData.length]);
+                    // }
                     d3.select('#lineChartTimeLine')
-                        .attr('transform', 'translate(' + lineTimeScale(tmp) + ',0)');
+                        .attr('transform', 'translate(' + self.zoomFunction(tmp) + ',0)');
                 }
 
 
