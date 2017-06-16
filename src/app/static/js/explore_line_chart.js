@@ -109,9 +109,10 @@ animalNameSpace.lineChart = function() {
         let tmpScale = d3.scaleLinear()
             .domain(self.zoomFunction.range())
             .range(self.zoomFunction.domain());
-        // set the new time 
+        // set the new time
         self.indexTime = Math.floor((tmpScale(coords[0] - margin.left)) * ratio);
     };
+    let trendChartsZoom = {};
     let zoomGroup;
     let zoom = d3.zoom()
         .scaleExtent([1, 20])
@@ -129,9 +130,19 @@ animalNameSpace.lineChart = function() {
             // change scaling function
             self.zoomFunction = x.domain(t.rescaleX(x2).domain());
             // zoom each avaiable line
-            for (var key in lines) {
+            for (let key in lines) {
                 if (lines.hasOwnProperty(key)) {
                     zoomGroup.select(('#' + key + 'Line')).attr('d', lines[key]);
+                }
+            }
+            // zoom the trend charts
+            for (let key in trendChartsZoom) {
+                if (trendChartsZoom.hasOwnProperty(key)) {
+                    for (let i = 0; i < trendChartsElem.length; i++) {
+                        zoomGroup
+                            .select(('#' + key + 'TrendChart .' + trendChartsElem[i]))
+                            .attr('d', trendChartsZoom[key][trendChartsElem[i]]);
+                    }
                 }
             }
             // rescale the axis
@@ -215,6 +226,7 @@ animalNameSpace.lineChart = function() {
             .attr('name', swarm_features[i]);
     }
 
+    $('#lineChartTimeLine').appendTo('#lineChartZoom');
     // append the zoom rectangle
     zoomGroup.append('rect')
         .attr('class', 'zoom')
@@ -361,6 +373,8 @@ animalNameSpace.lineChart = function() {
         $('.lineChartLine').attr('visibility', 'visible');
     }
 
+    // trend chart elements
+    let trendChartsElem = ['lowerOuterArea', 'lowerInnerArea', 'medianLine', 'upperInnerArea', 'upperOuterArea'];
     /**
      * Add a trend chart showing median and percentiles
      *
@@ -434,89 +448,62 @@ animalNameSpace.lineChart = function() {
             let normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
 
             // add a group for the trend chart
-            let trendChart = swarmLineChart.append('g')
+            let trendChart = zoomGroup.append('g')
                 .attr('id', (feature + 'TrendChart'))
-                .attr('class', 'trendChartData')
-                .attr('transform', 'translate(' + margin.left + ',0)');
-            // functions for the upper and inner areas and the median
-            var upperOuterArea = d3.area()
-                .x(function(d, i) {
-                    return x(i);
-                })
-                .y0(function(d) {
-                    return y(normalizationScale(d[4]));
-                })
-                .y1(function(d) {
-                    return y(normalizationScale(d[3]));
-                });
+                .attr('class', 'trendChartData');
+            // append the zoom rectangle again to the end of the group
+            $('.zoom').appendTo('#lineChartZoom');
+            $('#lineChartTimeLine').appendTo('#lineChartZoom');
+            // var to save the functions for the zoom
+            trendChartsZoom[feature] = {};
 
-            var upperInnerArea = d3.area()
-                .x(function(d, i) {
-                    return x(i);
-                })
-                .y0(function(d) {
-                    return y(normalizationScale(d[3]));
-                })
-                .y1(function(d) {
-                    return y(normalizationScale(d[2]));
-                });
-
-            var medianLine = d3.line()
-                .x(function(d, i) {
-                    return x(i);
-                })
-                .y(function(d) {
-                    return y(normalizationScale(d[2]));
-                });
-
-            var lowerInnerArea = d3.area()
-                .x(function(d, i) {
-                    return x(i);
-                })
-                .y0(function(d) {
-                    return y(normalizationScale(d[2]));
-                })
-                .y1(function(d) {
-                    return y(normalizationScale(d[1]));
-                });
-
-            var lowerOuterArea = d3.area()
-                .x(function(d, i) {
-                    return x(i);
-                })
-                .y0(function(d) {
-                    return y(normalizationScale(d[1]));
-                })
-                .y1(function(d) {
-                    return y(normalizationScale(d[0]));
-                });
-
-            // add the paths to the line chart
-            trendChart.append('path')
-                .data([trendChartData])
-                .attr('class', 'area upper outer')
-                .attr('d', upperOuterArea);
-
-            trendChart.append('path')
-                .data([trendChartData])
-                .attr('class', 'area lower outer')
-                .attr('d', lowerOuterArea);
-
-            trendChart.append('path')
-                .data([trendChartData])
-                .attr('class', 'area upper inner')
-                .attr('d', upperInnerArea);
-
-            trendChart.append('path')
-                .data([trendChartData])
-                .attr('class', 'area lower inner')
-                .attr('d', lowerInnerArea);
-
-            trendChart.append('path')
-                .data([trendChartData])
-                .attr('class', 'median-line')
-                .attr('d', medianLine);
-
+            for (let i = 0; i < trendChartsElem.length; i++) {
+                // functions for the upper and inner areas and the median
+                let temp;
+                // lower outer area and lower inner area
+                if (i < 2) {
+                    temp = d3.area()
+                        .x(function(d, j) {
+                            return x(j);
+                        })
+                        .y0(function(d) {
+                            return y(normalizationScale(d[(i + 1)]));
+                        })
+                        .y1(function(d) {
+                            return y(normalizationScale(d[i]));
+                        });
+                }
+                // median line
+                else if (i === 2) {
+                    temp = d3.line()
+                        .x(function(d, j) {
+                            return x(j);
+                        })
+                        .y(function(d) {
+                            return y(normalizationScale(d[i]));
+                        });
+                }
+                // upper inner area and upper outer area
+                else if (i > 2) {
+                    temp = d3.area()
+                        .x(function(d, j) {
+                            return x(j);
+                        })
+                        .y0(function(d) {
+                            return y(normalizationScale(d[i]));
+                        })
+                        .y1(function(d) {
+                            return y(normalizationScale(d[(i - 1)]));
+                        });
+                }
+                // save this for the later zoom
+                trendChartsZoom[feature][trendChartsElem[i]] = temp;
+                // append it to the path
+                trendChart.append('path')
+                    .data([trendChartData])
+                    .attr('class', trendChartsElem[i])
+                    .attr('d', temp);
+            }
         } else {
             // show the trend chart
             $(('#' + feature + 'TrendChart')).show();

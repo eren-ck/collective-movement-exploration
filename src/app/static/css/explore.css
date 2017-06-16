@@ -350,24 +350,22 @@ div.tooltip table td:nth-child(2) {
     color: #ccc;
 }
 
-.area {
+.upperOuterArea, .lowerOuterArea {
     stroke-width: 1;
-}
-
-.area.outer, .legend .outer {
     fill: #74a9cf;
     stroke: #3690c0;
 }
 
-.area.inner, .legend .inner {
+.upperInnerArea, .lowerInnerArea {
+    stroke-width: 1;
     fill: #045a8d;
     stroke: #023858;
 }
 
-.median-line, .legend .median-line {
+.medianLine {
     fill: none;
     stroke: #525252;
-    stroke-width: 3;
+    stroke-width: 5;
 }
 
 .selected {
