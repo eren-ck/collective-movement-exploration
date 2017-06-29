@@ -85,7 +85,14 @@ animalNameSpace.lineChart = function() {
         .range([0, lineChartData.length]);
     // define where the axis is etc
     let xAxis = d3.axisBottom(x)
-        .ticks(10)
+        .ticks(function() {
+            if (ratio === 1 && self.swarmData.length < 1000) {
+                return 0;
+            } else if (ratio === 1 && self.swarmData.length < 3000) {
+                return 5;
+            }
+            return 10;
+        }())
         .tickSize(10)
         .tickPadding(5);
 
@@ -157,8 +164,8 @@ animalNameSpace.lineChart = function() {
         .attr('preserveAspectRatio', 'xMinYMin meet')
 
         .attr('viewBox', function() {
-            if (lineChartData.length < 3000) {
-                return '0 0 ' + 3000 + ' ' + (lineChartHeight + margin.bottom);
+            if (lineChartData.length < 4000) {
+                return '0 0 ' + 4000 + ' ' + (lineChartHeight + margin.bottom);
             } else {
                 return '0 0 ' + lineChartData.length + ' ' + (lineChartHeight + margin.bottom);
             }
