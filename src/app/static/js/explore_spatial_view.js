@@ -294,6 +294,17 @@ animalNameSpace.spatialView = function() {
         //Draw the fish swarm line chart
         self.lineChart();
 
+        tank.append('svg:defs')
+            .append('svg:marker')
+            .attr('id', 'arrow')
+            .attr('refX', 2)
+            .attr('refY', 6)
+            .attr('markerWidth', 13)
+            .attr('markerHeight', 13)
+            .attr('orient', 'auto')
+            .append('svg:path')
+            .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
 
         draw();
 
@@ -480,6 +491,55 @@ animalNameSpace.spatialView = function() {
                 }
                 // EXIT - hull paths
                 hullPath.exit()
+                    .remove();
+
+                let svgDirections;
+                if ($('#drawDirection')
+                    .is(':checked')) {
+                    svgDirections = tank.selectAll('line')
+                        .data(arrayAnimals);
+
+                    // UPDATE - animals
+                    svgDirections
+                        .attr('x1', function(d) {
+                            return d['p'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['p'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['p'][0] + 2 * animalScale);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['p'][1]);
+                        })
+                        .attr('transform', function(d) {
+                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
+                        });
+                    // ENTER
+                    svgDirections.enter()
+                        .append('line')
+                        .attr('class', 'arrow')
+                        .attr('x1', function(d) {
+                            return d['p'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['p'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['p'][0] + 2 * animalScale);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['p'][1]);
+                        })
+                        .attr('transform', function(d) {
+                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
+                        });
+                } else {
+                    svgDirections = tank.selectAll('line')
+                        .data([]);
+                }
+                svgDirections.exit()
                     .remove();
 
                 //change the colors of the fish
@@ -771,6 +831,40 @@ animalNameSpace.spatialView = function() {
         }
     });
 
+    /**
+     * Draw direction arrow of the animal
+     */
+    $('#drawDirection').click(function() {
+        if ($('#drawDirection').is(':checked')) {
+            // load absolute feature speed data once
+            if (!('direction' in self.dataset[0])) {
+                disablePlayButton();
+                // ajax query to get the absolute feature speed
+                $.ajax({
+                    url: '/api/dataset/' + parameters['id'] + '/direction',
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: {
+                        'Accept': JSONAPI_MIMETYPE
+                    },
+                    success: function(data) {
+                        // add the speed feature to the dataset
+                        for (let i = 0; i < self.dataset.length; i++) {
+                            self.dataset[i]['direction'] = +data[i];
+                        }
+                        enablePlayButton();
+                    }
+                });
+            }
+        }
+        if (!$('#playButton').hasClass('active')) {
+            //go back one second and draw the next frame
+            //this applys the changes
+            self.indexTime--;
+            draw();
+        }
+    });
 
     /**
      * Draw medoid in color button
@@ -934,6 +1028,7 @@ animalNameSpace.spatialView = function() {
             }
         }
     });
+
 
     /**
      * Brush end function

@@ -13,6 +13,8 @@ from view.dataset_view import MyDatasetView
 
 from model.user_role_model import *
 
+from feature_extraction.absolute_features import *
+
 from helpers.restless import *
 
 # Create Flask application
@@ -112,4 +114,8 @@ if __name__ == '__main__':
     app_dir = os.path.realpath(os.path.dirname(__file__))
     database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
     # Start app
+    # For test usage
+    # calculate_absolute_features(76)
+    # calculate_absolute_features(78)
+    # calculate_absolute_features(87)
     app.run(threaded=True, debug=True)

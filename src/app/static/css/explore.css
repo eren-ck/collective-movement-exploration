@@ -387,3 +387,9 @@ div.tooltip table td:nth-child(2) {
     font-family: inherit;
     line-height: 1.1;
 }
+
+.arrow {
+    stroke-width: 1;
+    stroke: #000;
+    marker-end: url("#arrow");
+}

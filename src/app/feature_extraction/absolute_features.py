@@ -1,5 +1,5 @@
 import math
-# import datetime, sys
+import datetime, sys
 import itertools
 from db import *
 from multiprocessing import Pool
@@ -17,7 +17,7 @@ def calculate_absolute_features(id):
     id -- id of the dataset
 
     """
-    # print('Absolute features started', file=sys.stderr)
+    print('Absolute features started', file=sys.stderr)
     # print(datetime.datetime.utcnow(), file=sys.stderr)
 
     # create new db session
@@ -25,10 +25,10 @@ def calculate_absolute_features(id):
     # get the dataset row from the db
     dataset = session.query(Dataset).filter_by(id=id)
     # get needed values
-    dataset[0].status = 'Calculating absolute features'
-    dataset[0].progress = 5
-    # commit status and progress bar changes
-    session.commit()
+    # dataset[0].status = 'Calculating absolute features'
+    # dataset[0].progress = 5
+    # # commit status and progress bar changes
+    # session.commit()
 
     # tmp query to get all distinct animal ids from the dataset
     tmp = session.query(Movement_data) \
@@ -90,16 +90,19 @@ def absolute_feature_worker(tmp):
         animal = session.query(Movement_data) \
             .filter_by(dataset_id=id, animal_id=animal_ids[i]) \
             .order_by(Movement_data.time)
+        print('Animal ' + str(i), file=sys.stderr)
 
         # calculate the metric distance
-        calculate_metric_distance(animal)
+        # calculate_metric_distance(animal)
         # calculate the speed feature
-        calculate_speed(animal, fps)
+        # calculate_speed(animal, fps)
         # calculate the acceleration feature
-        calculate_acceleration(animal, fps)
+        # calculate_acceleration(animal, fps)
+        # calculate the direction of the moving entity
+        calculate_direction(animal)
 
         # change the progress bar
-        dataset[0].progress += progress_per_animal
+        # dataset[0].progress += progress_per_animal
         # add the data to the database
         session.commit()
 
@@ -108,7 +111,7 @@ def absolute_feature_worker(tmp):
         session.rollback()
         dataset[0].status = 'Error - calculating absolute features ' + str(e)[0:200]
         dataset[0].error = True
-        session.commit()
+        # session.commit()
         pass
     # remove the session
     session.remove()
@@ -170,3 +173,19 @@ def calculate_acceleration(animal, fps):
                 array_speed.append(animal[j].speed)
         sum_change = sum([array_speed[j + 1] - array_speed[j] for j in range(len(array_speed) - 1)])
         animal[i].acceleration = sum_change
+
+
+def calculate_direction(animal):
+    """ Calculate the moving direction of the animal.
+
+    Keyword arguments:
+    animal -- dataset with all time moments
+
+    """
+    animal[0].direction = 0
+    number_elem = animal.count()
+    for i in range(1, number_elem):
+        angle = math.atan2((animal[i].get_y() - animal[i - 1].get_y()), (animal[i].get_x() - animal[i - 1].get_x()))
+
+        angle = round(math.degrees(angle), 2)
+        animal[i].direction = angle
