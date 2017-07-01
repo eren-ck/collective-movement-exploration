@@ -294,18 +294,6 @@ animalNameSpace.spatialView = function() {
         //Draw the fish swarm line chart
         self.lineChart();
 
-        tank.append('svg:defs')
-            .append('svg:marker')
-            .attr('id', 'arrow')
-            .attr('refX', 2)
-            .attr('refY', 6)
-            .attr('markerWidth', 13)
-            .attr('markerHeight', 13)
-            .attr('orient', 'auto')
-            .append('svg:path')
-            .attr('d', 'M2,2 L2,11 L10,6 L2,2');
-
-
         draw();
 
     }
@@ -340,9 +328,11 @@ animalNameSpace.spatialView = function() {
                     $slider.slider('value', self.indexTime);
                 }
 
-                let svgAnimals = tank.selectAll('circle.animal')
+                let svgAnimals = tank.selectAll('g.animal')
                     .data(arrayAnimals);
 
+                // let svgAnimals = tank.selectAll('circle.animal')
+                //     .data(arrayAnimals);
 
                 // delaunay triangulation
                 // DATA JOIN  - triangulation
@@ -407,24 +397,17 @@ animalNameSpace.spatialView = function() {
                     .remove();
 
 
-                // UPDATE - animals
-                svgAnimals
-                    .attr('cx', function(d) {
-                        return d['p'][0];
-                    })
-                    .attr('cy', function(d) {
-                        return -d['p'][1];
-                    })
-                    .attr('r', animalScale);
-                // // // get all the head positions from the paths
-                //ENTER - append the fish heads
-                svgAnimals
+                //ENTER - append the animal groups
+                let animalGroupings = svgAnimals
                     .enter()
-                    .append('circle')
+                    .append('g')
                     .attr('class', 'animal')
                     .attr('id', function(d) {
                         return 'animal-' + d['a'];
-                    })
+                    });
+
+                // Append the circles for each animal to the animalgroup
+                animalGroupings.append('circle')
                     .attr('r', 1.5 * animalScale)
                     .attr('cx', function(d) {
                         return d['p'][0];
@@ -457,9 +440,65 @@ animalNameSpace.spatialView = function() {
                         }
                     });
 
+                // UPDATE - animals circles
+                svgAnimals.select('circle')
+                    .attr('cx', function(d) {
+                        return d['p'][0];
+                    })
+                    .attr('cy', function(d) {
+                        return -d['p'][1];
+                    })
+                    .attr('r', animalScale);
 
-                //
-                // // EXIT - the groups
+                // Append for each group the arrow, needed for coloring
+                animalGroupings.append('svg:defs')
+                    .append('svg:marker')
+                    .attr('id', function(d) {
+                        return 'arrow-marker-' + d['a'];
+                    })
+                    .attr('refX', 2)
+                    .attr('refY', 6)
+                    .attr('markerWidth', 13)
+                    .attr('markerHeight', 13)
+                    .attr('orient', 'auto')
+                    .append('svg:path')
+                    .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+                // Append the line for the direction arrow
+                animalGroupings
+                    .append('line')
+                    .attr('class', 'arrow')
+                    .attr('marker-end', function(d) {
+                        return 'url(#arrow-marker-' + d['a'] + ')';
+                    });
+
+                //execute only when draw direction button is checked
+                if ($('#drawDirection')
+                    .is(':checked')) {
+                    // UPDATE animal direction arrow
+                    svgAnimals.select('line')
+                        .attr('x1', function(d) {
+                            return d['p'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['p'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['p'][0] + 2 * animalScale);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['p'][1]);
+                        })
+                        .attr('transform', function(d) {
+                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
+                        });
+                } else {
+                    // hide the arrows
+                    svgAnimals.select('line')
+                        .attr('class', 'arrow hidden');
+                }
+
+                // EXIT - the groups
                 svgAnimals.exit()
                     .remove();
 
@@ -491,55 +530,6 @@ animalNameSpace.spatialView = function() {
                 }
                 // EXIT - hull paths
                 hullPath.exit()
-                    .remove();
-
-                let svgDirections;
-                if ($('#drawDirection')
-                    .is(':checked')) {
-                    svgDirections = tank.selectAll('line')
-                        .data(arrayAnimals);
-
-                    // UPDATE - animals
-                    svgDirections
-                        .attr('x1', function(d) {
-                            return d['p'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['p'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['p'][0] + 2 * animalScale);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['p'][1]);
-                        })
-                        .attr('transform', function(d) {
-                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
-                        });
-                    // ENTER
-                    svgDirections.enter()
-                        .append('line')
-                        .attr('class', 'arrow')
-                        .attr('x1', function(d) {
-                            return d['p'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['p'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['p'][0] + 2 * animalScale);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['p'][1]);
-                        })
-                        .attr('transform', function(d) {
-                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
-                        });
-                } else {
-                    svgDirections = tank.selectAll('line')
-                        .data([]);
-                }
-                svgDirections.exit()
                     .remove();
 
                 //change the colors of the fish
@@ -854,9 +844,14 @@ animalNameSpace.spatialView = function() {
                             self.dataset[i]['direction'] = +data[i];
                         }
                         enablePlayButton();
+                        d3.selectAll('.arrow')
+                            .classed('hidden', false);
                     }
                 });
             }
+        } else {
+            d3.selectAll('.arrow')
+                .classed('hidden', true);
         }
         if (!$('#playButton').hasClass('active')) {
             //go back one second and draw the next frame

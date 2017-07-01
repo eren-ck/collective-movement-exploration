@@ -390,6 +390,4 @@ div.tooltip table td:nth-child(2) {
 
 .arrow {
     stroke-width: 1;
-    stroke: #000;
-    marker-end: url("#arrow");
 }
