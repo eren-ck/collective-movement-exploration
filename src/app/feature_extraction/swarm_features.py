@@ -1,5 +1,9 @@
 from model.dataset_model import Dataset
+from model.group_data_model import Group_data
 from db import create_session
+
+import math
+import sys
 
 
 def calculate_swarm_features(id):
@@ -13,34 +17,36 @@ def calculate_swarm_features(id):
     session = create_session()
     # Query the dataset with the id
     dataset = session.query(Dataset).filter_by(id=id)
-    dataset[0].status = 'Calculating swarm features'
-    dataset[0].progress = 50
-    session.commit()
+    # dataset[0].status = 'Calculating swarm features'
+    # dataset[0].progress = 50
+    # session.commit()
 
     # for every animal get the movement data
     # and extrat the absolute features
     try:
         # calculate the centroid
-        calculate_centroid(id, session)
+        # calculate_centroid(id, session)
+        # calculate the direction of the centroid
+        calculate_centroid_direction(id, session)
         # calculate the absolute feature distance to centroid
-        calculate_distance_centroid(id, session)
-        # calculate the medoid of the group
-        calculate_medoid(id, session)
-        # calculate the convex hull area
-        calculate_convex_hull(id, session)
-        # calculate convex hull area
-        calculate_convex_hull_area(id, session)
-        # calculate delaunay triangulation
-        calculate_delaunay_triangulation(id, session)
-        # calculate voronoi diagram
-        calculate_voronoi_diagram(id, session)
-        # calculate metric distance, speed and acceleration
-        calculate_speed_acceleration(id, session)
-        #  calculate the mean distance to centorid for the whole swarm
-        calculate_mean_distance_centroid(id,session)
+        # calculate_distance_centroid(id, session)
+        # # calculate the medoid of the group
+        # calculate_medoid(id, session)
+        # # calculate the convex hull area
+        # calculate_convex_hull(id, session)
+        # # calculate convex hull area
+        # calculate_convex_hull_area(id, session)
+        # # calculate delaunay triangulation
+        # calculate_delaunay_triangulation(id, session)
+        # # calculate voronoi diagram
+        # calculate_voronoi_diagram(id, session)
+        # # calculate metric distance, speed and acceleration
+        # calculate_speed_acceleration(id, session)
+        # #  calculate the mean distance to centorid for the whole swarm
+        # calculate_mean_distance_centroid(id, session)
         # ToDO change this here sometime
-        dataset[0].status = 'Complete'
-        dataset[0].progress = 100
+        # dataset[0].status = 'Complete'
+        # dataset[0].progress = 100
     except Exception as e:
         # Something went wrong when calculating swarm features
         session.rollback()
@@ -226,6 +232,7 @@ def calculate_speed_acceleration(id, session):
                       AND group_data.dataset_id = :id;'''
     session.execute(query, {'id': id})
 
+
 def calculate_mean_distance_centroid(id, session):
     """ Calculate the mean distance to the centroid for the whole swarm
 
@@ -242,3 +249,22 @@ def calculate_mean_distance_centroid(id, session):
                 WHERE group_data.time = subquery.time
                       AND group_data.dataset_id = :id;'''
     session.execute(query, {'id': id})
+
+
+def calculate_centroid_direction(id, session):
+    """ Calculate the direction of the centroid of the animal group
+
+    Keyword arguments:
+    id - id of the dataset
+    session - db session
+    """
+    group_data = session.query(Group_data).filter_by(dataset_id=id)
+
+    group_data[0].direction = 0
+    number_elem = group_data.count()
+    for i in range(1, number_elem):
+        angle = math.atan2((group_data[i].get_centroid_y() - group_data[i - 1].get_centroid_y()),
+                           (group_data[i].get_centroid_x() - group_data[i - 1].get_centroid_x()))
+        angle = round(math.degrees(angle), 2)
+
+        group_data[i].direction = angle

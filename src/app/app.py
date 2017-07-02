@@ -14,6 +14,7 @@ from view.dataset_view import MyDatasetView
 from model.user_role_model import *
 
 from feature_extraction.absolute_features import *
+from feature_extraction.swarm_features import *
 
 from helpers.restless import *
 
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
     # Start app
     # For test usage
-    # calculate_absolute_features(76)
     # calculate_absolute_features(78)
     # calculate_absolute_features(87)
+    # calculate_swarm_features(78)
     app.run(threaded=True, debug=True)

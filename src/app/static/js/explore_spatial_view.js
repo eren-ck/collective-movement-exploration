@@ -196,12 +196,32 @@ animalNameSpace.spatialView = function() {
             });
 
         //add the centroid
-        tank
+        tank.append('g')
+            .attr('id', 'g-centroid')
             .append('circle')
-            .attr('class', 'centroid hide')
+            .attr('class', 'centroid hidden')
             .attr('r', 6)
             .attr('cx', 0)
             .attr('cy', 0);
+
+        // arrow for the centroid direction
+        tank.select('#g-centroid')
+            .append('svg:defs')
+            .append('svg:marker')
+            .attr('id', 'centroid-arrow')
+            .attr('refX', 2)
+            .attr('refY', 6)
+            .attr('markerWidth', 13)
+            .attr('markerHeight', 13)
+            .attr('orient', 'auto')
+            .append('svg:path')
+            .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+        // Append the line for the direction arrow
+        tank.select('#g-centroid')
+            .append('line')
+            .attr('id', 'centroid-line')
+            .attr('marker-end', 'url(#centroid-arrow)');
 
         //append delaunayTriangulation group
         tank.append('g')
@@ -586,7 +606,6 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     })
-
                     .attr('cy', function() {
                         if ('centroid' in self.swarmData[0]) {
                             return -self.swarmData[self.indexTime]['centroid'][1];
@@ -594,6 +613,33 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     });
+                if ($('#drawDirection')
+                    .is(':checked') && self.swarmData[self.indexTime].centroid) {
+                    d3.select('#centroid-line')
+                        .classed('hidden', false);
+                    // UPDATE animal direction arrow
+                    d3.select('#centroid-line')
+                        .attr('x1', function() {
+                            return self.swarmData[self.indexTime]['centroid'][0];
+                        })
+                        .attr('y1', function() {
+                            return -self.swarmData[self.indexTime]['centroid'][1];
+                        })
+                        .attr('x2', function() {
+                            return (self.swarmData[self.indexTime]['centroid'][0] + 2 * animalScale);
+                        })
+                        .attr('y2', function() {
+                            return -self.swarmData[self.indexTime]['centroid'][1];
+                        })
+                        .attr('transform', function() {
+                            return 'rotate(' + -self.swarmData[self.indexTime]['direction'] + ' ' + self.swarmData[self.indexTime]['centroid'][0] + ' ' + -self.swarmData[self.indexTime]['centroid'][1] + ')';
+                        });
+                } else {
+                    // hide the arrows
+                    d3.select('#centroid-line')
+                        .attr('class', 'hidden');
+                }
+
 
                 // medoid
                 if (medoidAnimal !== -1) {
@@ -620,6 +666,8 @@ animalNameSpace.spatialView = function() {
                             .text(self.swarmData[tmp]['acceleration'] + 'mm/s²');
                         d3.select('#distance_centroidLineValue')
                             .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
+                        d3.select('#directionLineValue')
+                            .text(self.swarmData[tmp]['direction'] + '°');
                     }
 
                     // if () {
@@ -844,11 +892,11 @@ animalNameSpace.spatialView = function() {
                             self.dataset[i]['direction'] = +data[i];
                         }
                         enablePlayButton();
-                        d3.selectAll('.arrow')
-                            .classed('hidden', false);
                     }
                 });
             }
+            d3.selectAll('.arrow')
+                .classed('hidden', false);
         } else {
             d3.selectAll('.arrow')
                 .classed('hidden', true);
@@ -923,11 +971,11 @@ animalNameSpace.spatialView = function() {
             }
             // hide the centroid
             d3.select('circle.centroid')
-                .classed('hide', false);
+                .classed('hidden', false);
         } else {
             // display the centroid
             d3.select('circle.centroid')
-                .classed('hide', true);
+                .classed('hidden', true);
         }
     });
 

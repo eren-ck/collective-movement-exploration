@@ -75,7 +75,7 @@ $(document).ready(function() {
     });
 
     // get the swarm features for the line chart
-    let swarm_features = ['swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area', 'swarm_distance_centroid'];
+    let swarm_features = ['swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area', 'swarm_distance_centroid', 'swarm_direction'];
 
     $.ajax({
         url: '/api/dataset/' + parameters['id'] + '/' + swarm_features[0],

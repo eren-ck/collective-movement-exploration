@@ -391,3 +391,12 @@ div.tooltip table td:nth-child(2) {
 .arrow {
     stroke-width: 1;
 }
+
+#centroid-line {
+    stroke-width: 1;
+    stroke: #e7298a;
+}
+
+#centroid-arrow {
+    fill: #e7298a;
+}
