@@ -25,10 +25,10 @@ def calculate_absolute_features(id):
     # get the dataset row from the db
     dataset = session.query(Dataset).filter_by(id=id)
     # get needed values
-    # dataset[0].status = 'Calculating absolute features'
-    # dataset[0].progress = 5
-    # # commit status and progress bar changes
-    # session.commit()
+    dataset[0].status = 'Calculating absolute features'
+    dataset[0].progress = 5
+    # commit status and progress bar changes
+    session.commit()
 
     # tmp query to get all distinct animal ids from the dataset
     tmp = session.query(Movement_data) \
@@ -93,16 +93,16 @@ def absolute_feature_worker(tmp):
         print('Animal ' + str(i), file=sys.stderr)
 
         # calculate the metric distance
-        # calculate_metric_distance(animal)
+        calculate_metric_distance(animal)
         # calculate the speed feature
-        # calculate_speed(animal, fps)
+        calculate_speed(animal, fps)
         # calculate the acceleration feature
-        # calculate_acceleration(animal, fps)
+        calculate_acceleration(animal, fps)
         # calculate the direction of the moving entity
         calculate_direction(animal)
 
         # change the progress bar
-        # dataset[0].progress += progress_per_animal
+        dataset[0].progress += progress_per_animal
         # add the data to the database
         session.commit()
 

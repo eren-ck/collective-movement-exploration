@@ -17,33 +17,33 @@ def calculate_swarm_features(id):
     session = create_session()
     # Query the dataset with the id
     dataset = session.query(Dataset).filter_by(id=id)
-    # dataset[0].status = 'Calculating swarm features'
-    # dataset[0].progress = 50
-    # session.commit()
+    dataset[0].status = 'Calculating swarm features'
+    dataset[0].progress = 50
+    session.commit()
 
     # for every animal get the movement data
     # and extrat the absolute features
     try:
         # calculate the centroid
-        # calculate_centroid(id, session)
+        calculate_centroid(id, session)
         # calculate the direction of the centroid
         calculate_centroid_direction(id, session)
         # calculate the absolute feature distance to centroid
-        # calculate_distance_centroid(id, session)
-        # # calculate the medoid of the group
-        # calculate_medoid(id, session)
-        # # calculate the convex hull area
-        # calculate_convex_hull(id, session)
-        # # calculate convex hull area
-        # calculate_convex_hull_area(id, session)
-        # # calculate delaunay triangulation
-        # calculate_delaunay_triangulation(id, session)
-        # # calculate voronoi diagram
-        # calculate_voronoi_diagram(id, session)
-        # # calculate metric distance, speed and acceleration
-        # calculate_speed_acceleration(id, session)
-        # #  calculate the mean distance to centorid for the whole swarm
-        # calculate_mean_distance_centroid(id, session)
+        calculate_distance_centroid(id, session)
+        # calculate the medoid of the group
+        calculate_medoid(id, session)
+        # calculate the convex hull area
+        calculate_convex_hull(id, session)
+        # calculate convex hull area
+        calculate_convex_hull_area(id, session)
+        # calculate delaunay triangulation
+        calculate_delaunay_triangulation(id, session)
+        # calculate voronoi diagram
+        calculate_voronoi_diagram(id, session)
+        # calculate metric distance, speed and acceleration
+        calculate_speed_acceleration(id, session)
+        #  calculate the mean distance to centorid for the whole swarm
+        calculate_mean_distance_centroid(id, session)
         # ToDO change this here sometime
         # dataset[0].status = 'Complete'
         # dataset[0].progress = 100

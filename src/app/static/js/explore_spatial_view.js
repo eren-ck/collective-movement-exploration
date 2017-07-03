@@ -30,6 +30,7 @@ animalNameSpace.spatialView = function() {
     let arrayAnimals;
     let activeAnimals = []; // active selected animals
     let brush; // brushing variable
+    let metadataColor = {}; // save the metadata coloring
 
     initialize();
 
@@ -570,7 +571,18 @@ animalNameSpace.spatialView = function() {
                     svgAnimals
                         .style('fill', '#000')
                         .attr('stroke', '#000');
+
+                    if (!$.isEmptyObject(metadataColor)) {
+                        Object.keys(metadataColor).forEach(function(key) {
+                            d3
+                                .select('#animal-' + key)
+                                .style('fill', metadataColor[key])
+                                .attr('stroke', metadataColor[key]);
+                        });
+                    }
                 }
+
+
                 //change opactiy if the fish is selected
                 if (activeAnimals.length) {
                     svgAnimals
@@ -1240,6 +1252,22 @@ animalNameSpace.spatialView = function() {
         }
     });
 
+    /**
+     * Metadata swatch functions
+     */
+    $('.metadata-swatch.metadata-swatch-clickable').click(function() {
+        let id = $(this).attr('value');
+        let colorRGB = $(this).css('background-color');
+        $('#metadata-row-' + id + ' #preview')
+            .css('background-color', colorRGB);
+        if (colorRGB === 'rgb(255, 255, 255)') {
+            if (metadataColor[id]) {
+                delete metadataColor[id];
+            }
+        } else {
+            metadataColor[id] = colorRGB;
+        }
+    });
 
     /**
      * Disable the play button --> Loading symbol

@@ -2,7 +2,7 @@ import os
 import os.path as op
 
 from flask import Flask, render_template, url_for, redirect
-from flask_security import Security, SQLAlchemyUserDatastore, utils
+from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
 
@@ -12,9 +12,6 @@ from view.file_view import MyFileAdminView
 from view.dataset_view import MyDatasetView
 
 from model.user_role_model import *
-
-from feature_extraction.absolute_features import *
-from feature_extraction.swarm_features import *
 
 from helpers.restless import *
 
@@ -115,8 +112,4 @@ if __name__ == '__main__':
     app_dir = os.path.realpath(os.path.dirname(__file__))
     database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
     # Start app
-    # For test usage
-    # calculate_absolute_features(78)
-    # calculate_absolute_features(87)
-    # calculate_swarm_features(78)
     app.run(threaded=True, debug=True)
