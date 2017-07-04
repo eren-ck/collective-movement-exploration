@@ -18,6 +18,17 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 </script>
 {{dataset}}
 </div>
@@ -467,22 +478,75 @@
                                 <fieldset id="groupMetadata">
                                     <div class="btn-group" data-toggle="buttons">
                                         <label class="btn btn-default">
-                                            <input type="radio" id="metadata-sex" name="groupMetadata">
+                                            <input type="radio" id="metadata-sex" name="groupMetadata" value="sex">
                                             Sex
                                         </label>
                                         <label class="btn btn-default">
-                                            <input type="radio" id="metadata-size" name="groupMetadata">
+                                            <input type="radio" id="metadata-size" name="groupMetadata" value="size">
                                             Size
                                         </label>
                                         <label class="btn btn-default">
-                                            <input type="radio" id="metadata-weight" name="groupMetadata">
+                                            <input type="radio" id="metadata-weight" name="groupMetadata"
+                                                   value="weight">
                                             Weight
                                         </label>
                                     </div>
                                 </fieldset>
                             </div>
                         </div>
-                        <br>
+                        <div class="col-md-12 hidden" id="metadata-input">
+                            <div class="col-xs-4 col-xs-offset-2">
+                                Below Average
+                                <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn"><span
+                                                class="glyphicon glyphicon-minus"></span></button>
+                                    </span>
+
+                                    <input type="text" class="form-control text-center" id="bl-avg" value="1" min="0" >
+
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up"><span
+                                                class="glyphicon glyphicon-plus"></span></button>
+                                     </span>
+                                </div>
+
+                            </div>
+
+                            <div class="col-xs-4">
+                                Above Average
+                                <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn"><span
+                                                class="glyphicon glyphicon-minus"></span></button>
+                                    </span>
+
+                                    <input type="text" class="form-control text-center" id="ab-avg" value="1" min="0" >
+
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up"><span
+                                                class="glyphicon glyphicon-plus"></span></button>
+                                     </span>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="col-md-12">
+                                <div class="pull-right">
+                                    <ul class="metadata-legend">
+                                        <li><span class="bl-avg"></span>
+                                            <br> &nbsp&nbsp <
+                                        </li>
+                                        <li><span class="avg"></span>
+                                            <br> AVG
+                                        </li>
+                                        <li><span class="ab-avg"></span>
+                                            <br> &nbsp&nbsp <
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
                         <br>
 
                         <div class="table-container">
@@ -502,10 +566,14 @@
                             </table>
                         </div>
 
+                        <div class="pull-right">
+                            <button type="button" class="btn btn-default" id="metadata-reset">
+                                Reset all
+                            </button>
+                        </div>
+
                     </div>
                 </div>
-
-                <hr>
 
             </div>
 

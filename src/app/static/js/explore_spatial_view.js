@@ -1253,13 +1253,15 @@ animalNameSpace.spatialView = function() {
     });
 
     /**
-     * Metadata swatch functions
+     * Metadata swatch functions coloring individual animals
      */
     $('.metadata-swatch.metadata-swatch-clickable').click(function() {
         let id = $(this).attr('value');
         let colorRGB = $(this).css('background-color');
+        // set the color of the swatch preview
         $('#metadata-row-' + id + ' #preview')
             .css('background-color', colorRGB);
+        // if white than reset the color
         if (colorRGB === 'rgb(255, 255, 255)') {
             if (metadataColor[id]) {
                 delete metadataColor[id];
@@ -1269,6 +1271,124 @@ animalNameSpace.spatialView = function() {
         }
     });
 
+    /**
+     * Metadata group metadata functions for instance color sex
+     */
+    $('#groupMetadata :input').change(function() {
+        // reset the metadat acoloring
+        resetIndividualMetadata();
+
+        let value = $(this).attr('value');
+        let tmp = [];
+
+        // metadata sex is choosen - coloring based on m and f
+        if (value === 'sex') {
+            $('#metadataDiv').modal('toggle');
+            // close and color here
+            for (let i = 0; i < self.datasetMetadata.length; i++) {
+                tmp.push(self.datasetMetadata[i][value].toLowerCase());
+            }
+            // create a set of individual strings in sex
+            tmp = Array.from(new Set(tmp));
+            let colors = ['#7fc97f', '#386cb0'];
+
+            for (let i = 0; i < self.datasetMetadata.length; i++) {
+                for (let j = 0; j < tmp.length; j++) {
+                    if (self.datasetMetadata[i][value].toLowerCase() === tmp[j]) {
+                        // add the coloring to the metadatacolor object
+                        metadataColor[self.datasetMetadata[i]['animal_id']] = colors[j];
+                    }
+                }
+            }
+            $('#metadata-input').addClass('hidden');
+        } else {
+            $('#metadata-input').removeClass('hidden');
+            // set values of inputs
+            // here are automatically input values calculated
+            // .25 and .75 percentiles are used
+            for (let i = 0; i < self.datasetMetadata.length; i++) {
+                tmp.push(self.datasetMetadata[i][value]);
+            }
+            let blAvg = d3.quantile(tmp, 0.25); // below average value
+            let abAvg = d3.quantile(tmp, 0.75); // above average
+            $('#bl-avg').val(blAvg);
+            $('#ab-avg').val(abAvg);
+            // color the animals
+            colorMetadata();
+        }
+    });
+
+    /**
+     * Size and weight coloring for the metadata
+     */
+    function colorMetadata() {
+        resetIndividualMetadata();
+        // get the input values
+        let value = $('#groupMetadata .btn.btn-default.active input')
+            .attr('value');
+        let blAvg = $('#bl-avg').val();
+        let abAvg = $('#ab-avg').val();
+        // color scheme for the inputs
+        let colors = ['#7fc97f', '#fdc086', '#386cb0'];
+        // color the animals
+        for (let i = 0; i < self.datasetMetadata.length; i++) {
+            if (self.datasetMetadata[i][value] < blAvg) {
+                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[0];
+            } else if (self.datasetMetadata[i][value] > abAvg) {
+                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[2];
+            } else {
+                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[1];
+            }
+        }
+    }
+
+    /**
+     * Metadata group metadata input spinner
+     * +/- 0.1 to the input value
+     */
+    $('.number-spinner button').click(function() {
+        let btn = $(this),
+            oldValue = btn.closest('.number-spinner').find('input').val().trim(),
+            newVal = 0;
+
+        if (btn.attr('data-dir') == 'up') {
+            newVal = parseFloat(oldValue) + 0.1;
+        } else {
+            if (oldValue > 0) {
+                newVal = parseFloat(oldValue) - 0.1;
+            } else {
+                newVal = 0;
+            }
+        }
+        newVal = Math.round(newVal * 100) / 100;
+        btn.closest('.number-spinner').find('input').val(newVal);
+        // change the coloring
+        colorMetadata();
+    });
+
+    /**
+     * Metadata input fields change
+     */
+    $('.number-spinner input').on('input', function() {
+        colorMetadata();
+    });
+
+    /**
+     * Reset all metadata input parameters
+     */
+    $('#metadata-reset').click(function() {
+        $('#metadata-input').addClass('hidden');
+        resetIndividualMetadata();
+    });
+
+    /**
+     * Metadata reset all individual metadata input fields
+     */
+    function resetIndividualMetadata() {
+        metadataColor = {};
+        $('.dropdown #preview')
+            .css('background-color', 'rgb(255, 255, 255)');
+    }
     /**
      * Disable the play button --> Loading symbol
      *

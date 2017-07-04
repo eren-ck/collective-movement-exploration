@@ -456,5 +456,42 @@ div.tooltip table td:nth-child(2) {
 
 .dropdown-menu {
     min-width: 40px;
-    margin-left: 5px;
+    padding: 5px;
+}
+
+#metadata-input {
+    margin-top: 10px;
+    border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    border: 2px solid #000000;
+}
+
+.metadata-legend {
+    list-style: none;
+    margin-top: 10px;
+}
+
+.metadata-legend li {
+    float: left;
+    margin-right: 10px;
+}
+
+.metadata-legend span {
+    border: 2px solid #666;
+    float: left;
+    width: 30px;
+    height: 30px;
+}
+
+.metadata-legend .bl-avg {
+    background-color: #7fc97f;
+}
+
+.metadata-legend .avg {
+    background-color: #fdc086;
+}
+
+.metadata-legend .ab-avg {
+    background-color: #386cb0;
 }
