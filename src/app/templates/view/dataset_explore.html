@@ -14,7 +14,6 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
-
 </script>
 {{dataset}}
 </div>
@@ -55,6 +54,10 @@
                                 <div class="featureCheckBox-default">
                                     <input type="checkbox" id="drawVoronoi"/>
                                     <label for="drawVoronoi">Voronoi Diagram</label>
+                                </div>
+                                <div class="featureCheckBox-default">
+                                    <input type="checkbox" id="drawDirection"/>
+                                    <label for="drawDirection">Direction</label>
                                 </div>
 
                                 <br>
@@ -186,8 +189,17 @@
                                             </button>
                                         </div>
 
+                                        <div class="col-md-1">
+                                            <button type="button" id="metadataButton"
+                                                    class="btn btn-default pull-right" data-toggle="modal"
+                                                    data-target="#metadataDiv">
+                                                <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                                Metadata
+                                            </button>
+                                        </div>
+
                                         <!-- Button trigger settings -->
-                                        <div class="col-md-1 col-md-offset-1">
+                                        <div class="col-md-1">
                                             <button type="button" id="settingsButton"
                                                     class="btn btn-default pull-right" data-toggle="modal"
                                                     data-target="#settingsDiv">
@@ -290,12 +302,20 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-                <h4 class="modal-title" id="myModalLabel">
-                    Settings
+
+                <div class="mod-list">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <div class="t2">
+                        <div class="mod-head text-center">
+                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                            <h2>Settings</h2>
+                        </div>
+                    </div>
+                </div>
+
                 </h4>
             </div>
 
@@ -404,6 +424,141 @@
                         </td>
                     </tr>
                 </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--Modal for Meta data  -->
+<div class="modal fade" id="metadataDiv" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div class="mod-list">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <div class="t2">
+                        <div class="mod-head text-center">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h2>Metadata</h2>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="pull-right">
+                            <div class="btn-group">
+                                <fieldset id="groupMetadata">
+                                    <div class="btn-group" data-toggle="buttons">
+                                        <label class="btn btn-default">
+                                            <input type="radio" id="metadata-sex" name="groupMetadata" value="sex">
+                                            Sex
+                                        </label>
+                                        <label class="btn btn-default">
+                                            <input type="radio" id="metadata-size" name="groupMetadata" value="size">
+                                            Size
+                                        </label>
+                                        <label class="btn btn-default">
+                                            <input type="radio" id="metadata-weight" name="groupMetadata"
+                                                   value="weight">
+                                            Weight
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="col-md-12 hidden" id="metadata-input">
+                            <div class="col-xs-4 col-xs-offset-2">
+                                Below Average
+                                <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn"><span
+                                                class="glyphicon glyphicon-minus"></span></button>
+                                    </span>
+
+                                    <input type="text" class="form-control text-center" id="bl-avg" value="1" min="0" >
+
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up"><span
+                                                class="glyphicon glyphicon-plus"></span></button>
+                                     </span>
+                                </div>
+
+                            </div>
+
+                            <div class="col-xs-4">
+                                Above Average
+                                <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn"><span
+                                                class="glyphicon glyphicon-minus"></span></button>
+                                    </span>
+
+                                    <input type="text" class="form-control text-center" id="ab-avg" value="1" min="0" >
+
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up"><span
+                                                class="glyphicon glyphicon-plus"></span></button>
+                                     </span>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="col-md-12">
+                                <div class="pull-right">
+                                    <ul class="metadata-legend">
+                                        <li><span class="bl-avg"></span>
+                                            <br> &nbsp&nbsp <
+                                        </li>
+                                        <li><span class="avg"></span>
+                                            <br> AVG
+                                        </li>
+                                        <li><span class="ab-avg"></span>
+                                            <br> &nbsp&nbsp <
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <div class="table-container">
+                            <table class="table table-striped table-condensed" id="metadata-table">
+                                <thead>
+                                <tr>
+                                    <th>Animal ID</th>
+                                    <th>Species</th>
+                                    <th>Sex</th>
+                                    <th>Size</th>
+                                    <th>Weight</th>
+                                    <th>Color</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pull-right">
+                            <button type="button" class="btn btn-default" id="metadata-reset">
+                                Reset all
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
 
             </div>
 

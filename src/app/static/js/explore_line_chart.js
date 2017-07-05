@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window, animalNameSpace, d3, $*/
+/*global window, animalNameSpace, d3, $, parameters*/
 
 'use strict';
 
@@ -15,6 +15,17 @@ animalNameSpace.lineChart = function() {
      * Draw the line chart for the averaged swarm features
      *
      */
+    // Swarm features line chart
+    let lineChartHeight = 500; // the line chart height
+    let margin = {
+        top: 10,
+        right: 0,
+        bottom: 100,
+        left: 10
+    };
+    let marginToLegend = 50;
+    let lineChartWidth = 5000;
+
     let swarm_features = Object.keys(self.swarmData[0]);
     // remove the time key
     let index = swarm_features.indexOf('time');
@@ -36,9 +47,9 @@ animalNameSpace.lineChart = function() {
 
     let lineChartData = [];
     let ratio = 1;
-    // aggregate and average the swarm data to 5000 points in the line chart
-    if (self.swarmData.length > 5000) {
-        ratio = Math.ceil(self.swarmData.length / 5000);
+    // aggregate and average the swarm data to lineChartWidth points in the line chart
+    if (self.swarmData.length > lineChartWidth) {
+        ratio = Math.ceil(self.swarmData.length / lineChartWidth);
         // tmp array for the aggregated and averaged features
         let tmp = new Array(swarm_features.length).fill(0);
 
@@ -66,35 +77,23 @@ animalNameSpace.lineChart = function() {
         lineChartData = self.swarmData;
     }
 
-    // Swarm features line chart
-    let lineChartHeight = 500; // the line chart height
-    let margin = {
-        top: 10,
-        right: 0,
-        bottom: 100,
-        left: 10
-    };
-    let marginToLegend = 50;
+
 
     // x axis scale - minus marginLineChart  needed
     let x = d3.scaleLinear()
         .domain([0, lineChartData.length])
-        .range([0, lineChartData.length]);
+        .range([0, lineChartWidth]);
     let x2 = d3.scaleLinear()
         .domain([0, lineChartData.length])
-        .range([0, lineChartData.length]);
+        .range([0, lineChartWidth]);
     // define where the axis is etc
     let xAxis = d3.axisBottom(x)
-        .ticks(function() {
-            if (ratio === 1 && self.swarmData.length < 1000) {
-                return 0;
-            } else if (ratio === 1 && self.swarmData.length < 3000) {
-                return 5;
-            }
-            return 10;
-        }())
+        .ticks(10)
         .tickSize(10)
-        .tickPadding(5);
+        .tickPadding(5)
+        .tickFormat(function(d) {
+            return Math.floor((d * ratio) / 1500) % 60 + ':' + Math.floor((d * ratio) / parameters['fps']) % 60 + '::' + (d * ratio) % parameters['fps'];
+        });
 
     // y axis scale which is normalized
     let y = d3.scaleLinear()
@@ -109,7 +108,7 @@ animalNameSpace.lineChart = function() {
     let dragged = function() {
         // dragged function get the coordinates and calculate the time moment from this
         let coords = d3.mouse(this);
-        if (coords[0] < margin.left || coords[0] > lineChartData.length || coords[1] < 0 || coords[1] > lineChartHeight) {
+        if (coords[0] < margin.left || coords[0] > lineChartWidth || coords[1] < 0 || coords[1] > lineChartHeight) {
             return;
         }
         // tmp scale to include the zoom factor
@@ -125,11 +124,11 @@ animalNameSpace.lineChart = function() {
         .scaleExtent([1, 20])
         .translateExtent([
             [0, 0],
-            [lineChartData.length, lineChartHeight]
+            [lineChartWidth, lineChartHeight]
         ])
         .extent([
             [0, 0],
-            [lineChartData.length, lineChartHeight]
+            [lineChartWidth, lineChartHeight]
         ])
         .on('zoom', function() {
             // get the transform factor
@@ -163,16 +162,9 @@ animalNameSpace.lineChart = function() {
         .append('svg')
         .attr('preserveAspectRatio', 'xMinYMin meet')
 
-        .attr('viewBox', function() {
-            if (lineChartData.length < 4000) {
-                return '0 0 ' + 4000 + ' ' + (lineChartHeight + margin.bottom);
-            } else {
-                return '0 0 ' + lineChartData.length + ' ' + (lineChartHeight + margin.bottom);
-            }
-        })
+        .attr('viewBox', '0 0 ' + lineChartWidth + ' ' + (lineChartHeight + margin.bottom))
         // add the class svg-content
         .classed('svg-content', true);
-
 
     zoomGroup = swarmLineChart
         .append('svg:g')
@@ -237,7 +229,7 @@ animalNameSpace.lineChart = function() {
     // append the zoom rectangle
     zoomGroup.append('rect')
         .attr('class', 'zoom')
-        .attr('width', lineChartData.length)
+        .attr('width', lineChartWidth)
         .attr('height', lineChartHeight)
         .call(zoom)
         .on('click', dragged)
@@ -263,7 +255,7 @@ animalNameSpace.lineChart = function() {
         .enter()
         //append the whole legend in a each function
         .each(function(d, i) {
-            let spacing = 800;
+            let spacing = 600;
             let textSpace = 40;
             // append the rectangles for the legend
             d3.select(this).append('rect')
@@ -419,10 +411,10 @@ animalNameSpace.lineChart = function() {
                 }
                 trendChartData.push(percentiles(tmp));
             }
-            //aggregate and average the trendChartData to 500 data points
-            if (trendChartData.length > 5000) {
+            //aggregate and average the trendChartData to lineChartWidth data points
+            if (trendChartData.length > lineChartWidth) {
                 let tmpTrendChartData = [];
-                ratio = Math.ceil(trendChartData.length / 5000);
+                ratio = Math.ceil(trendChartData.length / lineChartWidth);
 
                 // [perc05,perc25,perc50,perc75,perc95]
                 let tmp = [0, 0, 0, 0, 0];

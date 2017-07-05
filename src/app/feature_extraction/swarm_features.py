@@ -1,5 +1,9 @@
 from model.dataset_model import Dataset
+from model.group_data_model import Group_data
 from db import create_session
+
+import math
+import sys
 
 
 def calculate_swarm_features(id):
@@ -22,6 +26,8 @@ def calculate_swarm_features(id):
     try:
         # calculate the centroid
         calculate_centroid(id, session)
+        # calculate the direction of the centroid
+        calculate_centroid_direction(id, session)
         # calculate the absolute feature distance to centroid
         calculate_distance_centroid(id, session)
         # calculate the medoid of the group
@@ -37,10 +43,12 @@ def calculate_swarm_features(id):
         # calculate metric distance, speed and acceleration
         calculate_speed_acceleration(id, session)
         #  calculate the mean distance to centorid for the whole swarm
-        calculate_mean_distance_centroid(id,session)
+        calculate_mean_distance_centroid(id, session)
+        #  calculate the polarisation for the whole swarm
+        calculate_polarisation(id, session)
         # ToDO change this here sometime
-        dataset[0].status = 'Complete'
-        dataset[0].progress = 100
+        # dataset[0].status = 'Complete'
+        # dataset[0].progress = 100
     except Exception as e:
         # Something went wrong when calculating swarm features
         session.rollback()
@@ -226,6 +234,7 @@ def calculate_speed_acceleration(id, session):
                       AND group_data.dataset_id = :id;'''
     session.execute(query, {'id': id})
 
+
 def calculate_mean_distance_centroid(id, session):
     """ Calculate the mean distance to the centroid for the whole swarm
 
@@ -241,4 +250,46 @@ def calculate_mean_distance_centroid(id, session):
                         GROUP BY "time") as subquery
                 WHERE group_data.time = subquery.time
                       AND group_data.dataset_id = :id;'''
+    session.execute(query, {'id': id})
+
+
+def calculate_centroid_direction(id, session):
+    """ Calculate the direction of the centroid of the animal group
+
+    Keyword arguments:
+    id - id of the dataset
+    session - db session
+    """
+    group_data = session.query(Group_data).filter_by(dataset_id=id)
+
+    group_data[0].direction = 0
+    number_elem = group_data.count()
+    for i in range(1, number_elem):
+        angle = math.atan2((group_data[i].get_centroid_y() - group_data[i - 1].get_centroid_y()),
+                           (group_data[i].get_centroid_x() - group_data[i - 1].get_centroid_x()))
+        angle = round(math.degrees(angle), 2)
+
+        group_data[i].direction = angle
+
+
+def calculate_polarisation(id, session):
+    """ Calculate the polarisation  of the animal group
+
+    Keyword arguments:
+    id - id of the dataset
+    session - db session
+    """
+    query = ''' UPDATE group_data
+                SET polarisation = subquery.polarisation
+                FROM (SELECT "time", (
+                            sqrt(
+                                power(SUM(sin(radians(direction))),2) +
+                                power(SUM(cos(radians(direction))),2)
+                            ) / count(*)
+                            ) as polarisation
+                      FROM movement_data
+                      WHERE dataset_id = :id
+                      GROUP BY "time") as subquery
+                WHERE group_data.time = subquery.time
+                  AND group_data.dataset_id = :id;'''
     session.execute(query, {'id': id})

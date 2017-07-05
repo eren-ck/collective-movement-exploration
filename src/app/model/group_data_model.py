@@ -20,6 +20,7 @@ class Group_data(db.Model):
     # columns
     time = db.Column(db.Integer, primary_key=True, nullable=False)
     centroid = db.Column(Geometry('POINT'))
+    direction = db.Column(db.Float)
     medoid = db.Column(db.Integer)
     speed = db.Column(db.Float)
     acceleration = db.Column(db.Float)
@@ -34,3 +35,9 @@ class Group_data(db.Model):
 
     def __repr__(self):
         return '(' + str(self.time) + ')'
+
+    def get_centroid_x(self):
+        return to_shape(self.centroid).x
+
+    def get_centroid_y(self):
+        return to_shape(self.centroid).y

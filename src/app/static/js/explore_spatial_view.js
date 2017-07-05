@@ -26,10 +26,12 @@ animalNameSpace.spatialView = function() {
     let tankWidth;
     let tankHeight;
     let medoidAnimal = -1;
-    let lineChartRatio = Math.ceil(self.swarmData.length / 5000);
+    let lineChartWidth = 5000;
+    let lineChartRatio = Math.ceil(self.swarmData.length / lineChartWidth);
     let arrayAnimals;
     let activeAnimals = []; // active selected animals
     let brush; // brushing variable
+    let metadataColor = {}; // save the metadata coloring
 
     initialize();
 
@@ -196,12 +198,32 @@ animalNameSpace.spatialView = function() {
             });
 
         //add the centroid
-        tank
+        tank.append('g')
+            .attr('id', 'g-centroid')
             .append('circle')
-            .attr('class', 'centroid hide')
+            .attr('class', 'centroid hidden')
             .attr('r', 6)
             .attr('cx', 0)
             .attr('cy', 0);
+
+        // arrow for the centroid direction
+        tank.select('#g-centroid')
+            .append('svg:defs')
+            .append('svg:marker')
+            .attr('id', 'centroid-arrow')
+            .attr('refX', 2)
+            .attr('refY', 6)
+            .attr('markerWidth', 13)
+            .attr('markerHeight', 13)
+            .attr('orient', 'auto')
+            .append('svg:path')
+            .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+        // Append the line for the direction arrow
+        tank.select('#g-centroid')
+            .append('line')
+            .attr('id', 'centroid-line')
+            .attr('marker-end', 'url(#centroid-arrow)');
 
         //append delaunayTriangulation group
         tank.append('g')
@@ -294,7 +316,6 @@ animalNameSpace.spatialView = function() {
         //Draw the fish swarm line chart
         self.lineChart();
 
-
         draw();
 
     }
@@ -323,15 +344,17 @@ animalNameSpace.spatialView = function() {
         setTimeout(function() {
                 //change the time frame text
                 svgContainer.select('.frameText')
-                    .text(Math.floor(self.indexTime / 1500) % 60 + ':' + Math.floor(self.indexTime / 25) % 60 + '::' + self.indexTime % 25);
+                    .text(Math.floor(self.indexTime / 1500) % 60 + ':' + Math.floor(self.indexTime / parameters['fps']) % 60 + '::' + self.indexTime % parameters['fps']);
                 // if a second has changed move the slider
                 if (self.indexTime % parameters['fps'] === 0) {
                     $slider.slider('value', self.indexTime);
                 }
 
-                let svgAnimals = tank.selectAll('circle.animal')
+                let svgAnimals = tank.selectAll('g.animal')
                     .data(arrayAnimals);
 
+                // let svgAnimals = tank.selectAll('circle.animal')
+                //     .data(arrayAnimals);
 
                 // delaunay triangulation
                 // DATA JOIN  - triangulation
@@ -396,24 +419,17 @@ animalNameSpace.spatialView = function() {
                     .remove();
 
 
-                // UPDATE - animals
-                svgAnimals
-                    .attr('cx', function(d) {
-                        return d['p'][0];
-                    })
-                    .attr('cy', function(d) {
-                        return -d['p'][1];
-                    })
-                    .attr('r', animalScale);
-                // // // get all the head positions from the paths
-                //ENTER - append the fish heads
-                svgAnimals
+                //ENTER - append the animal groups
+                let animalGroupings = svgAnimals
                     .enter()
-                    .append('circle')
+                    .append('g')
                     .attr('class', 'animal')
                     .attr('id', function(d) {
                         return 'animal-' + d['a'];
-                    })
+                    });
+
+                // Append the circles for each animal to the animalgroup
+                animalGroupings.append('circle')
                     .attr('r', 1.5 * animalScale)
                     .attr('cx', function(d) {
                         return d['p'][0];
@@ -446,9 +462,65 @@ animalNameSpace.spatialView = function() {
                         }
                     });
 
+                // UPDATE - animals circles
+                svgAnimals.select('circle')
+                    .attr('cx', function(d) {
+                        return d['p'][0];
+                    })
+                    .attr('cy', function(d) {
+                        return -d['p'][1];
+                    })
+                    .attr('r', animalScale);
 
-                //
-                // // EXIT - the groups
+                // Append for each group the arrow, needed for coloring
+                animalGroupings.append('svg:defs')
+                    .append('svg:marker')
+                    .attr('id', function(d) {
+                        return 'arrow-marker-' + d['a'];
+                    })
+                    .attr('refX', 2)
+                    .attr('refY', 6)
+                    .attr('markerWidth', 13)
+                    .attr('markerHeight', 13)
+                    .attr('orient', 'auto')
+                    .append('svg:path')
+                    .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+                // Append the line for the direction arrow
+                animalGroupings
+                    .append('line')
+                    .attr('class', 'arrow')
+                    .attr('marker-end', function(d) {
+                        return 'url(#arrow-marker-' + d['a'] + ')';
+                    });
+
+                //execute only when draw direction button is checked
+                if ($('#drawDirection')
+                    .is(':checked')) {
+                    // UPDATE animal direction arrow
+                    svgAnimals.select('line')
+                        .attr('x1', function(d) {
+                            return d['p'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['p'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['p'][0] + 2 * animalScale);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['p'][1]);
+                        })
+                        .attr('transform', function(d) {
+                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
+                        });
+                } else {
+                    // hide the arrows
+                    svgAnimals.select('line')
+                        .attr('class', 'arrow hidden');
+                }
+
+                // EXIT - the groups
                 svgAnimals.exit()
                     .remove();
 
@@ -500,7 +572,18 @@ animalNameSpace.spatialView = function() {
                     svgAnimals
                         .style('fill', '#000')
                         .attr('stroke', '#000');
+
+                    if (!$.isEmptyObject(metadataColor)) {
+                        Object.keys(metadataColor).forEach(function(key) {
+                            d3
+                                .select('#animal-' + key)
+                                .style('fill', metadataColor[key])
+                                .attr('stroke', metadataColor[key]);
+                        });
+                    }
                 }
+
+
                 //change opactiy if the fish is selected
                 if (activeAnimals.length) {
                     svgAnimals
@@ -536,7 +619,6 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     })
-
                     .attr('cy', function() {
                         if ('centroid' in self.swarmData[0]) {
                             return -self.swarmData[self.indexTime]['centroid'][1];
@@ -544,6 +626,34 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     });
+                if ($('#drawDirection').is(':checked') &&
+                    self.swarmData[self.indexTime].centroid &&
+                    $('#drawCentroid').is(':checked')) {
+                    d3.select('#centroid-line')
+                        .classed('hidden', false);
+                    // UPDATE animal direction arrow
+                    d3.select('#centroid-line')
+                        .attr('x1', function() {
+                            return self.swarmData[self.indexTime]['centroid'][0];
+                        })
+                        .attr('y1', function() {
+                            return -self.swarmData[self.indexTime]['centroid'][1];
+                        })
+                        .attr('x2', function() {
+                            return (self.swarmData[self.indexTime]['centroid'][0] + 2 * animalScale);
+                        })
+                        .attr('y2', function() {
+                            return -self.swarmData[self.indexTime]['centroid'][1];
+                        })
+                        .attr('transform', function() {
+                            return 'rotate(' + -self.swarmData[self.indexTime]['direction'] + ' ' + self.swarmData[self.indexTime]['centroid'][0] + ' ' + -self.swarmData[self.indexTime]['centroid'][1] + ')';
+                        });
+                } else {
+                    // hide the arrows
+                    d3.select('#centroid-line')
+                        .attr('class', 'hidden');
+                }
+
 
                 // medoid
                 if (medoidAnimal !== -1) {
@@ -570,17 +680,12 @@ animalNameSpace.spatialView = function() {
                             .text(self.swarmData[tmp]['acceleration'] + 'mm/s²');
                         d3.select('#distance_centroidLineValue')
                             .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
+                        d3.select('#directionLineValue')
+                            .text(self.swarmData[tmp]['direction'] + '°');
+                        d3.select('#polarisationLineValue')
+                            .text(self.swarmData[tmp]['polarisation']);
                     }
 
-                    // if () {
-                    //     lineTimeScale = d3.scaleLinear()
-                    //         .domain([0, self.swarmData.length])
-                    //         .range([0, self.swarmData.length]);
-                    // } else {
-                    //     lineTimeScale = d3.scaleLinear()
-                    //         .domain([0, self.swarmData.length])
-                    //         .range([0, self.swarmData.length]);
-                    // }
                     d3.select('#lineChartTimeLine')
                         .attr('transform', 'translate(' + self.zoomFunction(tmp) + ',0)');
                 }
@@ -771,6 +876,45 @@ animalNameSpace.spatialView = function() {
         }
     });
 
+    /**
+     * Draw direction arrow of the animal
+     */
+    $('#drawDirection').click(function() {
+        if ($('#drawDirection').is(':checked')) {
+            // load absolute feature speed data once
+            if (!('direction' in self.dataset[0])) {
+                disablePlayButton();
+                // ajax query to get the absolute feature speed
+                $.ajax({
+                    url: '/api/dataset/' + parameters['id'] + '/direction',
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: {
+                        'Accept': JSONAPI_MIMETYPE
+                    },
+                    success: function(data) {
+                        // add the speed feature to the dataset
+                        for (let i = 0; i < self.dataset.length; i++) {
+                            self.dataset[i]['direction'] = +data[i];
+                        }
+                        enablePlayButton();
+                    }
+                });
+            }
+            d3.selectAll('.arrow')
+                .classed('hidden', false);
+        } else {
+            d3.selectAll('.arrow')
+                .classed('hidden', true);
+        }
+        if (!$('#playButton').hasClass('active')) {
+            //go back one second and draw the next frame
+            //this applys the changes
+            self.indexTime--;
+            draw();
+        }
+    });
 
     /**
      * Draw medoid in color button
@@ -834,11 +978,11 @@ animalNameSpace.spatialView = function() {
             }
             // hide the centroid
             d3.select('circle.centroid')
-                .classed('hide', false);
+                .classed('hidden', false);
         } else {
             // display the centroid
             d3.select('circle.centroid')
-                .classed('hide', true);
+                .classed('hidden', true);
         }
     });
 
@@ -934,6 +1078,7 @@ animalNameSpace.spatialView = function() {
             }
         }
     });
+
 
     /**
      * Brush end function
@@ -1102,7 +1247,143 @@ animalNameSpace.spatialView = function() {
         }
     });
 
+    /**
+     * Metadata swatch functions coloring individual animals
+     */
+    $('.metadata-swatch.metadata-swatch-clickable').click(function() {
+        let id = $(this).attr('value');
+        let colorRGB = $(this).css('background-color');
+        // set the color of the swatch preview
+        $('#metadata-row-' + id + ' #preview')
+            .css('background-color', colorRGB);
+        // if white than reset the color
+        if (colorRGB === 'rgb(255, 255, 255)') {
+            if (metadataColor[id]) {
+                delete metadataColor[id];
+            }
+        } else {
+            metadataColor[id] = colorRGB;
+        }
+    });
 
+    /**
+     * Metadata group metadata functions for instance color sex
+     */
+    $('#groupMetadata :input').change(function() {
+        // reset the metadat acoloring
+        resetIndividualMetadata();
+
+        let value = $(this).attr('value');
+        let tmp = [];
+
+        // metadata sex is choosen - coloring based on m and f
+        if (value === 'sex') {
+            $('#metadataDiv').modal('toggle');
+            // close and color here
+            for (let i = 0; i < self.datasetMetadata.length; i++) {
+                tmp.push(self.datasetMetadata[i][value].toLowerCase());
+            }
+            // create a set of individual strings in sex
+            tmp = Array.from(new Set(tmp));
+            let colors = ['#7fc97f', '#386cb0'];
+
+            for (let i = 0; i < self.datasetMetadata.length; i++) {
+                for (let j = 0; j < tmp.length; j++) {
+                    if (self.datasetMetadata[i][value].toLowerCase() === tmp[j]) {
+                        // add the coloring to the metadatacolor object
+                        metadataColor[self.datasetMetadata[i]['animal_id']] = colors[j];
+                    }
+                }
+            }
+            $('#metadata-input').addClass('hidden');
+        } else {
+            $('#metadata-input').removeClass('hidden');
+            // set values of inputs
+            // here are automatically input values calculated
+            // .25 and .75 percentiles are used
+            for (let i = 0; i < self.datasetMetadata.length; i++) {
+                tmp.push(self.datasetMetadata[i][value]);
+            }
+            let blAvg = d3.quantile(tmp, 0.25); // below average value
+            let abAvg = d3.quantile(tmp, 0.75); // above average
+            $('#bl-avg').val(blAvg);
+            $('#ab-avg').val(abAvg);
+            // color the animals
+            colorMetadata();
+        }
+    });
+
+    /**
+     * Size and weight coloring for the metadata
+     */
+    function colorMetadata() {
+        resetIndividualMetadata();
+        // get the input values
+        let value = $('#groupMetadata .btn.btn-default.active input')
+            .attr('value');
+        let blAvg = $('#bl-avg').val();
+        let abAvg = $('#ab-avg').val();
+        // color scheme for the inputs
+        let colors = ['#7fc97f', '#fdc086', '#386cb0'];
+        // color the animals
+        for (let i = 0; i < self.datasetMetadata.length; i++) {
+            if (self.datasetMetadata[i][value] < blAvg) {
+                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[0];
+            } else if (self.datasetMetadata[i][value] > abAvg) {
+                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[2];
+            } else {
+                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[1];
+            }
+        }
+    }
+
+    /**
+     * Metadata group metadata input spinner
+     * +/- 0.1 to the input value
+     */
+    $('.number-spinner button').click(function() {
+        let btn = $(this),
+            oldValue = btn.closest('.number-spinner').find('input').val().trim(),
+            newVal = 0;
+
+        if (btn.attr('data-dir') == 'up') {
+            newVal = parseFloat(oldValue) + 0.1;
+        } else {
+            if (oldValue > 0) {
+                newVal = parseFloat(oldValue) - 0.1;
+            } else {
+                newVal = 0;
+            }
+        }
+        newVal = Math.round(newVal * 100) / 100; -
+        btn.closest('.number-spinner').find('input').val(newVal);
+        // change the coloring
+        colorMetadata();
+    });
+
+    /**
+     * Metadata input fields change
+     */
+    $('.number-spinner input').on('input', function() {
+        colorMetadata();
+    });
+
+    /**
+     * Reset all metadata input parameters
+     */
+    $('#metadata-reset').click(function() {
+        $('#metadata-input').addClass('hidden');
+        resetIndividualMetadata();
+    });
+
+    /**
+     * Metadata reset all individual metadata input fields
+     */
+    function resetIndividualMetadata() {
+        metadataColor = {};
+        $('.dropdown #preview')
+            .css('background-color', 'rgb(255, 255, 255)');
+    }
     /**
      * Disable the play button --> Loading symbol
      *

@@ -26,6 +26,7 @@ class Movement_data(db.Model):
     speed = db.Column(db.Float)
     acceleration = db.Column(db.Float)
     distance_centroid = db.Column(db.Float)
+    direction = db.Column(db.Float)
 
     def __init__(self, dataset_id, **kwargs):
         self.dataset_id = dataset_id

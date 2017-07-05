@@ -2,7 +2,7 @@ import os
 import os.path as op
 
 from flask import Flask, render_template, url_for, redirect
-from flask_security import Security, SQLAlchemyUserDatastore, utils
+from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
 

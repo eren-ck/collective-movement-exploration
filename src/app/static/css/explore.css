@@ -387,3 +387,111 @@ div.tooltip table td:nth-child(2) {
     font-family: inherit;
     line-height: 1.1;
 }
+
+.arrow {
+    stroke-width: 1;
+}
+
+#centroid-line {
+    stroke-width: 1;
+    stroke: #e7298a;
+}
+
+#centroid-arrow {
+    fill: #e7298a;
+}
+
+.mod-list {
+    margin-top: -5px;
+    margin-right: -10px;
+    margin-left: -10px;
+}
+
+.mod-list .mod-head {
+    color: white;
+    border-bottom: thick solid rgba(0, 0, 0, 0.2);
+    border-radius: 5px 5px 0 0;
+}
+
+.mod-list .mod-head span {
+    color: white;
+    font-size: 3em;
+    padding: 15px;
+    border: thick solid white;
+    border-radius: 50%;
+    margin-top: -60px;
+    background-color: #286090;
+}
+
+.mod-list .mod-head h2 {
+    margin-top: 7px;
+    margin-bottom: 5px;
+    font-size: 2em;
+    font-weight: 700;
+}
+
+.mod-list .t2 .mod-head {
+    background-color: #337ab7;
+}
+
+.mod-list .close {
+    font-size: 40px;
+}
+
+.modal-header {
+    border-bottom: 0px solid #e5e5e5;
+}
+
+.metadata-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    border: 2px solid #666;
+}
+
+.metadata-swatch-clickable:hover {
+    border: 2px solid #000;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    min-width: 40px;
+    padding: 5px;
+}
+
+#metadata-input {
+    margin-top: 10px;
+    border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    border: 2px solid #000000;
+}
+
+.metadata-legend {
+    list-style: none;
+    margin-top: 10px;
+}
+
+.metadata-legend li {
+    float: left;
+    margin-right: 10px;
+}
+
+.metadata-legend span {
+    border: 2px solid #666;
+    float: left;
+    width: 30px;
+    height: 30px;
+}
+
+.metadata-legend .bl-avg {
+    background-color: #7fc97f;
+}
+
+.metadata-legend .avg {
+    background-color: #fdc086;
+}
+
+.metadata-legend .ab-avg {
+    background-color: #386cb0;
+}
