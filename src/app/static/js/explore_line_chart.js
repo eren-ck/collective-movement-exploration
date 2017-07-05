@@ -263,7 +263,7 @@ animalNameSpace.lineChart = function() {
         .enter()
         //append the whole legend in a each function
         .each(function(d, i) {
-            let spacing = 800;
+            let spacing = 600;
             let textSpace = 40;
             // append the rectangles for the legend
             d3.select(this).append('rect')

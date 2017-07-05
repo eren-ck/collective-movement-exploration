@@ -175,7 +175,7 @@ def api_get_feature(id=None, feature=None):
 
     # return one of the aggregated and averaged swarm features
     if feature in ['swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area', 'swarm_distance_centroid',
-                   'swarm_direction']:
+                   'swarm_direction', 'swarm_polarisation']:
         feature = feature.replace('swarm_', '')
         stmt = '''SELECT array(
                            SELECT round(''' + feature + ''',2)::text

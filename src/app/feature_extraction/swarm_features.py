@@ -44,6 +44,8 @@ def calculate_swarm_features(id):
         calculate_speed_acceleration(id, session)
         #  calculate the mean distance to centorid for the whole swarm
         calculate_mean_distance_centroid(id, session)
+        #  calculate the polarisation for the whole swarm
+        calculate_polarisation(id, session)
         # ToDO change this here sometime
         # dataset[0].status = 'Complete'
         # dataset[0].progress = 100
@@ -268,3 +270,26 @@ def calculate_centroid_direction(id, session):
         angle = round(math.degrees(angle), 2)
 
         group_data[i].direction = angle
+
+
+def calculate_polarisation(id, session):
+    """ Calculate the polarisation  of the animal group
+
+    Keyword arguments:
+    id - id of the dataset
+    session - db session
+    """
+    query = ''' UPDATE group_data
+                SET polarisation = subquery.polarisation
+                FROM (SELECT "time", (
+                            sqrt(
+                                power(SUM(sin(radians(direction))),2) +
+                                power(SUM(cos(radians(direction))),2)
+                            ) / count(*)
+                            ) as polarisation
+                      FROM movement_data
+                      WHERE dataset_id = :id
+                      GROUP BY "time") as subquery
+                WHERE group_data.time = subquery.time
+                  AND group_data.dataset_id = :id;'''
+    session.execute(query, {'id': id})

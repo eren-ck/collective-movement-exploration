@@ -680,6 +680,8 @@ animalNameSpace.spatialView = function() {
                             .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
                         d3.select('#directionLineValue')
                             .text(self.swarmData[tmp]['direction'] + '°');
+                        d3.select('#polarisationLineValue')
+                            .text(self.swarmData[tmp]['polarisation']);
                     }
 
                     // if () {
@@ -1360,7 +1362,7 @@ animalNameSpace.spatialView = function() {
                 newVal = 0;
             }
         }
-        newVal = Math.round(newVal * 100) / 100;
+        newVal = Math.round(newVal * 100) / 100; -
         btn.closest('.number-spinner').find('input').val(newVal);
         // change the coloring
         colorMetadata();
