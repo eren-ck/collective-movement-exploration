@@ -26,7 +26,8 @@ animalNameSpace.spatialView = function() {
     let tankWidth;
     let tankHeight;
     let medoidAnimal = -1;
-    let lineChartRatio = Math.ceil(self.swarmData.length / 5000);
+    let lineChartWidth = 5000;
+    let lineChartRatio = Math.ceil(self.swarmData.length / lineChartWidth);
     let arrayAnimals;
     let activeAnimals = []; // active selected animals
     let brush; // brushing variable
@@ -343,7 +344,7 @@ animalNameSpace.spatialView = function() {
         setTimeout(function() {
                 //change the time frame text
                 svgContainer.select('.frameText')
-                    .text(Math.floor(self.indexTime / 1500) % 60 + ':' + Math.floor(self.indexTime / 25) % 60 + '::' + self.indexTime % 25);
+                    .text(Math.floor(self.indexTime / 1500) % 60 + ':' + Math.floor(self.indexTime / parameters['fps']) % 60 + '::' + self.indexTime % parameters['fps']);
                 // if a second has changed move the slider
                 if (self.indexTime % parameters['fps'] === 0) {
                     $slider.slider('value', self.indexTime);
@@ -625,8 +626,9 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     });
-                if ($('#drawDirection')
-                    .is(':checked') && self.swarmData[self.indexTime].centroid) {
+                if ($('#drawDirection').is(':checked') &&
+                    self.swarmData[self.indexTime].centroid &&
+                    $('#drawCentroid').is(':checked')) {
                     d3.select('#centroid-line')
                         .classed('hidden', false);
                     // UPDATE animal direction arrow
@@ -684,15 +686,6 @@ animalNameSpace.spatialView = function() {
                             .text(self.swarmData[tmp]['polarisation']);
                     }
 
-                    // if () {
-                    //     lineTimeScale = d3.scaleLinear()
-                    //         .domain([0, self.swarmData.length])
-                    //         .range([0, self.swarmData.length]);
-                    // } else {
-                    //     lineTimeScale = d3.scaleLinear()
-                    //         .domain([0, self.swarmData.length])
-                    //         .range([0, self.swarmData.length]);
-                    // }
                     d3.select('#lineChartTimeLine')
                         .attr('transform', 'translate(' + self.zoomFunction(tmp) + ',0)');
                 }
