@@ -17,7 +17,7 @@ def calculate_absolute_features(id):
     id -- id of the dataset
 
     """
-    print('Absolute features started', file=sys.stderr)
+    # print('Absolute features started', file=sys.stderr)
     # print(datetime.datetime.utcnow(), file=sys.stderr)
 
     # create new db session

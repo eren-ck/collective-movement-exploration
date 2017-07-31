@@ -10,7 +10,9 @@ from view.admin_view import MyAdminView
 from view.home_view import MyHomeView
 from view.file_view import MyFileAdminView
 from view.dataset_view import MyDatasetView
+from view.network_view import MyNetworkView
 
+from model.network_model import Network
 from model.user_role_model import *
 
 from helpers.restless import *
@@ -25,6 +27,7 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 path = op.join(op.dirname(__file__), 'files')
+
 
 # Flask views
 @app.route('/')
@@ -52,9 +55,11 @@ def get_dataset():
 def get_dataset_id(id):
     return api_get_dataset(id)
 
+
 @app.route('/api/dataset/user/<int:user_id>', methods=['GET'])
 def get_dataset_user_id(user_id):
     return api_get_dataset_user(user_id)
+
 
 @app.route('/api/dataset/<int:id>/<feature>', methods=['GET'])
 def get_feature(id, feature):
@@ -70,9 +75,11 @@ def get_movment_only(id):
 def get_percentile(id):
     return api_get_percentile(id)
 
+
 @app.route('/api/metadata/<int:id>', methods=['GET'])
 def get_metadata(id):
     return api_get_metadata(id)
+
 
 # Create view
 admin = Admin(
@@ -86,6 +93,7 @@ admin = Admin(
 # Add model views
 admin.add_view(MyFileAdminView(path, '/files/', name='Upload'))
 admin.add_view(MyDatasetView(Dataset, db.session, name='Explore'))
+admin.add_view(MyNetworkView(Network, db.session))
 admin.add_view(MyAdminView(Role, db.session))
 admin.add_view(MyAdminView(User, db.session))
 
