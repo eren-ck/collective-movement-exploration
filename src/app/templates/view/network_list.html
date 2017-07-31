@@ -1,10 +1,55 @@
 {% extends 'admin/model/list.html' %}
+
 {% block body %}
-<h3>
-    Networks of the Datasets
-</h3>
-{{ super() }}
+{% block model_menu_bar %}
+<ul class="nav nav-tabs actions-nav">
+    <li class="active">
+        <a href="javascript:void(0)">{{ _gettext('List') }}{% if count %} ({{ count }}){% endif %}</a>
+    </li>
+
+    {% if admin_view.can_create %}
+    <li>
+        {%- if admin_view.create_modal -%}
+        {{ lib.add_modal_button(url=get_url('.create_view', url=return_url, modal=True), title=_gettext('Create New
+        Record'), content=_gettext('Create')) }}
+        {% else %}
+        <a href="{{ get_url('.create_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">{{
+            _gettext('Create') }}</a>
+        {%- endif -%}
+    </li>
+    {% endif %}
+
+    {% if filters %}
+    <li class="dropdown">
+        {{ model_layout.filter_options() }}
+    </li>
+    {% endif %}
+
+    {% if can_set_page_size %}
+    <li class="dropdown">
+        {{ model_layout.page_size_form(page_size_url) }}
+    </li>
+    {% endif %}
+
+    {% if actions %}
+    <li class="dropdown">
+        {{ actionlib.dropdown(actions) }}
+    </li>
+    {% endif %}
+
+    {% if search_supported %}
+    <li>
+        {{ model_layout.search_form() }}
+    </li>
+    {% endif %}
+    {% block model_menu_bar_after_filters %}{% endblock %}
+</ul>
 {% endblock %}
+
+{% if filters %}
+{{ model_layout.filter_form() }}
+<div class="clearfix"></div>
+{% endif %}
 
 {% block model_list_table %}
 <div class="table-responsive">
@@ -14,15 +59,14 @@
             {% block list_header scoped %}
 
             {% if actions %}
-            <th class="col-md-1">&nbsp;</th>
+            <th class="list-checkbox-column">
+                <input type="checkbox" name="rowtoggle" class="action-rowtoggle"
+                       title="{{ _gettext('Select all records') }}"/>
+            </th>
             {% endif %}
 
-            {% block list_row_actions_header %}
-
-            {% endblock %}
-
-            {% set column = 0 %}
             {% for c, name in list_columns %}
+            {% set column = loop.index0 %}
             <th class="column-header col-{{c}}">
                 {% if admin_view.is_sortable(c) %}
                 {% if sort_column == column %}
@@ -47,18 +91,18 @@
                 ></a>
                 {% endif %}
             </th>
-            {% set column = column + 1 %}
             {% endfor %}
+
+            {% block list_row_actions_header %}
             {% if admin_view.column_display_actions %}
-            <th class="col-md-1">Delete</th>
+            <th class="col-md-1">&nbsp;</th>
             {% endif %}
+            {% endblock %}
 
             {% endblock %}
         </tr>
-
         </thead>
         {% for row in data %}
-        {% if row.progress ==100 %}
         <tr>
             {% block list_row scoped %}
             {% if actions %}
@@ -82,31 +126,19 @@
                 {% endif %}
             </td>
             {% endfor %}
-            {% endblock %}
-            <!--Delete Button-->
+
             {% block list_row_actions_column scoped %}
             {% if admin_view.column_display_actions %}
             <td class="list-buttons-column">
-                {{ list_row_actions[2].render_ctx(get_pk_value(row), row) }}
-            </td>
-            <!--Edit Button-->
-            <td class="list-buttons-column">
-                {{ list_row_actions[1].render_ctx(get_pk_value(row), row) }}
-            </td>
-
-            <!--Export Button-->
-            <td class="list-buttons-column">
-                <a href="export/{{ get_pk_value(row) }} " style="color:black;">
-                    <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
-                </a>
-            </td>
-            <!--Explore Button-->
-            <td class="list-buttons-column">
-                {{ list_row_actions[0].render_ctx(get_pk_value(row), row) }}
+                {% block list_row_actions scoped %}
+                {% for action in list_row_actions %}
+                {{ action.render_ctx(get_pk_value(row), row) }}
+                {% endfor %}
+                {% endblock %}
             </td>
             {%- endif -%}
             {% endblock %}
-            {% endif %}
+            {% endblock %}
         </tr>
         {% else %}
         <tr>
@@ -118,7 +150,6 @@
                 {% endblock %}
             </td>
         </tr>
-
         {% endfor %}
     </table>
 </div>
@@ -129,4 +160,13 @@
 {{ lib.simple_pager(page, data|length == page_size, pager_url) }}
 {% endif %}
 {% endblock %}
+{% endblock %}
+
+{% block actions %}
+{{ actionlib.form(actions, get_url('.action_view')) }}
+{% endblock %}
+
+{%- if admin_view.edit_modal or admin_view.create_modal or admin_view.details_modal -%}
+{{ lib.add_modal_window() }}
+{%- endif -%}
 {% endblock %}

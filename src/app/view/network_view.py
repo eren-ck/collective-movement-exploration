@@ -8,7 +8,9 @@ from flask import url_for, request, redirect, abort, flash
 from flask_admin.base import expose
 from flask_wtf import FlaskForm
 from wtforms import DecimalField, BooleanField, StringField, SelectField
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, NumberRange
+
+from sqlalchemy import desc
 
 from flask_admin.helpers import get_redirect_target
 from flask_admin.form import FormOpts
@@ -25,6 +27,18 @@ class NetworkForm(FlaskForm):
     """
     dataset_id = SelectField(u'Dataset', validators=[InputRequired()])
     name = StringField(label='Network Name', validators=[InputRequired()])
+    metric_distance = DecimalField(label='Metric Distance to frame n-1', places=2, validators=[InputRequired(),
+                                                                                               NumberRange(min=0, max=1,
+                                                                                                           message='Please enter a value between 0 and 1')])
+    speed = DecimalField(label='Speed', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
+                                                                                           message='Please enter a value between 0 and 1')])
+    acceleration = DecimalField(label='Acceleration', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
+                                                                                                         message='Please enter a value between 0 and 1')])
+    distance_centroid = DecimalField(label='Distance to Centroid', places=2, validators=[InputRequired(),
+                                                                                         NumberRange(min=0, max=1,
+                                                                                                     message='Please enter a value between 0 and 1')])
+    direction = DecimalField(label='Direction', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
+                                                                                                   message='Please enter a value between 0 and 1')])
 
 
 class MyNetworkView(sqla.ModelView):
@@ -35,13 +49,13 @@ class MyNetworkView(sqla.ModelView):
     can_edit = False
     # can_set_page_size = True
     can_view_details = True
-    column_list = ['name']
+    column_list = ['dataset.name', 'name']
     column_details_list = ['dataset_id', 'name', 'network']
     form_excluded_columns = (
         'network')
 
     # Templates
-    # list_template = 'view/network_list.html'
+    list_template = 'view/network_list.html'
     """Default list view template"""
 
     # details_template = 'view/dataset_explore.html'
@@ -71,19 +85,18 @@ class MyNetworkView(sqla.ModelView):
                 # login
                 return redirect(url_for('security.login', next=request.url))
 
-    # def on_model_delete(self, model):
-    #     """
-    #         Perform some actions before a model is deleted.
-    #
-    #         Called from delete_model in the same transaction
-    #         (if it has any meaning for a store backend).
-    #
-    #         Only the user who has uploaded the dataset is able to delete it
-    #     """
-    #     # TODO change this
-    #     if not (current_user.id == model.user_id):
-    #         abort(403)
-    #     pass
+    def on_model_delete(self, model):
+        """
+            Perform some actions before a model is deleted.
+
+            Called from delete_model in the same transaction
+            (if it has any meaning for a store backend).
+
+            Only the user who has uploaded the dataset is able to delete it
+        """
+        if not (current_user.id == model.dataset.user_id):
+            abort(403)
+        pass
 
     # def get_query(self):
     #     """
@@ -120,26 +133,30 @@ class MyNetworkView(sqla.ModelView):
             return redirect(return_url)
 
         form = NetworkForm()
+        if request.method == 'GET':
+            choices = []
+            for dataset in db.session.query(Dataset).filter_by(user_id=current_user.id):
+                choices.append((dataset.id, dataset.name))
 
-        choices = []
-        for dataset in db.session.query(Dataset).filter_by(user_id=current_user.id):
-            choices.append((dataset.id, dataset.name))
-
-        form.dataset_id.choices = choices
-
-        if not hasattr(form, '_validated_ruleset') or not form._validated_ruleset:
-            self._validate_form_instance(ruleset=self.form, form=form)
+            form.dataset_id.choices = choices
+        # print('XXX!', file=sys.stderr)
+        # print(network_id, file=sys.stderr)
 
         if request.method == 'POST':
             form = NetworkForm(request.form)
 
-            # if not form.validate():
-            #     flash(form.errors, 'error')
-            #     return redirect(request.url)
-            print('XXXX', file=sys.stderr)
-            print(form.data, file=sys.stderr)
+            if not hasattr(form, '_validated_ruleset') or not form._validated_ruleset or not form.validate():
+                self._validate_form_instance(ruleset=self._form_create_rules, form=form)
 
-            model = Network(**form.data)
+            # get the next network_id for the dataset
+            network_id = db.session.query(Network).filter_by(dataset_id=form.dataset_id.data).order_by(
+                desc(Network.network_id)).limit(1).first()
+            if network_id:
+                network_id = network_id.network_id + 1
+            else:
+                network_id = 0
+
+            model = Network(network_id, **form.data)
             db.session.add(model)
             db.session.commit()
 
