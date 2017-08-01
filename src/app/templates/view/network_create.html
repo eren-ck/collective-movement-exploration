@@ -1,0 +1,72 @@
+{% extends 'admin/master.html' %}
+{% import 'admin/lib.html' as lib with context %}
+{% from "formhelpers.html" import render_field %}
+
+{% block head %}
+{{ super() }}
+{{ lib.form_css() }}
+{% endblock %}
+
+{% block body %}
+{% block navlinks %}
+
+<ul class="nav nav-tabs">
+    <li>
+        <a href="{{ return_url }}">{{ _gettext('List') }}</a>
+    </li>
+    <li class="active">
+        <a href="javascript:void(0)">{{ _gettext('Create') }}</a>
+    </li>
+</ul>
+{% endblock %}
+
+<form method="POST" role="form" class="admin-form form-horizontal" enctype="multipart/form-data">
+    <fieldset>
+
+        <div class="form-group">
+            <div class="form-group col-md-6">
+                {{ render_field(form.dataset_id, required="required") }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ render_field(form.name, required="required") }}
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-1 col-md-5">
+                {{ render_field(form.metric_distance, placeholder='0', required="required", spinner=True) }}
+            </div>
+            <div class="col-md-offset-1 col-md-5">
+                {{ render_field(form.speed, placeholder='0', required="required", spinner=True) }}
+            </div>
+            <div class="col-md-offset-1 col-md-5">
+                {{ render_field(form.acceleration, placeholder='0', required="required", spinner=True) }}
+            </div>
+            <div class="col-md-offset-1 col-md-5">
+                {{ render_field(form.distance_centroid, placeholder='0', required="required", spinner=True) }}
+            </div>
+            <div class="col-md-offset-1 col-md-5">
+                {{ render_field(form.direction, placeholder='0', required="required", spinner=True) }}
+            </div>
+        </div>
+
+        <div class="row">
+
+            {{form.hidden_tag()}}
+
+            <div class="form-group pull-right">
+                <div class="submit-row">
+                    {{render_field(form.submit, class="btn btn-primary btn-lg submit", value="Create" )}}
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}
+
+
+{% block tail %}
+{{ super() }}
+{{ lib.form_js() }}
+<script src="{{url_for('static', filename='js/network_create.js')}}"></script>
+
+{% endblock %}

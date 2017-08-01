@@ -1,0 +1,154 @@
+{% extends 'admin/master.html' %}
+{% import 'admin/lib.html' as lib with context %}
+
+{% block body %}
+  {% block details_table %}
+
+    <table class="table table-hover table-bordered table-striped">
+     <tr>
+        <td>
+          <b>
+             Dataset Name
+          </b>
+        </td>
+        <td>
+            {{model.dataset_name}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <b>
+             Network Name
+          </b>
+        </td>
+        <td>
+            {{model.name}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <b>
+             Finished
+          </b>
+        </td>
+        <td>
+            {%- if model.finished -%}
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+            {% else %}
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            {%- endif -%}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <b>
+             Error
+          </b>
+        </td>
+        <td>
+            {%- if model.error -%}
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+            {% else %}
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            {%- endif -%}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <b>
+             Metric Distance
+          </b>
+        </td>
+        <td>
+            <div class="progress">
+                <div class="progress-bar progress-bar-info" aria-valuenow={{ model.metric_distance }}
+                         aria-valuemin="0" aria-valuemax="1"
+                         style="min-width: 2em; width:{{100* model.metric_distance }}%">
+                        {{model.metric_distance}}
+                </div>
+            </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <b>
+             Speed
+          </b>
+        </td>
+        <td>
+            <div class="progress">
+                <div class="progress-bar progress-bar-info" aria-valuenow={{ model.speed }}
+                         aria-valuemin="0" aria-valuemax="1"
+                         style="min-width: 2em; width:{{100* model.speed }}%">
+                        {{model.speed}}
+                </div>
+            </div>
+        </td>
+      </tr>
+
+
+      <tr>
+        <td>
+          <b>
+             Acceleration
+          </b>
+        </td>
+        <td>
+            <div class="progress">
+                <div class="progress-bar progress-bar-info" aria-valuenow={{ model.acceleration }}
+                         aria-valuemin="0" aria-valuemax="1"
+                         style="min-width: 2em; width:{{100* model.acceleration }}%">
+                        {{model.acceleration}}
+                </div>
+            </div>
+        </td>
+      </tr>
+
+
+      <tr>
+        <td>
+          <b>
+             Distance Centroid
+          </b>
+        </td>
+        <td>
+            <div class="progress">
+                <div class="progress-bar progress-bar-info" aria-valuenow={{ model.distance_centroid }}
+                         aria-valuemin="0" aria-valuemax="1"
+                         style="min-width: 2em; width:{{100* model.distance_centroid }}%">
+                        {{model.distance_centroid}}
+                </div>
+            </div>
+        </td>
+      </tr>
+
+
+      <tr>
+        <td>
+          <b>
+             Direction
+          </b>
+        </td>
+        <td>
+            <div class="progress">
+                <div class="progress-bar progress-bar-info" aria-valuenow={{ model.direction }}
+                         aria-valuemin="0" aria-valuemax="1"
+                         style="min-width: 2em; width:{{ 100*model.direction }}%">
+                        {{model.direction}}
+                </div>
+            </div>
+        </td>
+      </tr>
+
+    </table>
+  {% endblock %}
+{% endblock %}
+
+{% block tail %}
+  {{ super() }}
+{% endblock %}

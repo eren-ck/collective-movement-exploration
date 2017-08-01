@@ -7,7 +7,7 @@ from flask_security import current_user
 from flask import url_for, request, redirect, abort, flash
 from flask_admin.base import expose
 from flask_wtf import FlaskForm
-from wtforms import DecimalField, BooleanField, StringField, SelectField
+from wtforms import DecimalField, SubmitField, StringField, SelectField
 from wtforms.validators import InputRequired, NumberRange
 
 from sqlalchemy import desc
@@ -25,7 +25,7 @@ class NetworkForm(FlaskForm):
     """
        WTForms for editing
     """
-    dataset_id = SelectField(u'Dataset', validators=[InputRequired()])
+    dataset_id = SelectField(u'Dataset', coerce=int, validators=[InputRequired()])
     name = StringField(label='Network Name', validators=[InputRequired()])
     metric_distance = DecimalField(label='Metric Distance to frame n-1', places=2, validators=[InputRequired(),
                                                                                                NumberRange(min=0, max=1,
@@ -39,6 +39,8 @@ class NetworkForm(FlaskForm):
                                                                                                      message='Please enter a value between 0 and 1')])
     direction = DecimalField(label='Direction', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
                                                                                                    message='Please enter a value between 0 and 1')])
+    submit = SubmitField('')
+
 
 
 class MyNetworkView(sqla.ModelView):
@@ -49,8 +51,9 @@ class MyNetworkView(sqla.ModelView):
     can_edit = False
     # can_set_page_size = True
     can_view_details = True
-    column_list = ['dataset.name', 'name']
-    column_details_list = ['dataset_id', 'name', 'network']
+    column_list = ['dataset.name', 'name', 'finished']
+    column_details_list = ['dataset_id', 'name', 'finished', 'error', 'metric_distance', 'speed', 'acceleration',
+                           'distance_centroid', 'direction']
     form_excluded_columns = (
         'network')
 
@@ -58,11 +61,11 @@ class MyNetworkView(sqla.ModelView):
     list_template = 'view/network_list.html'
     """Default list view template"""
 
-    # details_template = 'view/dataset_explore.html'
-    """Default details view template"""
+    create_template = 'view/network_create.html'
+    """Default create template"""
 
-    # edit_template = 'view/dataset_edit.html'
-    """Default edit template"""
+    details_template = 'view/network_details.html'
+    """Default details view template"""
 
     def is_accessible(self):
         """
@@ -98,28 +101,24 @@ class MyNetworkView(sqla.ModelView):
             abort(403)
         pass
 
-    # def get_query(self):
-    #     """
-    #     Filter the datasets - only get current user datasets
-    #     """
-    #     return self.session.query(self.model).filter(self.model.user_id == current_user.id)
-    #
-    # def get_count_query(self):
-    #     """
-    #     Number of datasets - only get current user datasets
-    #     """
-    #     return self.session.query(sqla.view.func.count('*')).filter(self.model.user_id == current_user.id)
+    def get_query(self):
+        """
+        Filter the datasets - only get current user datasets
+        """
+        return self.session.query(self.model).join(Dataset).filter(Dataset.user_id == current_user.id)
 
-    # @expose('/details/')
-    # def details_view(self):
-    #     """
-    #         Details model view
-    #     """
-    #     template = self.details_template
-    #     id = request.args['id']
-    #     parameters = db.session.query(Dataset).filter_by(id=id)[0].as_dict()
-    #
-    #     return self.render(template, parameters=parameters)
+    @expose('/details/')
+    def details_view(self):
+        """
+            Details model view
+        """
+        template = self.details_template
+        ids = request.args['id'].split(',')
+        dataset_id= ids[0]
+        network_id = ids[1]
+        model = db.session.query(Network).filter_by(dataset_id=dataset_id,network_id=network_id)[0].as_dict()
+
+        return self.render(template, model=model)
 
 
     @expose('/new/', methods=('GET', 'POST'))
@@ -133,38 +132,40 @@ class MyNetworkView(sqla.ModelView):
             return redirect(return_url)
 
         form = NetworkForm()
-        if request.method == 'GET':
-            choices = []
-            for dataset in db.session.query(Dataset).filter_by(user_id=current_user.id):
-                choices.append((dataset.id, dataset.name))
-
-            form.dataset_id.choices = choices
-        # print('XXX!', file=sys.stderr)
-        # print(network_id, file=sys.stderr)
+        # set the possible choices for the dataset id
+        form.dataset_id.choices = [(d.id, d.name) for d in
+                                   db.session.query(Dataset).filter_by(user_id=current_user.id)]
 
         if request.method == 'POST':
             form = NetworkForm(request.form)
+            # set the possible choices for the dataset id
+            form.dataset_id.choices = [(d.id, d.name) for d in
+                                       db.session.query(Dataset).filter_by(user_id=current_user.id)]
 
-            if not hasattr(form, '_validated_ruleset') or not form._validated_ruleset or not form.validate():
+            if not hasattr(form, '_validated_ruleset') or not form._validated_ruleset:
                 self._validate_form_instance(ruleset=self._form_create_rules, form=form)
 
-            # get the next network_id for the dataset
-            network_id = db.session.query(Network).filter_by(dataset_id=form.dataset_id.data).order_by(
-                desc(Network.network_id)).limit(1).first()
-            if network_id:
-                network_id = network_id.network_id + 1
-            else:
-                network_id = 0
+            # check if valid form
+            if form.validate():
+                # get the next network_id for the dataset
+                network_id = db.session.query(Network).filter_by(dataset_id=form.dataset_id.data).order_by(
+                    desc(Network.network_id)).limit(1).first()
+                if network_id:
+                    network_id = network_id.network_id + 1
+                else:
+                    network_id = 0
+                # create and commit the new network
+                model = Network(network_id, **form.data)
+                db.session.add(model)
+                db.session.commit()
 
-            model = Network(network_id, **form.data)
-            db.session.add(model)
-            db.session.commit()
-
-            if '_add_another' in request.form:
-                return redirect(request.url)
+                if '_add_another' in request.form:
+                    return redirect(request.url)
+                else:
+                    # save button
+                    return redirect(self.get_save_return_url(model, is_created=True))
             else:
-                # save button
-                return redirect(self.get_save_return_url(model, is_created=True))
+                self.on_form_prefill(form, id)
 
         form_opts = FormOpts(widget_args=self.form_widget_args,
                              form_rules=self._form_create_rules)

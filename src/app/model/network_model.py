@@ -25,11 +25,26 @@ class Network(db.Model):
     acceleration = db.Column(db.Float)
     distance_centroid = db.Column(db.Float)
     direction = db.Column(db.Float)
+    finished = db.Column(db.Boolean, default=False)
+    error = db.Column(db.Boolean, default=False)
 
-    def __init__(self, network_id,**kwargs):
+    def __init__(self, network_id, **kwargs):
         self.network_id = network_id
         self.network = {}
         self.__dict__.update(kwargs)
 
     def __repr__(self):
         return '(' + str(self.dataset_id) + ',' + self.name + ')'
+
+    def as_dict(self):
+        return {
+            'dataset_name': self.dataset.name,
+            'name': self.name,
+            'finished': self.finished,
+            'error': self.error,
+            'metric_distance': self.metric_distance,
+            'speed': self.speed,
+            'acceleration': self.acceleration,
+            'distance_centroid': self.distance_centroid,
+            'direction': self.direction,
+        }
