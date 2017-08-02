@@ -65,6 +65,10 @@ def get_dataset_user_id(user_id):
 def get_feature(id, feature):
     return api_get_feature(id, feature)
 
+@app.route('/api/dataset/<int:id>/vc', methods=['GET'])
+def get_vc_feature(id):
+    return api_get_vc(id)
+
 
 @app.route('/api/movement_only/<int:id>', methods=['GET'])
 def get_movment_only(id):
@@ -79,7 +83,6 @@ def get_percentile(id):
 @app.route('/api/metadata/<int:id>', methods=['GET'])
 def get_metadata(id):
     return api_get_metadata(id)
-
 
 # Create view
 admin = Admin(

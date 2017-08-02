@@ -25,6 +25,7 @@ class Network(db.Model):
     acceleration = db.Column(db.Float)
     distance_centroid = db.Column(db.Float)
     direction = db.Column(db.Float)
+    euclidean_distance = db.Column(db.Float)
     finished = db.Column(db.Boolean, default=False)
     error = db.Column(db.Boolean, default=False)
 
@@ -47,4 +48,5 @@ class Network(db.Model):
             'acceleration': self.acceleration,
             'distance_centroid': self.distance_centroid,
             'direction': self.direction,
+            'euclidean_distance':self.euclidean_distance
         }

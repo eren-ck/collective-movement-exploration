@@ -39,6 +39,8 @@ class NetworkForm(FlaskForm):
                                                                                                      message='Please enter a value between 0 and 1')])
     direction = DecimalField(label='Direction', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
                                                                                                    message='Please enter a value between 0 and 1')])
+    euclidean_distance = DecimalField(label='Euclidean Distance to other animals', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
+                                                                                                   message='Please enter a value between 0 and 1')])
     submit = SubmitField('')
 
 

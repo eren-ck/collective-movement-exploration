@@ -5,6 +5,7 @@
 {% block head %}
 {{ super() }}
 {{ lib.form_css() }}
+<link href="/static/css/network_create.css" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
@@ -47,11 +48,26 @@
             <div class="col-md-offset-1 col-md-5">
                 {{ render_field(form.direction, placeholder='0', required="required", spinner=True) }}
             </div>
+            <div class="col-md-offset-1 col-md-5">
+                {{ render_field(form.euclidean_distance, placeholder='0', required="required", spinner=True) }}
+            </div>
         </div>
 
         <div class="row">
 
             {{form.hidden_tag()}}
+            <div class="col-md-6">
+                <button class="btn btn-default btn-lg" type="button" id="suggest">
+                    <span class="glyphicon glyphicon-tasks"></span> Suggest Parameters
+                </button>
+
+                <button class="btn btn-default btn-lg hidden" type="button" id="calculating">
+                    Calculating
+                    <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                </button>
+
+                <p class="text-muted">Let the server suggest interesting parameters</p>
+            </div>
 
             <div class="form-group pull-right">
                 <div class="submit-row">

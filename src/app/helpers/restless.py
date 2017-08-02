@@ -4,6 +4,7 @@ from model.metadata_model import Metadata
 
 import geojson
 import sys
+import decimal
 
 from geoalchemy2.shape import to_shape
 from sqlalchemy import text
@@ -140,7 +141,7 @@ def api_get_feature(id=None, feature=None):
         :param id:
             id of the specific dataset
     """
-    # auth_func()
+    auth_func()
     # not a valid feature
     if not id or not feature:
         return jsonify({})
@@ -216,6 +217,49 @@ def api_get_feature(id=None, feature=None):
         return jsonify(result)
 
     return jsonify({"id": id, "feature": feature})
+
+
+def api_get_vc(id=None):
+    """
+        Return the variation coefficient of the feature
+
+        :param id:
+            id of the specific dataset
+    """
+    auth_func()
+    # not a valid feature
+    if not id:
+        return jsonify({})
+    result = {}
+    # return absolute features
+    for feature in ['metric_distance', 'speed', 'acceleration', 'distance_centroid', 'direction']:
+        stmt = '''SELECT stddev(''' + feature + '''+ tmp.val ) / avg(''' + feature + ''' + tmp.val)
+                    FROM movement_data,
+                        (SELECT abs(min(''' + feature + ''')) as val
+                        FROM movement_data
+                        WHERE dataset_id = :id) as tmp
+                    WHERE dataset_id = :id; '''
+        query = db.engine.execute(text(stmt), id=id).fetchone()[0]
+
+        if isinstance(query, decimal.Decimal):
+            result[feature] = round(float(query), 4)
+    #TODO add some more features here
+    for feature in ['convex_hull_area']:
+        stmt = '''SELECT stddev(''' + feature + '''+ tmp.val ) / avg(''' + feature + ''' + tmp.val)
+                            FROM group_data,
+                                (SELECT abs(min(''' + feature + ''')) as val
+                                FROM group_data
+                                WHERE dataset_id = :id) as tmp
+                            WHERE dataset_id = :id; '''
+        query = db.engine.execute(text(stmt), id=id).fetchone()[0]
+
+        if isinstance(query, decimal.Decimal):
+            if feature == 'convex_hull_area':
+                result['euclidean_distance'] = round(float(query), 4)
+            else:
+                result[feature] = round(float(query), 4)
+
+    return jsonify(result)
 
 
 def postprocessor_movement(search_params, result):
