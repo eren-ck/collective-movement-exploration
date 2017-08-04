@@ -10,6 +10,7 @@ from flask_wtf import FlaskForm
 from wtforms import DecimalField, SubmitField, StringField, SelectField
 from wtforms.validators import InputRequired, NumberRange
 
+from multiprocessing import Process
 from sqlalchemy import desc
 
 from flask_admin.helpers import get_redirect_target
@@ -20,6 +21,7 @@ from model.network_model import Network
 from db import db
 from model.dataset_model import Dataset
 
+from feature_extraction.network_calculation import calculate_network
 
 class NetworkForm(FlaskForm):
     """
@@ -160,6 +162,11 @@ class MyNetworkView(sqla.ModelView):
                 model = Network(network_id, **form.data)
                 db.session.add(model)
                 db.session.commit()
+
+                # start the calculation in a new process
+                p = Process(target=calculate_network,
+                            args=(model.dataset_id,model.network_id))
+                p.start()
 
                 if '_add_another' in request.form:
                     return redirect(request.url)

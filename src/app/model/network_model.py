@@ -48,5 +48,5 @@ class Network(db.Model):
             'acceleration': self.acceleration,
             'distance_centroid': self.distance_centroid,
             'direction': self.direction,
-            'euclidean_distance':self.euclidean_distance
+            'euclidean_distance': self.euclidean_distance
         }
