@@ -2,6 +2,7 @@ import sys
 import os
 import numpy as np
 from scipy.spatial.distance import pdist
+import multiprocessing as mp
 
 from db import create_session
 
@@ -69,15 +70,47 @@ def calculate_network(dataset_id, network_id):
         ])
         feature_matrices[str(elem.time)].append(v_normed)
 
-    for t in feature_matrices:
-        feature_matrices[t] = np.asarray(feature_matrices[t])
-        # feature_matrices[t] = pdist(feature_matrices[t], 'wminkowski', 2, weights)
+    ### Multiprocessing
+    pool_size = 20  # 5 parallel processes
+    # create the pool
+    pool = mp.Pool(pool_size)
+    # pack the input arguments together
+    arglist = [[i, feature_matrices, 'wminkowski', 2, weights] for i in feature_matrices.keys()]
+    # start the calculation function for each time step
+    results = pool.map(distance_calculation, arglist)
 
-    print('XXXX', file=sys.stderr)
-    print(feature_matrices, file=sys.stderr)
+    pool.close()
+    # wait until all processes are finished
+    pool.join()
+
+    # print('Result', file=sys.stderr)
+    # print(results, file=sys.stderr)
     # create
 
+    # for t in feature_matrices:
+    #     feature_matrices[t] = distance_calculation_2(feature_matrices[t], 'wminkowski', 2, weights)
+    #
+    # print('Feature Matrix', file=sys.stderr)
+    # print(feature_matrices, file=sys.stderr)
+
     session.remove()
+
+
+def distance_calculation(args):
+    """
+        Return the pairwise distance between the observations in the n-dimensional space
+
+        :param id:
+            args: (["index","feature_matrix","metric","p-norm","weight vector"]
+    """
+    # return squareform(pdist(X, metric, p, w))
+    i, X, metric, p, w = args
+    return {i: pdist(X[i], metric, p, w)}
+
+
+# def distance_calculation_2(X, metric, p, w):
+#     # return squareform(pdist(X, metric, p, w))
+#     return pdist(X, metric, p, w)
 
 
 def normalize(value, min, max):
