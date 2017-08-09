@@ -123,4 +123,4 @@ if __name__ == '__main__':
     app_dir = os.path.realpath(os.path.dirname(__file__))
     database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
     # Start app
-    app.run(threaded=True, debug=True)
+    app.run(threaded=True, debug=False)

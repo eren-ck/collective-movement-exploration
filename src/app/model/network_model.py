@@ -28,6 +28,7 @@ class Network(db.Model):
     euclidean_distance = db.Column(db.Float)
     finished = db.Column(db.Boolean, default=False)
     error = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(255))
 
     def __init__(self, network_id, **kwargs):
         self.network_id = network_id
@@ -43,6 +44,7 @@ class Network(db.Model):
             'name': self.name,
             'finished': self.finished,
             'error': self.error,
+            'status': self.status,
             'metric_distance': self.metric_distance,
             'speed': self.speed,
             'acceleration': self.acceleration,
