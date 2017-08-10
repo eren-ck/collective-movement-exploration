@@ -51,7 +51,7 @@ animalNameSpace.spatialView = function() {
         tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
 
         $(function() {
-            $('#mainVis').draggable({
+            $('#main-vis').draggable({
                     containment: 'parent'
                 }).resizable({
                     aspectRatio: true,
@@ -64,13 +64,13 @@ animalNameSpace.spatialView = function() {
         $('input[type=checkbox]')
             .attr('checked', false);
         //set the color scale function to linear
-        $('#colorScaleLinear')
+        $('#color-scale-linear')
             .prop('checked', true);
         $('#group-size-m')
             .prop('checked', true);
         $('#background-white')
             .prop('checked', true);
-        $('#settingsDiv input[type=checkbox]')
+        $('#settings-div input[type=checkbox]')
             .prop('checked', true);
         //hide the loading gif
         $('#loading')
@@ -96,7 +96,7 @@ animalNameSpace.spatialView = function() {
                 slide: function(event, ui) {
                     self.indexTime = ui.value;
                     // if paused apply changes
-                    if (!$('#playButton').hasClass('active')) {
+                    if (!$('#play-button').hasClass('active')) {
                         //this applys the changes
                         draw();
                     }
@@ -149,7 +149,7 @@ animalNameSpace.spatialView = function() {
             });
 
         //the svg container
-        svgContainer = d3.select('#mainVis')
+        svgContainer = d3.select('#main-vis')
             .classed('svg-container', true)
             // to make it responsive with css
             .append('svg')
@@ -157,13 +157,13 @@ animalNameSpace.spatialView = function() {
             .attr('viewBox', '0 0 ' + tankWidth + ' ' + tankHeight)
             // add the class svg-content
             .classed('svg-content', true)
-            .attr('id', 'mainVis-svg')
+            .attr('id', 'main-vis-svg')
             .call(zoom);
 
 
         /* depends on svg ratio, for  1240/1900 = 0.65 so padding-bottom = 65% */
         let percentage = Math.ceil((tankHeight / tankWidth) * 100);
-        $('#mainVis').append($('<style>#mainVis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
+        $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
         zoomGroup = svgContainer.append('svg:g');
 
@@ -234,7 +234,7 @@ animalNameSpace.spatialView = function() {
             .attr('id', 'vornoiGroup');
 
         // group for the legend
-        svgLegend = d3.select('#divLegend')
+        svgLegend = d3.select('#main-vis-legend-div')
             .classed('svg-legendContainer', true)
             // to make it responsive with css
             .append('svg')
@@ -292,7 +292,7 @@ animalNameSpace.spatialView = function() {
                 $('.palette[title=\"' + d.key + '\"]').addClass('selected');
                 colorScales.color = colorbrewer[d.key];
                 changeLegend();
-                if (!$('#playButton')
+                if (!$('#play-button')
                     .hasClass('active')) {
                     //go back one second and draw the next frame
                     //this applys the changes
@@ -359,7 +359,7 @@ animalNameSpace.spatialView = function() {
                 // delaunay triangulation
                 // DATA JOIN  - triangulation
                 var triangulation;
-                if ($('#drawTriangulation')
+                if ($('#draw-triangulation')
                     .is(':checked')) {
                     triangulation = tank.select('#delaunayTriangulationGroup')
                         .selectAll('path.delaunayTriangulation')
@@ -388,7 +388,7 @@ animalNameSpace.spatialView = function() {
                 // Voronoi
                 // DATA JOIN  - voronoi
                 var voronoi;
-                if ($('#drawVoronoi')
+                if ($('#draw-voronoi')
                     .is(':checked')) {
                     //append the group for the voronoi paths
                     voronoi = tank
@@ -453,7 +453,7 @@ animalNameSpace.spatialView = function() {
                         } else {
                             activeAnimals.push(d['a']);
                         }
-                        if (!$('#playButton')
+                        if (!$('#play-button')
                             .hasClass('active')) {
                             //go back one second and draw the next frame
                             //this applys the changes
@@ -495,7 +495,7 @@ animalNameSpace.spatialView = function() {
                     });
 
                 //execute only when draw direction button is checked
-                if ($('#drawDirection')
+                if ($('#draw-direction')
                     .is(':checked')) {
                     // UPDATE animal direction arrow
                     svgAnimals.select('line')
@@ -525,7 +525,7 @@ animalNameSpace.spatialView = function() {
                     .remove();
 
                 //Convex hull
-                if ($('#drawConvexHull')
+                if ($('#draw-convex-hull')
                     .is(':checked')) {
                     // DATA JOIN - paths
                     var hullPath = tank.selectAll('path.hullPath')
@@ -594,15 +594,15 @@ animalNameSpace.spatialView = function() {
                                 return 0.25;
                             }
                         });
-                    if ($('#removeActiveSelectedButton')
+                    if ($('#remove-active-selected-button')
                         .is(':disabled')) {
-                        $('#removeActiveSelectedButton')
+                        $('#remove-active-selected-button')
                             .prop('disabled', false);
                     }
                 } else {
-                    if (!$('#removeActiveSelectedButton')
+                    if (!$('#remove-active-selected-button')
                         .is(':disabled')) {
-                        $('#removeActiveSelectedButton')
+                        $('#remove-active-selected-button')
                             .prop('disabled', true);
                     }
                     // normal opacity
@@ -626,9 +626,9 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     });
-                if ($('#drawDirection').is(':checked') &&
+                if ($('#draw-direction').is(':checked') &&
                     self.swarmData[self.indexTime].centroid &&
-                    $('#drawCentroid').is(':checked')) {
+                    $('#draw-centroid').is(':checked')) {
                     d3.select('#centroid-line')
                         .classed('hidden', false);
                     // UPDATE animal direction arrow
@@ -710,8 +710,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Play or stop the animation
      */
-    $('#playButton').click(function() {
-        if ($('#playButton').hasClass('active') === true) {
+    $('#play-button').click(function() {
+        if ($('#play-button').hasClass('active') === true) {
             playBoolean = false;
         } else {
             playBoolean = true;
@@ -724,19 +724,19 @@ animalNameSpace.spatialView = function() {
     /**
      * Pause the animation and show only the next frame
      */
-    $('#nextFrameButton').click(function() {
-        if ($('#playButton').hasClass('active') === true) {
+    $('#next-frame-button').click(function() {
+        if ($('#play-button').hasClass('active') === true) {
             playBoolean = false;
         }
-        $('#playButton').removeClass('active');
+        $('#play-button').removeClass('active');
         draw();
     });
 
     /**
      * Draw Speed button
      */
-    $('#drawSpeed').click(function() {
-        if ($('#drawSpeed').is(':checked')) {
+    $('#draw-speed').click(function() {
+        if ($('#draw-speed').is(':checked')) {
             // load absolute feature speed data once
             if (!('speed' in self.dataset[0])) {
                 disablePlayButton();
@@ -759,12 +759,12 @@ animalNameSpace.spatialView = function() {
                 });
             }
             $('.draw-details').addClass('hidden');
-            $('#drawSpeedDetails').removeClass('hidden');
-            $('#drawAcceleration').prop('checked', false);
-            $('#drawDistanceCentroid').prop('checked', false);
+            $('#draw-speed-details').removeClass('hidden');
+            $('#draw-acceleration').prop('checked', false);
+            $('#draw-distance-centroid').prop('checked', false);
             activeScale = 'speed';
         } else {
-            $('#drawSpeedDetails').addClass('hidden');
+            $('#draw-speed-details').addClass('hidden');
             activeScale = 'black';
         }
         $('.draw-details.active').click();
@@ -772,7 +772,7 @@ animalNameSpace.spatialView = function() {
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
 
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -783,8 +783,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw acceleration button
      */
-    $('#drawAcceleration').click(function() {
-        if ($('#drawAcceleration').is(':checked')) {
+    $('#draw-acceleration').click(function() {
+        if ($('#draw-acceleration').is(':checked')) {
             // load absolute feature acceleration data once
             if (!('acceleration' in self.dataset[0])) {
                 disablePlayButton();
@@ -807,12 +807,12 @@ animalNameSpace.spatialView = function() {
                 });
             }
             $('.draw-details').addClass('hidden');
-            $('#drawAccelerationDetails').removeClass('hidden');
-            $('#drawSpeed').prop('checked', false);
-            $('#drawDistanceCentroid').prop('checked', false);
+            $('#draw-acceleration-details').removeClass('hidden');
+            $('#draw-speed').prop('checked', false);
+            $('#draw-distance-centroid').prop('checked', false);
             activeScale = 'acceleration';
         } else {
-            $('#drawAccelerationDetails').addClass('hidden');
+            $('#draw-acceleration-details').addClass('hidden');
             activeScale = 'black';
         }
         $('.draw-details.active').click();
@@ -820,7 +820,7 @@ animalNameSpace.spatialView = function() {
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
 
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -831,8 +831,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw distance to centroid button
      */
-    $('#drawDistanceCentroid').click(function() {
-        if ($('#drawDistanceCentroid').is(':checked')) {
+    $('#draw-distance-centroid').click(function() {
+        if ($('#draw-distance-centroid').is(':checked')) {
             // load absolute feature distance_centroid data once
             if (!('distance_centroid' in self.dataset[0])) {
                 disablePlayButton();
@@ -855,12 +855,12 @@ animalNameSpace.spatialView = function() {
                 });
             }
             $('.draw-details').addClass('hidden');
-            $('#drawDistanceCentroidDetails').removeClass('hidden');
-            $('#drawSpeed').prop('checked', false);
-            $('#drawAcceleration').prop('checked', false);
+            $('#draw-distance-centroid-details').removeClass('hidden');
+            $('#draw-speed').prop('checked', false);
+            $('#draw-acceleration').prop('checked', false);
             activeScale = 'distance_centroid';
         } else {
-            $('#drawDistanceCentroidDetails').addClass('hidden');
+            $('#draw-distance-centroid-details').addClass('hidden');
             activeScale = 'black';
         }
         $('.draw-details.active').click();
@@ -868,7 +868,7 @@ animalNameSpace.spatialView = function() {
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
 
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -879,8 +879,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw direction arrow of the animal
      */
-    $('#drawDirection').click(function() {
-        if ($('#drawDirection').is(':checked')) {
+    $('#draw-direction').click(function() {
+        if ($('#draw-direction').is(':checked')) {
             // load absolute feature speed data once
             if (!('direction' in self.dataset[0])) {
                 disablePlayButton();
@@ -908,7 +908,7 @@ animalNameSpace.spatialView = function() {
             d3.selectAll('.arrow')
                 .classed('hidden', true);
         }
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -919,8 +919,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw medoid in color button
      */
-    $('#drawMedoid').click(function() {
-        if ($('#drawMedoid').is(':checked')) {
+    $('#draw-medoid').click(function() {
+        if ($('#draw-medoid').is(':checked')) {
             if (!('medoid' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -955,8 +955,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw centroid button
      */
-    $('#drawCentroid').click(function() {
-        if ($('#drawCentroid').is(':checked')) {
+    $('#draw-centroid').click(function() {
+        if ($('#draw-centroid').is(':checked')) {
             if (!('centroid' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -990,8 +990,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw convex hull in color button
      */
-    $('#drawConvexHull').click(function() {
-        if ($('#drawConvexHull').is(':checked')) {
+    $('#draw-convex-hull').click(function() {
+        if ($('#draw-convex-hull').is(':checked')) {
             if (!('hull' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -1017,8 +1017,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw triangulation
      */
-    $('#drawTriangulation').click(function() {
-        if ($('#drawTriangulation').is(':checked')) {
+    $('#draw-triangulation').click(function() {
+        if ($('#draw-triangulation').is(':checked')) {
             if (!('triangulation' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -1037,7 +1037,7 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
-            if (!$('#playButton').hasClass('active')) {
+            if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
                 self.indexTime--;
@@ -1050,8 +1050,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw triangulation
      */
-    $('#drawVoronoi').click(function() {
-        if ($('#drawVoronoi').is(':checked')) {
+    $('#draw-voronoi').click(function() {
+        if ($('#draw-voronoi').is(':checked')) {
             if (!('voronoi' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -1070,7 +1070,7 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
-            if (!$('#playButton').hasClass('active')) {
+            if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
                 self.indexTime--;
@@ -1097,14 +1097,14 @@ animalNameSpace.spatialView = function() {
                 activeAnimals.push(arrayAnimals[i]['a']);
             }
         }
-        if (!$('#playButton')
+        if (!$('#play-button')
             .hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
             draw();
         }
-        $('#brushingButton')
+        $('#brushing-button')
             .removeClass('active');
         // remove the brush
         $('.brush')
@@ -1114,11 +1114,11 @@ animalNameSpace.spatialView = function() {
     /**
      * Brushing button
      */
-    $('#brushingButton').click(function() {
+    $('#brushing-button').click(function() {
         //stop the animation
         playBoolean = false;
-        $('#playButton').removeClass('active');
-        if (!$('#brushingButton').hasClass('active')) {
+        $('#play-button').removeClass('active');
+        if (!$('#brushing-button').hasClass('active')) {
             //define the brush
             brush = d3.brush()
                 .extent([
@@ -1139,11 +1139,11 @@ animalNameSpace.spatialView = function() {
     /**
      * Unselect all button
      */
-    $('#removeActiveSelectedButton').click(function() {
-        if (!$('#removeActiveSelectedButton').is(':disabled')) {
-            $('#removeActiveSelectedButton').prop('disabled', true);
+    $('#remove-active-selected-button').click(function() {
+        if (!$('#remove-active-selected-button').is(':disabled')) {
+            $('#remove-active-selected-button').prop('disabled', true);
             activeAnimals = [];
-            if (!$('#playButton').hasClass('active')) {
+            if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
                 self.indexTime--;
@@ -1157,19 +1157,19 @@ animalNameSpace.spatialView = function() {
      */
     $('#background-color').change(function() {
         let color = $('input[type="radio"].group-background:checked').val();
-        $('#mainVis-svg').css('background-color', color);
+        $('#main-vis-svg').css('background-color', color);
     });
 
     /**
      * Show the spatial view axis button
      */
-    $('#drawAxis').on('change', function() {
+    $('#draw-axis').on('change', function() {
         if (this.checked) {
-            $('#mainVis g.x.axis').show();
-            $('#mainVis g.y.axis').show();
+            $('#main-vis g.x.axis').show();
+            $('#main-vis g.y.axis').show();
         } else {
-            $('#mainVis g.x.axis').hide();
-            $('#mainVis g.y.axis').hide();
+            $('#main-vis g.x.axis').hide();
+            $('#main-vis g.y.axis').hide();
         }
 
     });
@@ -1177,11 +1177,11 @@ animalNameSpace.spatialView = function() {
     /**
      * Show the frame (time) number in the spatial view button
      */
-    $('#drawTime').on('change', function() {
+    $('#draw-time').on('change', function() {
         if (this.checked) {
-            $('#mainVis .frameText').show();
+            $('#main-vis .frameText').show();
         } else {
-            $('#mainVis .frameText').hide();
+            $('#main-vis .frameText').hide();
         }
     });
 
@@ -1237,9 +1237,9 @@ animalNameSpace.spatialView = function() {
     /**
      * Color Scale Function Radio buttons
      */
-    $('#colorScaleRadioForm input').on('change', function() {
-        colorScales['type'] = $('input[name=colorScaleRadio]:checked', '#colorScaleRadioForm').val();
-        if (!$('#playButton').hasClass('active')) {
+    $('#color-scale-radio-form input').on('change', function() {
+        colorScales['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -1269,7 +1269,7 @@ animalNameSpace.spatialView = function() {
     /**
      * Metadata group metadata functions for instance color sex
      */
-    $('#groupMetadata :input').change(function() {
+    $('#group-metadata :input').change(function() {
         // reset the metadat acoloring
         resetIndividualMetadata();
 
@@ -1278,7 +1278,7 @@ animalNameSpace.spatialView = function() {
 
         // metadata sex is choosen - coloring based on m and f
         if (value === 'sex') {
-            $('#metadataDiv').modal('toggle');
+            $('#metadata-div').modal('toggle');
             // close and color here
             for (let i = 0; i < self.datasetMetadata.length; i++) {
                 tmp.push(self.datasetMetadata[i][value].toLowerCase());
@@ -1319,7 +1319,7 @@ animalNameSpace.spatialView = function() {
     function colorMetadata() {
         resetIndividualMetadata();
         // get the input values
-        let value = $('#groupMetadata .btn.btn-default.active input')
+        let value = $('#group-metadata .btn.btn-default.active input')
             .attr('value');
         let blAvg = $('#bl-avg').val();
         let abAvg = $('#ab-avg').val();
@@ -1390,9 +1390,9 @@ animalNameSpace.spatialView = function() {
      */
     function disablePlayButton() {
         playBoolean = false;
-        $('#playButton').removeClass('active');
-        $('#playButton').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
-        $('#playButton').prop('disabled', true);
+        $('#play-button').removeClass('active');
+        $('#play-button').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
+        $('#play-button').prop('disabled', true);
     }
 
     /**
@@ -1401,9 +1401,9 @@ animalNameSpace.spatialView = function() {
      */
     function enablePlayButton() {
         playBoolean = true;
-        $('#playButton').addClass('active');
-        $('#playButton').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
-        $('#playButton').prop('disabled', false);
+        $('#play-button').addClass('active');
+        $('#play-button').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
+        $('#play-button').prop('disabled', false);
         draw();
     }
 

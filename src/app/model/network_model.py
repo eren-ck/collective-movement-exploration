@@ -1,4 +1,5 @@
 from sqlalchemy.orm import backref
+from sqlalchemy.orm import deferred
 
 from db import db
 from model.dataset_model import Dataset
@@ -19,7 +20,7 @@ class Network(db.Model):
     # columns
     network_id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    network = db.Column(JSONB)
+    network = deferred(db.Column(JSONB))
     metric_distance = db.Column(db.Float)
     speed = db.Column(db.Float)
     acceleration = db.Column(db.Float)
@@ -51,4 +52,17 @@ class Network(db.Model):
             'distance_centroid': self.distance_centroid,
             'direction': self.direction,
             'euclidean_distance': self.euclidean_distance
+        }
+
+    def as_info_dict(self):
+        return {
+            'name': self.name,
+            'finished': self.finished,
+            'network_id': self.network_id
+        }
+
+    def as_data_dict(self):
+        return {
+            'name': self.name,
+            'data': self.network,
         }

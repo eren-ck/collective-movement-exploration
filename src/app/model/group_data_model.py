@@ -1,4 +1,5 @@
 from sqlalchemy.orm import backref
+from sqlalchemy.orm import deferred
 
 from db import db
 from geoalchemy2 import Geometry
@@ -25,9 +26,9 @@ class Group_data(db.Model):
     speed = db.Column(db.Float)
     acceleration = db.Column(db.Float)
     convex_hull_area = db.Column(db.Float)
-    convex_hull = db.Column(Geometry('Geometry'))
-    delaunay_triangulation = db.Column(Geometry('MultiLineString'))
-    voronoi_polygons = db.Column(Geometry('GeometryCollection'))
+    convex_hull = deferred(db.Column(Geometry('Geometry')))
+    delaunay_triangulation = (db.Column(Geometry('MultiLineString')))
+    voronoi_polygons = deferred(db.Column(Geometry('GeometryCollection')))
 
     def __init__(self, dataset_id, time):
         self.dataset_id = dataset_id

@@ -1,6 +1,7 @@
 from model.dataset_model import Dataset
 from model.percentile_model import Percentile
 from model.metadata_model import Metadata
+from model.network_model import Network
 
 import geojson
 import sys
@@ -243,7 +244,7 @@ def api_get_vc(id=None):
 
         if isinstance(query, decimal.Decimal):
             result[feature] = round(float(query), 4)
-    #TODO add some more features here
+    # TODO add some more features here
     for feature in ['convex_hull_area']:
         stmt = '''SELECT stddev(''' + feature + '''+ tmp.val ) / avg(''' + feature + ''' + tmp.val)
                             FROM group_data,
@@ -262,20 +263,38 @@ def api_get_vc(id=None):
     return jsonify(result)
 
 
-def postprocessor_movement(search_params, result):
+def api_get_dataset_networks(id=None):
     """
-    Transform the position which is in WKB format to GEOJSON
-    """
-    for data in result['objects']:
-        data['position'] = geojson.Feature(geometry=(to_shape(data['position'])), properties={})
+        Return all network information (not the data) of a specific dataset
 
-    return result
+        :param id:
+            id of the specific dataset
+    """
+    # auth_func()
+    if not id:
+        return jsonify({})
+    query = db.session.query(Network).filter_by(dataset_id=id)
+    result = []
+    for elem in query:
+        result.append(elem.as_info_dict())
+    return jsonify(result)
 
 
-def postprocessor_group(search_params, result):
+def api_get_network_data(dataset_id=None, network_id=None):
     """
-    Transform the centroid which is in WKB format to GEOJSON
+        Return a json of the network for a specific dataset specific dataset
+
+        :param
+            dataset_id: id of the specific dataset
+            network_id: network id of the specific dataset
     """
-    for data in result['objects']:
-        data['centroid'] = geojson.Feature(geometry=(to_shape(data['centroid'])), properties={})
-    return result
+    # auth_func()
+
+
+    if dataset_id is None or network_id is None:
+        return jsonify({})
+    query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)
+    result = []
+    for elem in query:
+        result.append(elem.as_data_dict())
+    return jsonify(result)

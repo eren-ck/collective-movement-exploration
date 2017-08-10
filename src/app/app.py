@@ -65,6 +65,7 @@ def get_dataset_user_id(user_id):
 def get_feature(id, feature):
     return api_get_feature(id, feature)
 
+
 @app.route('/api/dataset/<int:id>/vc', methods=['GET'])
 def get_vc_feature(id):
     return api_get_vc(id)
@@ -83,6 +84,17 @@ def get_percentile(id):
 @app.route('/api/metadata/<int:id>', methods=['GET'])
 def get_metadata(id):
     return api_get_metadata(id)
+
+
+@app.route('/api/dataset/networks/<int:id>', methods=['GET'])
+def get_dataset_networks(id):
+    return api_get_dataset_networks(id)
+
+
+@app.route('/api/dataset/networks/<int:dataset_id>/<int:network_id>', methods=['GET'])
+def get_dataset_network_data(dataset_id, network_id):
+    return api_get_network_data(dataset_id, network_id)
+
 
 # Create view
 admin = Admin(
@@ -123,4 +135,4 @@ if __name__ == '__main__':
     app_dir = os.path.realpath(os.path.dirname(__file__))
     database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
     # Start app
-    app.run(threaded=True, debug=False)
+    app.run(threaded=True, debug=True)

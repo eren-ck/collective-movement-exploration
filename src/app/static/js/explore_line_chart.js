@@ -36,7 +36,7 @@ animalNameSpace.lineChart = function() {
         let capitalized_feature_string = swarm_features[i].split('_').join(' ');
         capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
 
-        $('.featureCheckBox').append(`<div class="featureCheckBox-default lineChartCheckBox">
+        $('.feature-check-box').append(`<div class="feature-check-box-default lineChartCheckBox">
                                        <input id="drawSwarm` + swarm_features[i] + `" class="lineChartButton" type="checkbox">
                                        <label for="drawSwarm` + swarm_features[i] + '">' + capitalized_feature_string + `</label>
                      </div>`);
@@ -156,7 +156,7 @@ animalNameSpace.lineChart = function() {
         });
 
     // make the svg resizable
-    let swarmLineChart = d3.select('#swarmVis')
+    let swarmLineChart = d3.select('#swarm-vis')
         .classed('svg-LineChartContainer', true)
         // to make it responsive with css
         .append('svg')
@@ -385,7 +385,7 @@ animalNameSpace.lineChart = function() {
             feature = 'speed';
         } else if (elem['id'].toLowerCase().includes('acceleration')) {
             feature = 'acceleration';
-        } else if (elem['id'].toLowerCase().includes('distancecentroid')) {
+        } else if (elem['id'].toLowerCase().includes('distance-centroid')) {
             feature = 'distance_centroid';
         } else {
             return;
