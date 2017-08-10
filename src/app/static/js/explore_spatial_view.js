@@ -32,6 +32,8 @@ animalNameSpace.spatialView = function() {
     let activeAnimals = []; // active selected animals
     let brush; // brushing variable
     let metadataColor = {}; // save the metadata coloring
+    let networkColorScale;
+
 
     initialize();
 
@@ -85,7 +87,7 @@ animalNameSpace.spatialView = function() {
                 i = self.dataset.length;
             }
         }
-        self.num_animals = num_animals.size;
+        self.animal_ids = Array.from(num_animals).sort();
 
         // initialize the slider
         $slider = $('#slider')
@@ -225,6 +227,10 @@ animalNameSpace.spatialView = function() {
             .attr('id', 'centroid-line')
             .attr('marker-end', 'url(#centroid-arrow)');
 
+        //append network  group
+        tank.append('g')
+                .attr('id', 'networkGroup');
+
         //append delaunayTriangulation group
         tank.append('g')
             .attr('id', 'delaunayTriangulationGroup');
@@ -313,8 +319,17 @@ animalNameSpace.spatialView = function() {
         // highlight the selected color scheme
         $('.palette[title=\"BuYlBu\"]').addClass('selected');
 
+        // fixed color scale for the network
+        networkColorScale = d3.scaleThreshold()
+            .domain(
+                [0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]
+            )
+             .range(['#ffffff','#dfdfdf','#c0c0c0','#a3a3a3','#858585','#696969','#4e4e4e','#353535','#1d1d1d','#000000']);
+
         //Draw the fish swarm line chart
         self.lineChart();
+        //Initialize the Adjacency matrix
+        self.initAdjacencyMatrix();
 
         draw();
 
@@ -338,7 +353,7 @@ animalNameSpace.spatialView = function() {
             .val();
 
         //get the next animals
-        arrayAnimals = self.dataset.slice(self.num_animals * self.indexTime, self.num_animals * self.indexTime + self.num_animals);
+        arrayAnimals = self.dataset.slice(self.animal_ids.length * self.indexTime, self.animal_ids.length * self.indexTime + self.animal_ids.length);
 
         //the timeout is set after one update 30 ms
         setTimeout(function() {
@@ -355,6 +370,81 @@ animalNameSpace.spatialView = function() {
 
                 // let svgAnimals = tank.selectAll('circle.animal')
                 //     .data(arrayAnimals);
+
+
+                // Network vis
+                let network_vis;
+                 if(self.indexTime in self.networkData){
+                     let network=[];
+                     let tmp = self.networkData[self.indexTime];
+
+                     let tmp_index = 0;
+                     for(let i = 0; i<arrayAnimals.length;i++){
+                         for(let j = i+1;j<arrayAnimals.length;j++){
+                             network.push({
+                                 'start':arrayAnimals[i]['p'],
+                                 'end':arrayAnimals[j]['p'],
+                                 'val':tmp[tmp_index]
+                             });
+                             tmp_index = tmp_index+1;
+                         }
+                     }
+                    //  console.log(network);
+                    // DATA JOIN
+                    network_vis = tank.select('#networkGroup')
+                            .selectAll('line.networkEdges')
+                            .data(network);
+                    // UPDATE
+                    network_vis
+                        .attr('x1', function(d) {
+                            return d['start'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['start'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['end'][0]);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['end'][1]);
+                        })
+                        .attr('stroke', function(d) {
+                            return networkColorScale(d['val']);
+                        })
+                        .attr('stroke-opacity', function(d) {
+                            return d['val'];
+                        });
+                    //ENTER
+                    network_vis
+                        .enter()
+                        .append('line')
+                        .attr('class', 'networkEdges')
+                        .attr('x1', function(d) {
+                            return d['start'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['start'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['end'][0]);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['end'][1]);
+                        })
+                        .attr('stroke', function(d) {
+                            return networkColorScale(d['val']);
+                        })
+                        .attr('stroke-opacity', function(d) {
+                            return d['val'];
+                        });
+
+                 }else {
+                      network_vis = tank.selectAll('line.networkEdges')
+                          .data([]);
+                 }
+                 // EXIT - network
+                 network_vis.exit()
+                     .remove();
 
                 // delaunay triangulation
                 // DATA JOIN  - triangulation
@@ -1088,7 +1178,7 @@ animalNameSpace.spatialView = function() {
     function brushend() {
         var rect = d3.event.selection;
         //iterate over the 151 fish to check which are in the brush
-        for (var i = 0; i < self.num_animals; i++) {
+        for (var i = 0; i < self.animal_ids.length; i++) {
             var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
             //check which fish are in  the brushed area
             if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
@@ -1384,6 +1474,37 @@ animalNameSpace.spatialView = function() {
         $('.dropdown #preview')
             .css('background-color', 'rgb(255, 255, 255)');
     }
+
+    /**
+     * Network buttons clicked - get the data
+     */
+    $('#networks-modal-body button').click(function() {
+        let network_id = $(this).attr('data');
+        // get the data
+        $.ajax({
+            url: '/api/dataset/networks/' + parameters['id']+'/'+network_id,
+            dataType: 'json',
+            type: 'GET',
+            contentType: 'application/json; charset=utf-8',
+            headers: {
+                'Accept': JSONAPI_MIMETYPE
+            },
+            success: function(data) {
+                if (data.length){
+                    self.networkData = JSON.parse(data[0]['data']) ;
+                        }
+                    }
+        });
+
+    });
+
+    /**
+     * Network buttons clicked - get the data
+     */
+        $('#network-remove').click(function() {
+            self.networkData = {};
+        });
+
     /**
      * Disable the play button --> Loading symbol
      *
@@ -1478,5 +1599,6 @@ animalNameSpace.spatialView = function() {
         legendText.exit()
             .remove();
     }
+
 
 };

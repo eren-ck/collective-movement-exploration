@@ -270,7 +270,7 @@ def api_get_dataset_networks(id=None):
         :param id:
             id of the specific dataset
     """
-    # auth_func()
+    auth_func()
     if not id:
         return jsonify({})
     query = db.session.query(Network).filter_by(dataset_id=id)
@@ -288,9 +288,7 @@ def api_get_network_data(dataset_id=None, network_id=None):
             dataset_id: id of the specific dataset
             network_id: network id of the specific dataset
     """
-    # auth_func()
-
-
+    auth_func()
     if dataset_id is None or network_id is None:
         return jsonify({})
     query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)

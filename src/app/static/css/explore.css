@@ -495,3 +495,8 @@ div.tooltip table td:nth-child(2) {
 .metadata-legend .ab-avg {
     background-color: #386cb0;
 }
+
+.networkEdges{
+    fill-opacity: 0;
+    stroke-width: 2;
+}

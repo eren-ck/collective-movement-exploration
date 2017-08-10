@@ -12,6 +12,7 @@ animalNameSpace.swarmData = [];
 animalNameSpace.dataSetPercentile = {};
 animalNameSpace.indexTime = 0;
 animalNameSpace.zoomFunction;
+animalNameSpace.networkData = {};
 var source;
 
 /**
@@ -116,64 +117,87 @@ $(document).ready(function() {
                     }
                 });
             }
-
-            //get metadata information
-            $.ajax({
-                url: '/api/metadata/' + parameters['id'],
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'Accept': JSONAPI_MIMETYPE
-                },
-                success: function(data) {
-                    // add the speed feature to the dataset
-                    for (let i = 0; i < data.length; i++) {
-                        animalNameSpace.datasetMetadata.push(data[i]);
-                    }
-                    // add the data to the metadata modal
-                    if (animalNameSpace.datasetMetadata.length) {
-                        for (let i = 0; i < animalNameSpace.datasetMetadata.length; i++) {
-
-                            $('#metadata-table').find('tbody')
-                                .append($('<tr id="metadata-row-' + animalNameSpace.datasetMetadata[i]['animal_id'] + '">')
-                                    .append($('<td>')
-                                        .append(animalNameSpace.datasetMetadata[i]['animal_id']))
-                                    .append($('<td>')
-                                        .append(animalNameSpace.datasetMetadata[i]['species']))
-                                    .append($('<td>')
-                                        .append(animalNameSpace.datasetMetadata[i]['sex']))
-                                    .append($('<td>')
-                                        .append(animalNameSpace.datasetMetadata[i]['size']))
-                                    .append($('<td>')
-                                        .append(animalNameSpace.datasetMetadata[i]['weight']))
-                                    .append($('<td>')
-                                        .append(`<div class="dropdown">
-                                                  <a class="dropdown-toggle btn btn-default btn-color" data-toggle="dropdown" href="#">
-                                                  <div id="preview" class="metadata-swatch" style="background-color:#fff"></div>
-                                                  <input class="color-field" value="White" style="display:none;">
-                                                  </a>
-                                                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel"> ` +
-                                            function(id) {
-                                                let colors = ['#fff', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628'];
-                                                let resultString = '';
-                                                for (let i = 0; i < colors.length; i++) {
-                                                    resultString += '<div class="metadata-swatch metadata-swatch-clickable" style="background-color:' + colors[i] + '" value="' + id + '"></div>';
-                                                }
-                                                return resultString;
-                                            }(animalNameSpace.datasetMetadata[i]['animal_id']) +
-                                            '</ul></div>')
-                                    )
-                                );
-                        }
-                    } else {
-                        $('#metadata-table').find('tbody')
-                            .append('There is no metadata for this dataset');
-                    }
-                }
-            });
         }
     });
 
+
+    //get metadata information
+    $.ajax({
+        url: '/api/metadata/' + parameters['id'],
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            // add the speed feature to the dataset
+            for (let i = 0; i < data.length; i++) {
+                animalNameSpace.datasetMetadata.push(data[i]);
+            }
+            // add the data to the metadata modal
+            if (animalNameSpace.datasetMetadata.length) {
+                for (let i = 0; i < animalNameSpace.datasetMetadata.length; i++) {
+
+                    $('#metadata-table').find('tbody')
+                        .append($('<tr id="metadata-row-' + animalNameSpace.datasetMetadata[i]['animal_id'] + '">')
+                            .append($('<td>')
+                                .append(animalNameSpace.datasetMetadata[i]['animal_id']))
+                            .append($('<td>')
+                                .append(animalNameSpace.datasetMetadata[i]['species']))
+                            .append($('<td>')
+                                .append(animalNameSpace.datasetMetadata[i]['sex']))
+                            .append($('<td>')
+                                .append(animalNameSpace.datasetMetadata[i]['size']))
+                            .append($('<td>')
+                                .append(animalNameSpace.datasetMetadata[i]['weight']))
+                            .append($('<td>')
+                                .append(`<div class="dropdown">
+                                                      <a class="dropdown-toggle btn btn-default btn-color" data-toggle="dropdown" href="#">
+                                                      <div id="preview" class="metadata-swatch" style="background-color:#fff"></div>
+                                                      <input class="color-field" value="White" style="display:none;">
+                                                      </a>
+                                                      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel"> ` +
+                                    function(id) {
+                                        let colors = ['#fff', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628'];
+                                        let resultString = '';
+                                        for (let i = 0; i < colors.length; i++) {
+                                            resultString += '<div class="metadata-swatch metadata-swatch-clickable" style="background-color:' + colors[i] + '" value="' + id + '"></div>';
+                                        }
+                                        return resultString;
+                                    }(animalNameSpace.datasetMetadata[i]['animal_id']) +
+                                    '</ul></div>')
+                            )
+                        );
+                }
+            } else {
+                $('#metadata-table').find('tbody')
+                    .append('There is no metadata for this dataset');
+            }
+        }
+    });
+
+    $.ajax({
+        url: '/api/dataset/networks/' + parameters['id'],
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            if (data.length) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i]['finished']) {
+                        $('#networks-modal-body').append('<button type="button" class="btn btn-default btn-lg btn-block" data=' + data[i]['network_id'] + '><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span>' + data[i]['name'] + '</button>');
+                    }
+                }
+            } else {
+                $('#networks-modal-body')
+                    .append('There is no network data for this dataset');
+            }
+
+        }
+    });
 
 });
