@@ -229,7 +229,7 @@ animalNameSpace.spatialView = function() {
 
         //append network  group
         tank.append('g')
-                .attr('id', 'networkGroup');
+            .attr('id', 'networkGroup');
 
         //append delaunayTriangulation group
         tank.append('g')
@@ -322,9 +322,9 @@ animalNameSpace.spatialView = function() {
         // fixed color scale for the network
         networkColorScale = d3.scaleThreshold()
             .domain(
-                [0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]
+                [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
             )
-             .range(['#ffffff','#dfdfdf','#c0c0c0','#a3a3a3','#858585','#696969','#4e4e4e','#353535','#1d1d1d','#000000']);
+            .range(['#ffffff', '#dfdfdf', '#c0c0c0', '#a3a3a3', '#858585', '#696969', '#4e4e4e', '#353535', '#1d1d1d', '#000000']);
 
         //Draw the fish swarm line chart
         self.lineChart();
@@ -374,26 +374,32 @@ animalNameSpace.spatialView = function() {
 
                 // Network vis
                 let network_vis;
-                 if(self.indexTime in self.networkData){
-                     let network=[];
-                     let tmp = self.networkData[self.indexTime];
+                if (self.indexTime in self.networkData) {
+                    let network = [];
+                    let tmp = self.networkData[self.indexTime];
 
-                     let tmp_index = 0;
-                     for(let i = 0; i<arrayAnimals.length;i++){
-                         for(let j = i+1;j<arrayAnimals.length;j++){
-                             network.push({
-                                 'start':arrayAnimals[i]['p'],
-                                 'end':arrayAnimals[j]['p'],
-                                 'val':tmp[tmp_index]
-                             });
-                             tmp_index = tmp_index+1;
-                         }
-                     }
+                    let tmp_index = 0;
+                    for (let i = 0; i < arrayAnimals.length; i++) {
+                        for (let j = i + 1; j < arrayAnimals.length; j++) {
+                            network.push({
+                                'node1':arrayAnimals[i]['a'],
+                                'node2':arrayAnimals[j]['a'],
+                                'start': arrayAnimals[i]['p'],
+                                'end': arrayAnimals[j]['p'],
+                                'val': tmp[tmp_index]
+                            });
+                            tmp_index = tmp_index + 1;
+                        }
+                    }
+                    network.forEach(function(d) {
+                        $(('#mc-'+d['node1']+'-'+d['node2'])).css('fill', networkColorScale(d['val']));
+                            $(('#mc-'+d['node2']+'-'+d['node1'])).css('fill', networkColorScale(d['val']));
+                        });
                     //  console.log(network);
                     // DATA JOIN
                     network_vis = tank.select('#networkGroup')
-                            .selectAll('line.networkEdges')
-                            .data(network);
+                        .selectAll('line.networkEdges')
+                        .data(network);
                     // UPDATE
                     network_vis
                         .attr('x1', function(d) {
@@ -438,13 +444,15 @@ animalNameSpace.spatialView = function() {
                             return d['val'];
                         });
 
-                 }else {
-                      network_vis = tank.selectAll('line.networkEdges')
-                          .data([]);
-                 }
-                 // EXIT - network
-                 network_vis.exit()
-                     .remove();
+
+
+                } else {
+                    network_vis = tank.selectAll('line.networkEdges')
+                        .data([]);
+                }
+                // EXIT - network
+                network_vis.exit()
+                    .remove();
 
                 // delaunay triangulation
                 // DATA JOIN  - triangulation
@@ -1481,8 +1489,9 @@ animalNameSpace.spatialView = function() {
     $('#networks-modal-body button').click(function() {
         let network_id = $(this).attr('data');
         // get the data
+        $('#matrix-vis').removeClass('hidden');
         $.ajax({
-            url: '/api/dataset/networks/' + parameters['id']+'/'+network_id,
+            url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
             dataType: 'json',
             type: 'GET',
             contentType: 'application/json; charset=utf-8',
@@ -1490,10 +1499,10 @@ animalNameSpace.spatialView = function() {
                 'Accept': JSONAPI_MIMETYPE
             },
             success: function(data) {
-                if (data.length){
-                    self.networkData = JSON.parse(data[0]['data']) ;
-                        }
-                    }
+                if (data.length) {
+                    self.networkData = JSON.parse(data[0]['data']);
+                }
+            }
         });
 
     });
@@ -1501,9 +1510,10 @@ animalNameSpace.spatialView = function() {
     /**
      * Network buttons clicked - get the data
      */
-        $('#network-remove').click(function() {
-            self.networkData = {};
-        });
+    $('#network-remove').click(function() {
+        $('#matrix-vis').addClass('hidden');
+        self.networkData = {};
+    });
 
     /**
      * Disable the play button --> Loading symbol

@@ -496,14 +496,17 @@ div.tooltip table td:nth-child(2) {
     background-color: #386cb0;
 }
 
-.networkEdges{
+.networkEdges {
     fill-opacity: 0;
     stroke-width: 2;
 }
 
-.matrix-cell{
+.matrix-cell {
     stroke: black;
-stroke-width: 1px;
-fill: rgb(255, 255, 255);
+    stroke-width: 1px;
+    fill: rgb(255, 255, 255);
+}
 
+#matrix-vis{
+    overflow: visible;
 }
