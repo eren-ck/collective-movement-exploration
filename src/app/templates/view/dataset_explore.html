@@ -14,8 +14,6 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
-
-
 </script>
 {{dataset}}
 </div>
@@ -615,6 +613,20 @@
                         <div id="networks-modal-body">
 
                         </div>
+                        <hr>
+                        <button type="button" id="network-auto-suggest" class="btn btn-default btn-lg"
+                                data-toggle="button" aria-pressed="false" autocomplete="off">
+                            <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
+                            Auto parameter
+                        </button>
+
+                        <p id="network-limit-p">
+                            <label for="network-limit">Limit value for network edges</label>
+                            <input id="network-limit" readonly="" style="border:0; color:#f6931f; font-weight:bold;"
+                                   type="text">
+                        </p>
+                        <div id="network-slider"></div>
+
                         <hr>
                         <button type="button" id="network-remove" class="btn btn-default btn-lg btn-block">
                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>

@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window, animalNameSpace, d3, $*/
+/*global window, animalNameSpace, d3*/
 
 'use strict';
 
@@ -14,10 +14,10 @@ animalNameSpace.initAdjacencyMatrix = function() {
     let rectWidth = 30;
     let margin = 50;
 
+    // if there is only one animal return
     if (self.animal_ids.length <= 1) {
         return;
     }
-
 
     //the svg container
     svgContainer = d3.select('#matrix-vis')
@@ -30,6 +30,7 @@ animalNameSpace.initAdjacencyMatrix = function() {
         .classed('svg-conten', true)
         .attr('id', 'main-matrix-svg');
 
+    // organize the matrix data in a nice way
     let matrixData = [];
     for (let i = 0; i < self.animal_ids.length - 1; i++) {
         matrixData.push([]);
@@ -41,8 +42,7 @@ animalNameSpace.initAdjacencyMatrix = function() {
         }
     }
 
-    // console.log(matrixData);
-
+    // add a matrix group and  the whole matrix
     svgContainer.append('g')
         .attr('transform', 'translate(' + margin + ',' + margin + ')')
         .attr('id', 'adjacency-matrix')
@@ -51,7 +51,7 @@ animalNameSpace.initAdjacencyMatrix = function() {
         .enter()
         .append('g')
         .attr('transform', function(d, i) {
-            return 'translate('+(i * +rectWidth )+',' + (i * +rectWidth + 5) + ')';
+            return 'translate(' + (i * +rectWidth) + ',' + (i * +rectWidth + 5) + ')';
         })
         .attr('id', function(d) {
             return 'row-' + d[0]['node1'];
@@ -68,30 +68,34 @@ animalNameSpace.initAdjacencyMatrix = function() {
         .attr('width', rectWidth)
         .attr('height', rectWidth)
         .attr('x', function(d, i) {
-            return i* rectWidth;
+            return i * rectWidth;
         })
         .attr('y', 0);
 
-    let tmpScale = d3.scalePoint().domain(self.animal_ids.slice(1)).range([rectWidth/2, (self.animal_ids.length-1) * rectWidth - rectWidth/2],1);
+    // add the x-axis
+    let tmpScale = d3.scalePoint().domain(self.animal_ids.slice(1)).range([rectWidth / 2, (self.animal_ids.length - 1) * rectWidth - rectWidth / 2], 1);
+
     let xAxis = d3.axisTop(tmpScale)
-    .ticks(0)
-    .tickSize(0)
-    .tickPadding(0);
+        .ticks(0)
+        .tickSize(0)
+        .tickPadding(0);
     svgContainer.append('g')
         .attr('class', 'x axis')
         .attr('transform', 'translate(' + margin + ',' + margin + ')')
         .call(xAxis)
         .selectAll('text').style('text-anchor', 'end').attr('transform', 'translate(-5,0) rotate(90)');
 
-     tmpScale = d3.scalePoint().domain(self.animal_ids.slice(0,-1)).range([rectWidth/2, (self.animal_ids.length-1) * rectWidth - rectWidth/2],1);
-        let yAxis = d3.axisLeft(tmpScale)
+    // add the y-axis
+    tmpScale = d3.scalePoint().domain(self.animal_ids.slice(0, -1)).range([rectWidth / 2, (self.animal_ids.length - 1) * rectWidth - rectWidth / 2], 1);
+
+    let yAxis = d3.axisLeft(tmpScale)
         .ticks(0)
         .tickSize(0)
         .tickPadding(0);
-        svgContainer.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(' + margin + ',' + margin + ')')
-            .call(yAxis)
-            .selectAll('text').style('text-anchor', 'end').attr('transform', 'translate(-5,5)');
+    svgContainer.append('g')
+        .attr('class', 'x axis')
+        .attr('transform', 'translate(' + margin + ',' + margin + ')')
+        .call(yAxis)
+        .selectAll('text').style('text-anchor', 'end').attr('transform', 'translate(-5,5)');
 
 };

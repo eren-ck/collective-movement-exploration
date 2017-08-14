@@ -33,6 +33,8 @@ animalNameSpace.spatialView = function() {
     let brush; // brushing variable
     let metadataColor = {}; // save the metadata coloring
     let networkColorScale;
+    let networkLimit = 0;
+    let networkAuto = false; // if true the network edge limit is automatically suggested
 
 
     initialize();
@@ -104,6 +106,20 @@ animalNameSpace.spatialView = function() {
                     }
                 }
             });
+        // initialize the network slider
+        $('#network-slider')
+            .slider({
+                range: 'max',
+                min: 0,
+                max: 1,
+                step: 0.05,
+                value: 0,
+                slide: function(event, ui) {
+                    networkLimit = ui.value;
+                    $('#network-limit').val(networkLimit);
+                }
+            });
+
         // get the max from the slider this is needed to calculate the ticks
         let max = $slider.slider('option', 'max');
         let space = 100 / max;
@@ -368,12 +384,8 @@ animalNameSpace.spatialView = function() {
                 let svgAnimals = tank.selectAll('g.animal')
                     .data(arrayAnimals);
 
-                // let svgAnimals = tank.selectAll('circle.animal')
-                //     .data(arrayAnimals);
-
-
                 // Network vis
-                let network_vis;
+                let networkVis;
                 if (self.indexTime in self.networkData) {
                     let network = [];
                     let tmp = self.networkData[self.indexTime];
@@ -382,8 +394,8 @@ animalNameSpace.spatialView = function() {
                     for (let i = 0; i < arrayAnimals.length; i++) {
                         for (let j = i + 1; j < arrayAnimals.length; j++) {
                             network.push({
-                                'node1':arrayAnimals[i]['a'],
-                                'node2':arrayAnimals[j]['a'],
+                                'node1': arrayAnimals[i]['a'],
+                                'node2': arrayAnimals[j]['a'],
                                 'start': arrayAnimals[i]['p'],
                                 'end': arrayAnimals[j]['p'],
                                 'val': tmp[tmp_index]
@@ -392,16 +404,27 @@ animalNameSpace.spatialView = function() {
                         }
                     }
                     network.forEach(function(d) {
-                        $(('#mc-'+d['node1']+'-'+d['node2'])).css('fill', networkColorScale(d['val']));
-                            $(('#mc-'+d['node2']+'-'+d['node1'])).css('fill', networkColorScale(d['val']));
-                        });
-                    //  console.log(network);
+                        $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
+                        $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
+                    });
+
+                    if (networkAuto) {
+                        let tmpArray = [];
+                        for (let i = 0; i < network.length; i++) {
+                            tmpArray.push(network[i]['val']);
+                        }
+                        networkLimit = percentiles(tmpArray);
+                    }
+
+                    network = network.filter(function(d) {
+                        return d['val'] >= networkLimit;
+                    });
                     // DATA JOIN
-                    network_vis = tank.select('#networkGroup')
+                    networkVis = tank.select('#networkGroup')
                         .selectAll('line.networkEdges')
                         .data(network);
                     // UPDATE
-                    network_vis
+                    networkVis
                         .attr('x1', function(d) {
                             return d['start'][0];
                         })
@@ -421,7 +444,7 @@ animalNameSpace.spatialView = function() {
                             return d['val'];
                         });
                     //ENTER
-                    network_vis
+                    networkVis
                         .enter()
                         .append('line')
                         .attr('class', 'networkEdges')
@@ -447,11 +470,11 @@ animalNameSpace.spatialView = function() {
 
 
                 } else {
-                    network_vis = tank.selectAll('line.networkEdges')
+                    networkVis = tank.selectAll('line.networkEdges')
                         .data([]);
                 }
                 // EXIT - network
-                network_vis.exit()
+                networkVis.exit()
                     .remove();
 
                 // delaunay triangulation
@@ -1516,6 +1539,25 @@ animalNameSpace.spatialView = function() {
     });
 
     /**
+     * Network auto button set acive or remove
+     */
+    $('#network-auto-suggest').click(function() {
+        if (!$('#network-auto-suggest').hasClass('active')) {
+            $('#network-limit-p').hide();
+            $('#network-slider').hide();
+
+            networkAuto = true;
+        } else {
+            $('#network-limit-p').show();
+            $('#network-slider').show();
+            networkAuto = false;
+            networkLimit = $('#network-slider').slider('value');
+            $('#network-limit').val(networkLimit);
+        }
+    });
+
+
+    /**
      * Disable the play button --> Loading symbol
      *
      */
@@ -1610,5 +1652,27 @@ animalNameSpace.spatialView = function() {
             .remove();
     }
 
+    /**
+     * Return  .95 percentiles of the array
+     *
+     */
+    function percentiles(arr) {
+        let p = 0.95;
+        if (arr.length === 0) {
+            return 0;
+        }
+        arr.sort(function(a, b) {
+            return a - b;
+        });
+        let index = (arr.length - 1) * p;
+        let lower = Math.floor(index);
+        let upper = lower + 1;
+        let weight = index % 1;
+        if (upper >= arr.length) {
+            return arr[lower];
+        } else {
+            return arr[lower] * (1 - weight) + arr[upper] * weight;
+        }
+    }
 
 };
