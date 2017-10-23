@@ -3,9 +3,10 @@
 
 {% block head_css %}
 {{ super() }}
-<link href="/static/css/explore.css" rel="stylesheet">
-<link href="/static/css/jquery-ui.min.css" rel="stylesheet">
-<link href="/static/css/theme.css" rel="stylesheet">
+<link href="{{url_for('static', filename='css/explore.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='css/jquery-ui.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='css/theme.css')}}" rel="stylesheet">
+
 
 {% endblock %}
 
@@ -13,6 +14,7 @@
 {% block body %}
 <script>
     var parameters = {{ parameters | tojson}}
+
 
 </script>
 {{dataset}}

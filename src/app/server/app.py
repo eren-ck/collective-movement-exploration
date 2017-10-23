@@ -19,7 +19,7 @@ from model.user_role_model import *
 from helpers.restless import *
 
 # Create Flask application
-app = Flask(__name__)
+app = Flask(__name__, static_folder ="../static")
 app.config.from_pyfile('config.py')
 db.init_app(app)
 
@@ -130,12 +130,14 @@ def security_context_processor():
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
 
-#defining function to run on shutdown
+
+# defining function to run on shutdown
 def close_running_threads():
     db.session.remove()
-#Register the function to be called on exit
-atexit.register(close_running_threads)
 
+
+# Register the function to be called on exit
+atexit.register(close_running_threads)
 
 if __name__ == '__main__':
     # Build a sample db on the fly, if one does not exist yet.

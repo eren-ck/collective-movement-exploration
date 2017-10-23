@@ -12,11 +12,10 @@
     {% endblock %}
 
     {% block head_css %}
-    <link href="/static/css/bootstrap.min.css"
-          rel="stylesheet">
-    <link href="/static/css/bootstrap-theme.min.css"
-          rel="stylesheet">
-    <link href="/static/css/admin.css" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/bootstrap-theme.min.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/admin.css')}}" rel="stylesheet">
+
     {% endblock %}
 
     {% block head %}
@@ -110,8 +109,8 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="/static/libs/jquery.min.js"></script>
-<script src="/static/libs/bootstrap.min.js"></script>
+<script src="{{url_for('static', filename='libs/jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='libs/bootstrap.min.js')}}"></script>
 
 {% endblock %}
 
