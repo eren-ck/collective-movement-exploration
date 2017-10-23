@@ -1,7 +1,6 @@
 from sqlalchemy.orm import backref
 
 from db import db
-import geojson
 from geoalchemy2 import Geometry
 from geoalchemy2.shape import to_shape
 from model.dataset_model import Dataset

@@ -1,22 +1,22 @@
 /* Features checkbox and radio buttons */
 
-.featureCheckBox div {
+.feature-check-box div {
     clear: both;
     overflow: hidden;
 }
 
-.featureCheckBox label {
+.feature-check-box label {
     width: 100%;
     border-radius: 3px;
     border: 1px solid #D1D3D4;
     font-weight: normal;
 }
 
-.featureCheckBox input[type="radio"]:empty, .featureCheckBox input[type="checkbox"]:empty {
+.feature-check-box input[type="radio"]:empty, .feature-check-box input[type="checkbox"]:empty {
     display: none;
 }
 
-.featureCheckBox input[type="radio"]:empty~label, .featureCheckBox input[type="checkbox"]:empty~label {
+.feature-check-box input[type="radio"]:empty~label, .feature-check-box input[type="checkbox"]:empty~label {
     position: relative;
     line-height: 2.5em;
     text-indent: 3em;
@@ -27,7 +27,7 @@
     user-select: none;
 }
 
-.featureCheckBox input[type="radio"]:empty~label:before, .featureCheckBox input[type="checkbox"]:empty~label:before {
+.feature-check-box input[type="radio"]:empty~label:before, .feature-check-box input[type="checkbox"]:empty~label:before {
     position: absolute;
     display: block;
     top: 0;
@@ -39,36 +39,35 @@
     border-radius: 3px 0 0 3px;
 }
 
-.featureCheckBox input[type="radio"]:hover:not(:checked)~label, .featureCheckBox input[type="checkbox"]:hover:not(:checked)~label {
+.feature-check-box input[type="radio"]:hover:not(:checked)~label, .feature-check-box input[type="checkbox"]:hover:not(:checked)~label {
     color: #888;
 }
 
-.featureCheckBox input[type="radio"]:hover:not(:checked)~label:before, .featureCheckBox input[type="checkbox"]:hover:not(:checked)~label:before {
+.feature-check-box input[type="radio"]:hover:not(:checked)~label:before, .feature-check-box input[type="checkbox"]:hover:not(:checked)~label:before {
     content: '\2714';
     text-indent: .9em;
     color: #C2C2C2;
 }
 
-.featureCheckBox input[type="radio"]:checked~label, .featureCheckBox input[type="checkbox"]:checked~label {
+.feature-check-box input[type="radio"]:checked~label, .feature-check-box input[type="checkbox"]:checked~label {
     color: #777;
 }
 
-.featureCheckBox input[type="radio"]:checked~label:before, .featureCheckBox input[type="checkbox"]:checked~label:before {
+.feature-check-box input[type="radio"]:checked~label:before, .feature-check-box input[type="checkbox"]:checked~label:before {
     content: '\2714';
     text-indent: .9em;
     color: #333;
     background-color: #ccc;
 }
 
-.featureCheckBox input[type="radio"]:focus~label:before, .featureCheckBox input[type="checkbox"]:focus~label:before {
+.feature-check-box input[type="radio"]:focus~label:before, .feature-check-box input[type="checkbox"]:focus~label:before {
     box-shadow: 0 0 0 3px #999;
 }
 
-.featureCheckBox-default input[type="radio"]:checked~label:before, .featureCheckBox-default input[type="checkbox"]:checked~label:before {
+.feature-check-box-default input[type="radio"]:checked~label:before, .feature-check-box-default input[type="checkbox"]:checked~label:before {
     color: #333;
     background-color: #ccc;
 }
-
 
 /* SVG elements and text */
 
@@ -146,7 +145,6 @@
     stroke-width: 5px;
 }
 
-
 /* Time  */
 
 .frameText {
@@ -159,7 +157,6 @@
     line-height: 1.1;
 }
 
-
 /* Slider ticks  */
 
 .ui-slider-tick {
@@ -170,14 +167,12 @@
     position: absolute;
 }
 
-
 /* Laoding gif   */
 
 #loading {
     display: block;
     text-align: center;
 }
-
 
 /* Color legend    */
 
@@ -205,7 +200,6 @@
     stroke-width: 5px;
     stroke: #000;
 }
-
 
 /*swarm features */
 
@@ -282,7 +276,6 @@
     background: #4d4d4d;
 }
 
-
 /* Color brewer picker div */
 
 .palette {
@@ -326,7 +319,6 @@
     line-height: 1.33;
     border-radius: 25px;
 }
-
 
 /* Tooltip */
 
@@ -494,4 +486,9 @@ div.tooltip table td:nth-child(2) {
 
 .metadata-legend .ab-avg {
     background-color: #386cb0;
+}
+
+.networkEdges {
+    fill-opacity: 0;
+    stroke-width: 2;
 }

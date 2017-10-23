@@ -17,7 +17,7 @@ def calculate_absolute_features(id):
     id -- id of the dataset
 
     """
-    print('Absolute features started', file=sys.stderr)
+    # print('Absolute features started', file=sys.stderr)
     # print(datetime.datetime.utcnow(), file=sys.stderr)
 
     # create new db session
@@ -46,7 +46,7 @@ def calculate_absolute_features(id):
     progress_per_animal = 45 / (len(animal_ids) + 1)
 
     # Multiprocessing
-    pool_size = 5  # 5 parallel processes
+    pool_size = 10  # 5 parallel processes
     pool = Pool(pool_size)
     # call the absolute_feature_worker method with the needed parameters
     pool.map(absolute_feature_worker,
@@ -111,7 +111,7 @@ def absolute_feature_worker(tmp):
         session.rollback()
         dataset[0].status = 'Error - calculating absolute features ' + str(e)[0:200]
         dataset[0].error = True
-        # session.commit()
+        session.commit()
         pass
     # remove the session
     session.remove()

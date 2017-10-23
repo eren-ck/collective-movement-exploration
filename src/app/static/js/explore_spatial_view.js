@@ -32,6 +32,10 @@ animalNameSpace.spatialView = function() {
     let activeAnimals = []; // active selected animals
     let brush; // brushing variable
     let metadataColor = {}; // save the metadata coloring
+    let networkColorScale;
+    let networkLimit = 0;
+    let networkAuto = false; // if true the network edge limit is automatically suggested
+
 
     initialize();
 
@@ -51,10 +55,11 @@ animalNameSpace.spatialView = function() {
         tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
 
         $(function() {
-            $('#mainVis').draggable({
+            $('#main-vis').draggable({
                     containment: 'parent'
                 }).resizable({
                     aspectRatio: true,
+                    maxWidth: $('#main-vis-div').width()
                 }).height(tankHeight * 0.5)
                 .width(tankWidth * 0.5);
 
@@ -64,13 +69,13 @@ animalNameSpace.spatialView = function() {
         $('input[type=checkbox]')
             .attr('checked', false);
         //set the color scale function to linear
-        $('#colorScaleLinear')
+        $('#color-scale-linear')
             .prop('checked', true);
         $('#group-size-m')
             .prop('checked', true);
         $('#background-white')
             .prop('checked', true);
-        $('#settingsDiv input[type=checkbox]')
+        $('#settings-div input[type=checkbox]')
             .prop('checked', true);
         //hide the loading gif
         $('#loading')
@@ -85,7 +90,7 @@ animalNameSpace.spatialView = function() {
                 i = self.dataset.length;
             }
         }
-        self.num_animals = num_animals.size;
+        self.animal_ids = Array.from(num_animals).sort();
 
         // initialize the slider
         $slider = $('#slider')
@@ -96,12 +101,26 @@ animalNameSpace.spatialView = function() {
                 slide: function(event, ui) {
                     self.indexTime = ui.value;
                     // if paused apply changes
-                    if (!$('#playButton').hasClass('active')) {
+                    if (!$('#play-button').hasClass('active')) {
                         //this applys the changes
                         draw();
                     }
                 }
             });
+        // initialize the network slider
+        $('#network-slider')
+            .slider({
+                range: 'max',
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                slide: function(event, ui) {
+                    networkLimit = ui.value;
+                    $('#network-limit').val(networkLimit);
+                }
+            });
+
         // get the max from the slider this is needed to calculate the ticks
         let max = $slider.slider('option', 'max');
         let space = 100 / max;
@@ -149,7 +168,7 @@ animalNameSpace.spatialView = function() {
             });
 
         //the svg container
-        svgContainer = d3.select('#mainVis')
+        svgContainer = d3.select('#main-vis')
             .classed('svg-container', true)
             // to make it responsive with css
             .append('svg')
@@ -157,13 +176,13 @@ animalNameSpace.spatialView = function() {
             .attr('viewBox', '0 0 ' + tankWidth + ' ' + tankHeight)
             // add the class svg-content
             .classed('svg-content', true)
-            .attr('id', 'mainVis-svg')
+            .attr('id', 'main-vis-svg')
             .call(zoom);
 
 
         /* depends on svg ratio, for  1240/1900 = 0.65 so padding-bottom = 65% */
         let percentage = Math.ceil((tankHeight / tankWidth) * 100);
-        $('#mainVis').append($('<style>#mainVis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
+        $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
         zoomGroup = svgContainer.append('svg:g');
 
@@ -225,6 +244,10 @@ animalNameSpace.spatialView = function() {
             .attr('id', 'centroid-line')
             .attr('marker-end', 'url(#centroid-arrow)');
 
+        //append network  group
+        tank.append('g')
+            .attr('id', 'networkGroup');
+
         //append delaunayTriangulation group
         tank.append('g')
             .attr('id', 'delaunayTriangulationGroup');
@@ -234,7 +257,7 @@ animalNameSpace.spatialView = function() {
             .attr('id', 'vornoiGroup');
 
         // group for the legend
-        svgLegend = d3.select('#divLegend')
+        svgLegend = d3.select('#main-vis-legend-div')
             .classed('svg-legendContainer', true)
             // to make it responsive with css
             .append('svg')
@@ -292,7 +315,7 @@ animalNameSpace.spatialView = function() {
                 $('.palette[title=\"' + d.key + '\"]').addClass('selected');
                 colorScales.color = colorbrewer[d.key];
                 changeLegend();
-                if (!$('#playButton')
+                if (!$('#play-button')
                     .hasClass('active')) {
                     //go back one second and draw the next frame
                     //this applys the changes
@@ -312,6 +335,13 @@ animalNameSpace.spatialView = function() {
             });
         // highlight the selected color scheme
         $('.palette[title=\"BuYlBu\"]').addClass('selected');
+
+        // fixed color scale for the network
+        networkColorScale = d3.scaleThreshold()
+            .domain(
+                [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
+            )
+            .range(['#ffffff', '#dfdfdf', '#c0c0c0', '#a3a3a3', '#858585', '#696969', '#4e4e4e', '#353535', '#1d1d1d', '#000000']);
 
         //Draw the fish swarm line chart
         self.lineChart();
@@ -338,7 +368,7 @@ animalNameSpace.spatialView = function() {
             .val();
 
         //get the next animals
-        arrayAnimals = self.dataset.slice(self.num_animals * self.indexTime, self.num_animals * self.indexTime + self.num_animals);
+        arrayAnimals = self.dataset.slice(self.animal_ids.length * self.indexTime, self.animal_ids.length * self.indexTime + self.animal_ids.length);
 
         //the timeout is set after one update 30 ms
         setTimeout(function() {
@@ -353,13 +383,103 @@ animalNameSpace.spatialView = function() {
                 let svgAnimals = tank.selectAll('g.animal')
                     .data(arrayAnimals);
 
-                // let svgAnimals = tank.selectAll('circle.animal')
-                //     .data(arrayAnimals);
+                // Network vis
+                let networkVis;
+                if (self.indexTime in self.networkData) {
+                    let network = [];
+                    let tmp = self.networkData[self.indexTime];
+
+                    let tmp_index = 0;
+                    for (let i = 0; i < arrayAnimals.length; i++) {
+                        for (let j = i + 1; j < arrayAnimals.length; j++) {
+                            network.push({
+                                'node1': arrayAnimals[i]['a'],
+                                'node2': arrayAnimals[j]['a'],
+                                'start': arrayAnimals[i]['p'],
+                                'end': arrayAnimals[j]['p'],
+                                'val': tmp[tmp_index]
+                            });
+                            tmp_index = tmp_index + 1;
+                        }
+                    }
+                    network.forEach(function(d) {
+                        $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
+                        $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
+                    });
+
+                    if (networkAuto) {
+                        let tmpArray = [];
+                        for (let i = 0; i < network.length; i++) {
+                            tmpArray.push(network[i]['val']);
+                        }
+                        networkLimit = percentiles(tmpArray);
+                    }
+
+                    network = network.filter(function(d) {
+                        return d['val'] >= networkLimit;
+                    });
+                    // DATA JOIN
+                    networkVis = tank.select('#networkGroup')
+                        .selectAll('line.networkEdges')
+                        .data(network);
+                    // UPDATE
+                    networkVis
+                        .attr('x1', function(d) {
+                            return d['start'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['start'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['end'][0]);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['end'][1]);
+                        })
+                        .attr('stroke', function(d) {
+                            return networkColorScale(d['val']);
+                        })
+                        .attr('stroke-opacity', function(d) {
+                            return d['val'];
+                        });
+                    //ENTER
+                    networkVis
+                        .enter()
+                        .append('line')
+                        .attr('class', 'networkEdges')
+                        .attr('x1', function(d) {
+                            return d['start'][0];
+                        })
+                        .attr('y1', function(d) {
+                            return -d['start'][1];
+                        })
+                        .attr('x2', function(d) {
+                            return (d['end'][0]);
+                        })
+                        .attr('y2', function(d) {
+                            return (-d['end'][1]);
+                        })
+                        .attr('stroke', function(d) {
+                            return networkColorScale(d['val']);
+                        })
+                        .attr('stroke-opacity', function(d) {
+                            return d['val'];
+                        });
+
+
+
+                } else {
+                    networkVis = tank.selectAll('line.networkEdges')
+                        .data([]);
+                }
+                // EXIT - network
+                networkVis.exit()
+                    .remove();
 
                 // delaunay triangulation
                 // DATA JOIN  - triangulation
                 var triangulation;
-                if ($('#drawTriangulation')
+                if ($('#draw-triangulation')
                     .is(':checked')) {
                     triangulation = tank.select('#delaunayTriangulationGroup')
                         .selectAll('path.delaunayTriangulation')
@@ -388,7 +508,7 @@ animalNameSpace.spatialView = function() {
                 // Voronoi
                 // DATA JOIN  - voronoi
                 var voronoi;
-                if ($('#drawVoronoi')
+                if ($('#draw-voronoi')
                     .is(':checked')) {
                     //append the group for the voronoi paths
                     voronoi = tank
@@ -453,7 +573,7 @@ animalNameSpace.spatialView = function() {
                         } else {
                             activeAnimals.push(d['a']);
                         }
-                        if (!$('#playButton')
+                        if (!$('#play-button')
                             .hasClass('active')) {
                             //go back one second and draw the next frame
                             //this applys the changes
@@ -495,7 +615,7 @@ animalNameSpace.spatialView = function() {
                     });
 
                 //execute only when draw direction button is checked
-                if ($('#drawDirection')
+                if ($('#draw-direction')
                     .is(':checked')) {
                     // UPDATE animal direction arrow
                     svgAnimals.select('line')
@@ -525,7 +645,7 @@ animalNameSpace.spatialView = function() {
                     .remove();
 
                 //Convex hull
-                if ($('#drawConvexHull')
+                if ($('#draw-convex-hull')
                     .is(':checked')) {
                     // DATA JOIN - paths
                     var hullPath = tank.selectAll('path.hullPath')
@@ -594,15 +714,15 @@ animalNameSpace.spatialView = function() {
                                 return 0.25;
                             }
                         });
-                    if ($('#removeActiveSelectedButton')
+                    if ($('#remove-active-selected-button')
                         .is(':disabled')) {
-                        $('#removeActiveSelectedButton')
+                        $('#remove-active-selected-button')
                             .prop('disabled', false);
                     }
                 } else {
-                    if (!$('#removeActiveSelectedButton')
+                    if (!$('#remove-active-selected-button')
                         .is(':disabled')) {
-                        $('#removeActiveSelectedButton')
+                        $('#remove-active-selected-button')
                             .prop('disabled', true);
                     }
                     // normal opacity
@@ -626,9 +746,9 @@ animalNameSpace.spatialView = function() {
                             return 0;
                         }
                     });
-                if ($('#drawDirection').is(':checked') &&
+                if ($('#draw-direction').is(':checked') &&
                     self.swarmData[self.indexTime].centroid &&
-                    $('#drawCentroid').is(':checked')) {
+                    $('#draw-centroid').is(':checked')) {
                     d3.select('#centroid-line')
                         .classed('hidden', false);
                     // UPDATE animal direction arrow
@@ -710,8 +830,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Play or stop the animation
      */
-    $('#playButton').click(function() {
-        if ($('#playButton').hasClass('active') === true) {
+    $('#play-button').click(function() {
+        if ($('#play-button').hasClass('active') === true) {
             playBoolean = false;
         } else {
             playBoolean = true;
@@ -724,19 +844,19 @@ animalNameSpace.spatialView = function() {
     /**
      * Pause the animation and show only the next frame
      */
-    $('#nextFrameButton').click(function() {
-        if ($('#playButton').hasClass('active') === true) {
+    $('#next-frame-button').click(function() {
+        if ($('#play-button').hasClass('active') === true) {
             playBoolean = false;
         }
-        $('#playButton').removeClass('active');
+        $('#play-button').removeClass('active');
         draw();
     });
 
     /**
      * Draw Speed button
      */
-    $('#drawSpeed').click(function() {
-        if ($('#drawSpeed').is(':checked')) {
+    $('#draw-speed').click(function() {
+        if ($('#draw-speed').is(':checked')) {
             // load absolute feature speed data once
             if (!('speed' in self.dataset[0])) {
                 disablePlayButton();
@@ -759,12 +879,12 @@ animalNameSpace.spatialView = function() {
                 });
             }
             $('.draw-details').addClass('hidden');
-            $('#drawSpeedDetails').removeClass('hidden');
-            $('#drawAcceleration').prop('checked', false);
-            $('#drawDistanceCentroid').prop('checked', false);
+            $('#draw-speed-details').removeClass('hidden');
+            $('#draw-acceleration').prop('checked', false);
+            $('#draw-distance-centroid').prop('checked', false);
             activeScale = 'speed';
         } else {
-            $('#drawSpeedDetails').addClass('hidden');
+            $('#draw-speed-details').addClass('hidden');
             activeScale = 'black';
         }
         $('.draw-details.active').click();
@@ -772,7 +892,7 @@ animalNameSpace.spatialView = function() {
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
 
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -783,8 +903,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw acceleration button
      */
-    $('#drawAcceleration').click(function() {
-        if ($('#drawAcceleration').is(':checked')) {
+    $('#draw-acceleration').click(function() {
+        if ($('#draw-acceleration').is(':checked')) {
             // load absolute feature acceleration data once
             if (!('acceleration' in self.dataset[0])) {
                 disablePlayButton();
@@ -807,12 +927,12 @@ animalNameSpace.spatialView = function() {
                 });
             }
             $('.draw-details').addClass('hidden');
-            $('#drawAccelerationDetails').removeClass('hidden');
-            $('#drawSpeed').prop('checked', false);
-            $('#drawDistanceCentroid').prop('checked', false);
+            $('#draw-acceleration-details').removeClass('hidden');
+            $('#draw-speed').prop('checked', false);
+            $('#draw-distance-centroid').prop('checked', false);
             activeScale = 'acceleration';
         } else {
-            $('#drawAccelerationDetails').addClass('hidden');
+            $('#draw-acceleration-details').addClass('hidden');
             activeScale = 'black';
         }
         $('.draw-details.active').click();
@@ -820,7 +940,7 @@ animalNameSpace.spatialView = function() {
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
 
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -831,8 +951,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw distance to centroid button
      */
-    $('#drawDistanceCentroid').click(function() {
-        if ($('#drawDistanceCentroid').is(':checked')) {
+    $('#draw-distance-centroid').click(function() {
+        if ($('#draw-distance-centroid').is(':checked')) {
             // load absolute feature distance_centroid data once
             if (!('distance_centroid' in self.dataset[0])) {
                 disablePlayButton();
@@ -855,12 +975,12 @@ animalNameSpace.spatialView = function() {
                 });
             }
             $('.draw-details').addClass('hidden');
-            $('#drawDistanceCentroidDetails').removeClass('hidden');
-            $('#drawSpeed').prop('checked', false);
-            $('#drawAcceleration').prop('checked', false);
+            $('#draw-distance-centroid-details').removeClass('hidden');
+            $('#draw-speed').prop('checked', false);
+            $('#draw-acceleration').prop('checked', false);
             activeScale = 'distance_centroid';
         } else {
-            $('#drawDistanceCentroidDetails').addClass('hidden');
+            $('#draw-distance-centroid-details').addClass('hidden');
             activeScale = 'black';
         }
         $('.draw-details.active').click();
@@ -868,7 +988,7 @@ animalNameSpace.spatialView = function() {
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
 
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -879,8 +999,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw direction arrow of the animal
      */
-    $('#drawDirection').click(function() {
-        if ($('#drawDirection').is(':checked')) {
+    $('#draw-direction').click(function() {
+        if ($('#draw-direction').is(':checked')) {
             // load absolute feature speed data once
             if (!('direction' in self.dataset[0])) {
                 disablePlayButton();
@@ -908,7 +1028,7 @@ animalNameSpace.spatialView = function() {
             d3.selectAll('.arrow')
                 .classed('hidden', true);
         }
-        if (!$('#playButton').hasClass('active')) {
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -919,8 +1039,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw medoid in color button
      */
-    $('#drawMedoid').click(function() {
-        if ($('#drawMedoid').is(':checked')) {
+    $('#draw-medoid').click(function() {
+        if ($('#draw-medoid').is(':checked')) {
             if (!('medoid' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -955,8 +1075,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw centroid button
      */
-    $('#drawCentroid').click(function() {
-        if ($('#drawCentroid').is(':checked')) {
+    $('#draw-centroid').click(function() {
+        if ($('#draw-centroid').is(':checked')) {
             if (!('centroid' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -990,8 +1110,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw convex hull in color button
      */
-    $('#drawConvexHull').click(function() {
-        if ($('#drawConvexHull').is(':checked')) {
+    $('#draw-convex-hull').click(function() {
+        if ($('#draw-convex-hull').is(':checked')) {
             if (!('hull' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -1017,8 +1137,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw triangulation
      */
-    $('#drawTriangulation').click(function() {
-        if ($('#drawTriangulation').is(':checked')) {
+    $('#draw-triangulation').click(function() {
+        if ($('#draw-triangulation').is(':checked')) {
             if (!('triangulation' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -1037,7 +1157,7 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
-            if (!$('#playButton').hasClass('active')) {
+            if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
                 self.indexTime--;
@@ -1050,8 +1170,8 @@ animalNameSpace.spatialView = function() {
     /**
      * Draw triangulation
      */
-    $('#drawVoronoi').click(function() {
-        if ($('#drawVoronoi').is(':checked')) {
+    $('#draw-voronoi').click(function() {
+        if ($('#draw-voronoi').is(':checked')) {
             if (!('voronoi' in self.swarmData[0])) {
                 disablePlayButton();
                 $.ajax({
@@ -1070,7 +1190,7 @@ animalNameSpace.spatialView = function() {
                     }
                 });
             }
-            if (!$('#playButton').hasClass('active')) {
+            if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
                 self.indexTime--;
@@ -1088,7 +1208,7 @@ animalNameSpace.spatialView = function() {
     function brushend() {
         var rect = d3.event.selection;
         //iterate over the 151 fish to check which are in the brush
-        for (var i = 0; i < self.num_animals; i++) {
+        for (var i = 0; i < self.animal_ids.length; i++) {
             var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
             //check which fish are in  the brushed area
             if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
@@ -1097,14 +1217,14 @@ animalNameSpace.spatialView = function() {
                 activeAnimals.push(arrayAnimals[i]['a']);
             }
         }
-        if (!$('#playButton')
+        if (!$('#play-button')
             .hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
             draw();
         }
-        $('#brushingButton')
+        $('#brushing-button')
             .removeClass('active');
         // remove the brush
         $('.brush')
@@ -1114,11 +1234,11 @@ animalNameSpace.spatialView = function() {
     /**
      * Brushing button
      */
-    $('#brushingButton').click(function() {
+    $('#brushing-button').click(function() {
         //stop the animation
         playBoolean = false;
-        $('#playButton').removeClass('active');
-        if (!$('#brushingButton').hasClass('active')) {
+        $('#play-button').removeClass('active');
+        if (!$('#brushing-button').hasClass('active')) {
             //define the brush
             brush = d3.brush()
                 .extent([
@@ -1139,11 +1259,11 @@ animalNameSpace.spatialView = function() {
     /**
      * Unselect all button
      */
-    $('#removeActiveSelectedButton').click(function() {
-        if (!$('#removeActiveSelectedButton').is(':disabled')) {
-            $('#removeActiveSelectedButton').prop('disabled', true);
+    $('#remove-active-selected-button').click(function() {
+        if (!$('#remove-active-selected-button').is(':disabled')) {
+            $('#remove-active-selected-button').prop('disabled', true);
             activeAnimals = [];
-            if (!$('#playButton').hasClass('active')) {
+            if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
                 self.indexTime--;
@@ -1157,19 +1277,19 @@ animalNameSpace.spatialView = function() {
      */
     $('#background-color').change(function() {
         let color = $('input[type="radio"].group-background:checked').val();
-        $('#mainVis-svg').css('background-color', color);
+        $('#main-vis-svg').css('background-color', color);
     });
 
     /**
      * Show the spatial view axis button
      */
-    $('#drawAxis').on('change', function() {
+    $('#draw-axis').on('change', function() {
         if (this.checked) {
-            $('#mainVis g.x.axis').show();
-            $('#mainVis g.y.axis').show();
+            $('#main-vis g.x.axis').show();
+            $('#main-vis g.y.axis').show();
         } else {
-            $('#mainVis g.x.axis').hide();
-            $('#mainVis g.y.axis').hide();
+            $('#main-vis g.x.axis').hide();
+            $('#main-vis g.y.axis').hide();
         }
 
     });
@@ -1177,11 +1297,11 @@ animalNameSpace.spatialView = function() {
     /**
      * Show the frame (time) number in the spatial view button
      */
-    $('#drawTime').on('change', function() {
+    $('#draw-time').on('change', function() {
         if (this.checked) {
-            $('#mainVis .frameText').show();
+            $('#main-vis .frameText').show();
         } else {
-            $('#mainVis .frameText').hide();
+            $('#main-vis .frameText').hide();
         }
     });
 
@@ -1237,9 +1357,9 @@ animalNameSpace.spatialView = function() {
     /**
      * Color Scale Function Radio buttons
      */
-    $('#colorScaleRadioForm input').on('change', function() {
-        colorScales['type'] = $('input[name=colorScaleRadio]:checked', '#colorScaleRadioForm').val();
-        if (!$('#playButton').hasClass('active')) {
+    $('#color-scale-radio-form input').on('change', function() {
+        colorScales['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
+        if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
             self.indexTime--;
@@ -1269,7 +1389,7 @@ animalNameSpace.spatialView = function() {
     /**
      * Metadata group metadata functions for instance color sex
      */
-    $('#groupMetadata :input').change(function() {
+    $('#group-metadata :input').change(function() {
         // reset the metadat acoloring
         resetIndividualMetadata();
 
@@ -1278,7 +1398,7 @@ animalNameSpace.spatialView = function() {
 
         // metadata sex is choosen - coloring based on m and f
         if (value === 'sex') {
-            $('#metadataDiv').modal('toggle');
+            $('#metadata-div').modal('toggle');
             // close and color here
             for (let i = 0; i < self.datasetMetadata.length; i++) {
                 tmp.push(self.datasetMetadata[i][value].toLowerCase());
@@ -1319,7 +1439,7 @@ animalNameSpace.spatialView = function() {
     function colorMetadata() {
         resetIndividualMetadata();
         // get the input values
-        let value = $('#groupMetadata .btn.btn-default.active input')
+        let value = $('#group-metadata .btn.btn-default.active input')
             .attr('value');
         let blAvg = $('#bl-avg').val();
         let abAvg = $('#ab-avg').val();
@@ -1384,15 +1504,65 @@ animalNameSpace.spatialView = function() {
         $('.dropdown #preview')
             .css('background-color', 'rgb(255, 255, 255)');
     }
+
+    /**
+     * Network buttons clicked - get the data
+     */
+    $('#networks-modal-body button').click(function() {
+        let network_id = $(this).attr('data');
+        // get the data
+        $.ajax({
+            url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
+            dataType: 'json',
+            type: 'GET',
+            contentType: 'application/json; charset=utf-8',
+            headers: {
+                'Accept': JSONAPI_MIMETYPE
+            },
+            success: function(data) {
+                if (data.length) {
+                    self.networkData = JSON.parse(data[0]['data']);
+                }
+            }
+        });
+
+    });
+
+    /**
+     * Network buttons clicked - get the data
+     */
+    $('#network-remove').click(function() {
+        self.networkData = {};
+    });
+
+    /**
+     * Network auto button set acive or remove
+     */
+    $('#network-auto-suggest').click(function() {
+        if (!$('#network-auto-suggest').hasClass('active')) {
+            $('#network-limit-p').hide();
+            $('#network-slider').hide();
+
+            networkAuto = true;
+        } else {
+            $('#network-limit-p').show();
+            $('#network-slider').show();
+            networkAuto = false;
+            networkLimit = $('#network-slider').slider('value');
+            $('#network-limit').val(networkLimit);
+        }
+    });
+
+
     /**
      * Disable the play button --> Loading symbol
      *
      */
     function disablePlayButton() {
         playBoolean = false;
-        $('#playButton').removeClass('active');
-        $('#playButton').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
-        $('#playButton').prop('disabled', true);
+        $('#play-button').removeClass('active');
+        $('#play-button').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
+        $('#play-button').prop('disabled', true);
     }
 
     /**
@@ -1401,9 +1571,9 @@ animalNameSpace.spatialView = function() {
      */
     function enablePlayButton() {
         playBoolean = true;
-        $('#playButton').addClass('active');
-        $('#playButton').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
-        $('#playButton').prop('disabled', false);
+        $('#play-button').addClass('active');
+        $('#play-button').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
+        $('#play-button').prop('disabled', false);
         draw();
     }
 
@@ -1477,6 +1647,29 @@ animalNameSpace.spatialView = function() {
         // EXIT - legend text
         legendText.exit()
             .remove();
+    }
+
+    /**
+     * Return  .95 percentiles of the array
+     *
+     */
+    function percentiles(arr) {
+        let p = 0.95;
+        if (arr.length === 0) {
+            return 0;
+        }
+        arr.sort(function(a, b) {
+            return a - b;
+        });
+        let index = (arr.length - 1) * p;
+        let lower = Math.floor(index);
+        let upper = lower + 1;
+        let weight = index % 1;
+        if (upper >= arr.length) {
+            return arr[lower];
+        } else {
+            return arr[lower] * (1 - weight) + arr[upper] * weight;
+        }
     }
 
 };

@@ -1,11 +1,10 @@
 from model.dataset_model import Dataset
 from model.percentile_model import Percentile
 from model.metadata_model import Metadata
-
-import geojson
+from model.network_model import Network
 import sys
+import decimal
 
-from geoalchemy2.shape import to_shape
 from sqlalchemy import text
 
 from flask import Response, jsonify, abort, json
@@ -140,7 +139,7 @@ def api_get_feature(id=None, feature=None):
         :param id:
             id of the specific dataset
     """
-    # auth_func()
+    auth_func()
     # not a valid feature
     if not id or not feature:
         return jsonify({})
@@ -218,20 +217,79 @@ def api_get_feature(id=None, feature=None):
     return jsonify({"id": id, "feature": feature})
 
 
-def postprocessor_movement(search_params, result):
+def api_get_vc(id=None):
     """
-    Transform the position which is in WKB format to GEOJSON
-    """
-    for data in result['objects']:
-        data['position'] = geojson.Feature(geometry=(to_shape(data['position'])), properties={})
+        Return the variation coefficient of the feature
 
-    return result
+        :param id:
+            id of the specific dataset
+    """
+    auth_func()
+    # not a valid feature
+    if not id:
+        return jsonify({})
+    result = {}
+    # return absolute features
+    for feature in ['metric_distance', 'speed', 'acceleration', 'distance_centroid', 'direction']:
+        stmt = '''SELECT stddev(''' + feature + '''+ tmp.val ) / avg(''' + feature + ''' + tmp.val)
+                    FROM movement_data,
+                        (SELECT abs(min(''' + feature + ''')) as val
+                        FROM movement_data
+                        WHERE dataset_id = :id) as tmp
+                    WHERE dataset_id = :id; '''
+        query = db.engine.execute(text(stmt), id=id).fetchone()[0]
+
+        if isinstance(query, decimal.Decimal):
+            result[feature] = round(float(query), 4)
+    # TODO add some more features here
+    for feature in ['convex_hull_area']:
+        stmt = '''SELECT stddev(''' + feature + '''+ tmp.val ) / avg(''' + feature + ''' + tmp.val)
+                            FROM group_data,
+                                (SELECT abs(min(''' + feature + ''')) as val
+                                FROM group_data
+                                WHERE dataset_id = :id) as tmp
+                            WHERE dataset_id = :id; '''
+        query = db.engine.execute(text(stmt), id=id).fetchone()[0]
+
+        if isinstance(query, decimal.Decimal):
+            if feature == 'convex_hull_area':
+                result['euclidean_distance'] = round(float(query), 4)
+            else:
+                result[feature] = round(float(query), 4)
+
+    return jsonify(result)
 
 
-def postprocessor_group(search_params, result):
+def api_get_dataset_networks(id=None):
     """
-    Transform the centroid which is in WKB format to GEOJSON
+        Return all network information (not the data) of a specific dataset
+
+        :param id:
+            id of the specific dataset
     """
-    for data in result['objects']:
-        data['centroid'] = geojson.Feature(geometry=(to_shape(data['centroid'])), properties={})
-    return result
+    auth_func()
+    if not id:
+        return jsonify({})
+    query = db.session.query(Network).filter_by(dataset_id=id)
+    result = []
+    for elem in query:
+        result.append(elem.as_info_dict())
+    return jsonify(result)
+
+
+def api_get_network_data(dataset_id=None, network_id=None):
+    """
+        Return a json of the network for a specific dataset specific dataset
+
+        :param
+            dataset_id: id of the specific dataset
+            network_id: network id of the specific dataset
+    """
+    auth_func()
+    if dataset_id is None or network_id is None:
+        return jsonify({})
+    query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)
+    result = []
+    for elem in query:
+        result.append(elem.as_data_dict())
+    return jsonify(result)

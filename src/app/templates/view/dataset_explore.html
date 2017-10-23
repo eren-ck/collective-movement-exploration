@@ -31,44 +31,44 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="featureCheckBox">
+                            <div class="feature-check-box">
                                 <!-- Draw swarm features -->
                                 <strong>Swarm Features</strong>
                                 <br>
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" id="drawCentroid"/>
-                                    <label for="drawCentroid">Centroid</label>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-centroid"/>
+                                    <label for="draw-centroid">Centroid</label>
                                 </div>
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" id="drawMedoid"/>
-                                    <label for="drawMedoid">Medoid</label>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-medoid"/>
+                                    <label for="draw-medoid">Medoid</label>
                                 </div>
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" id="drawConvexHull"/>
-                                    <label for="drawConvexHull">Convex Hull</label>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-convex-hull"/>
+                                    <label for="draw-convex-hull">Convex Hull</label>
                                 </div>
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" id="drawTriangulation"/>
-                                    <label for="drawTriangulation">Triangulation</label>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-triangulation"/>
+                                    <label for="draw-triangulation">Triangulation</label>
                                 </div>
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" id="drawVoronoi"/>
-                                    <label for="drawVoronoi">Voronoi Diagram</label>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-voronoi"/>
+                                    <label for="draw-voronoi">Voronoi Diagram</label>
                                 </div>
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" id="drawDirection"/>
-                                    <label for="drawDirection">Direction</label>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-direction"/>
+                                    <label for="draw-direction">Direction</label>
                                 </div>
 
                                 <br>
                                 <strong>Absolute Features</strong>
                                 <br>
 
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" name="checkbox" id="drawSpeed"/>
-                                    <label for="drawSpeed">
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" name="checkbox" id="draw-speed"/>
+                                    <label for="draw-speed">
                                         Speed
-                                        <button type="button" id="drawSpeedDetails"
+                                        <button type="button" id="draw-speed-details"
                                                 class="btn btn-default pull-right hidden draw-details"
                                                 data-toggle="button"
                                                 aria-pressed="false" autocomplete="off">
@@ -77,11 +77,11 @@
                                     </label>
                                 </div>
 
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" name="checkbox" id="drawAcceleration"/>
-                                    <label for="drawAcceleration">
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" name="checkbox" id="draw-acceleration"/>
+                                    <label for="draw-acceleration">
                                         Acceleration
-                                        <button type="button" id="drawAccelerationDetails"
+                                        <button type="button" id="draw-acceleration-details"
                                                 class="btn btn-default pull-right hidden draw-details"
                                                 data-toggle="button"
                                                 aria-pressed="false" autocomplete="off">
@@ -90,11 +90,11 @@
                                     </label>
                                 </div>
 
-                                <div class="featureCheckBox-default">
-                                    <input type="checkbox" name="checkbox" id="drawDistanceCentroid"/>
-                                    <label for="drawDistanceCentroid">
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" name="checkbox" id="draw-distance-centroid"/>
+                                    <label for="draw-distance-centroid">
                                         Distance to Centroid
-                                        <button type="button" id="drawDistanceCentroidDetails"
+                                        <button type="button" id="draw-distance-centroid-details"
                                                 class="btn btn-default pull-right hidden draw-details"
                                                 data-toggle="button"
                                                 aria-pressed="false" autocomplete="off">
@@ -109,6 +109,14 @@
                                 <br>
 
                             </div>
+                            <hr>
+                            <button type="button" id="network-button"
+                                    class="btn btn-default btn-lg" data-toggle="modal"
+                                    data-target="#network-div">
+                                <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
+                                Networks
+                            </button>
+
                         </div>
                     </div>
                 </div>
@@ -140,11 +148,11 @@
                                     <div class="row">
 
                                         <div class="col-md-3">
-                                            <button type="button" id="playButton" class="btn btn-default active"
+                                            <button type="button" id="play-button" class="btn btn-default active"
                                                     data-toggle="button" aria-pressed="true" autocomplete="off">
                                                 <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
                                             </button>
-                                            <button type="button" id="nextFrameButton" class="btn btn-default">
+                                            <button type="button" id="next-frame-button" class="btn btn-default">
                                                 <span class="glyphicon glyphicon-step-forward"
                                                       aria-hidden="true"></span> Frame
                                             </button>
@@ -155,19 +163,19 @@
                                             <fieldset id="group1">
                                                 <div class="btn-group" data-toggle="buttons">
                                                     <label class="btn btn-default">
-                                                        <input type="radio" id="slowSpeed" value="385" name="group1"
+                                                        <input type="radio" id="slow-speed" value="385" name="group1"
                                                                autocomplete="off">
                                                         <span class="glyphicon glyphicon-play"
                                                               aria-hidden="true"></span> Slow
                                                     </label>
                                                     <label class="btn btn-default active">
-                                                        <input type="radio" id="normalSpeed" value="25" name="group1"
+                                                        <input type="radio" id="normal-speed" value="25" name="group1"
                                                                autocomplete="off" checked>
                                                         <span class="glyphicon glyphicon-forward"
                                                               aria-hidden="true"></span>Normal
                                                     </label>
                                                     <label class="btn btn-default">
-                                                        <input type="radio" id="fastSpeed" value="4" name="group1"
+                                                        <input type="radio" id="fast-speed" value="4" name="group1"
                                                                autocomplete="off">
                                                         <span class="glyphicon glyphicon-fast-forward"
                                                               aria-hidden="true"></span> Fast
@@ -177,11 +185,11 @@
                                         </div>
 
                                         <div class="col-md-3">
-                                            <button type="button" id="brushingButton" class="btn btn-default "
+                                            <button type="button" id="brushing-button" class="btn btn-default "
                                                     data-toggle="button" autocomplete="off">
                                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Brush
                                             </button>
-                                            <button type="button" id="removeActiveSelectedButton"
+                                            <button type="button" id="remove-active-selected-button"
                                                     class="btn btn-default" data-toggle="button" autocomplete="off"
                                                     disabled>
                                                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
@@ -190,9 +198,9 @@
                                         </div>
 
                                         <div class="col-md-1">
-                                            <button type="button" id="metadataButton"
+                                            <button type="button" id="metadata-button"
                                                     class="btn btn-default pull-right" data-toggle="modal"
-                                                    data-target="#metadataDiv">
+                                                    data-target="#metadata-div">
                                                 <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
                                                 Metadata
                                             </button>
@@ -200,9 +208,9 @@
 
                                         <!-- Button trigger settings -->
                                         <div class="col-md-1">
-                                            <button type="button" id="settingsButton"
+                                            <button type="button" id="settings-button"
                                                     class="btn btn-default pull-right" data-toggle="modal"
-                                                    data-target="#settingsDiv">
+                                                    data-target="#settings-div">
                                                 <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                                                 Settings
                                             </button>
@@ -222,21 +230,22 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6 col-md-offset-1">
+                    <div class="col-md-12" id="main-vis-div">
                         <!-- loading gif -->
                         <div id="loading">
                             <img src="/static/img/loading.gif"/>
                         </div>
                         <!-- The div for the svg  -->
 
-                        <div id="mainVis">
+                        <div id="main-vis">
                         </div>
-                        <div id="divLegend">
+                        <div id="main-vis-legend-div">
                         </div>
                     </div>
 
+
                     <div class="col-md-12">
-                        <div id="swarmVis">
+                        <div id="swarm-vis">
 
                         </div>
                     </div>
@@ -297,7 +306,7 @@
 
 <!--Modal for settings -->
 
-<div class="modal fade" id="settingsDiv" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="settings-div" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -393,17 +402,17 @@
                         </td>
                         <td>
                             <strong>Scaling Function</strong>
-                            <form id="colorScaleRadioForm">
+                            <form id="color-scale-radio-form">
                                 <div class="radio">
                                     <label>
-                                        <input type="radio" name="colorScaleRadio" id="colorScaleLinear"
+                                        <input type="radio" name="color-scale-radio" id="color-scale-linear"
                                                value="Linear"
                                                checked> Linear Scale
                                     </label>
                                 </div>
                                 <div class="radio">
                                     <label>
-                                        <input type="radio" name="colorScaleRadio" id="colorScaleThreshold"
+                                        <input type="radio" name="color-scale-radio" id="color-scale-threshold"
                                                value="Threshold"> Threshold Scale
                                     </label>
                                 </div>
@@ -412,12 +421,12 @@
                             <strong>Spatial View</strong>
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="checkbox" id="drawAxis"/> Show Axis
+                                    <input type="checkbox" name="checkbox" id="draw-axis"/> Show Axis
                                 </label>
                             </div>
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="checkbox" id="drawTime"/> Show Time
+                                    <input type="checkbox" name="checkbox" id="draw-time"/> Show Time
                                 </label>
                             </div>
 
@@ -432,7 +441,7 @@
 </div>
 
 <!--Modal for Meta data  -->
-<div class="modal fade" id="metadataDiv" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="metadata-div" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -460,18 +469,18 @@
                     <div class="col-md-12">
                         <div class="pull-right">
                             <div class="btn-group">
-                                <fieldset id="groupMetadata">
+                                <fieldset id="group-metadata">
                                     <div class="btn-group" data-toggle="buttons">
                                         <label class="btn btn-default">
-                                            <input type="radio" id="metadata-sex" name="groupMetadata" value="sex">
+                                            <input type="radio" id="metadata-sex" name="group-metadata" value="sex">
                                             Sex
                                         </label>
                                         <label class="btn btn-default">
-                                            <input type="radio" id="metadata-size" name="groupMetadata" value="size">
+                                            <input type="radio" id="metadata-size" name="group-metadata" value="size">
                                             Size
                                         </label>
                                         <label class="btn btn-default">
-                                            <input type="radio" id="metadata-weight" name="groupMetadata"
+                                            <input type="radio" id="metadata-weight" name="group-metadata"
                                                    value="weight">
                                             Weight
                                         </label>
@@ -488,7 +497,7 @@
                                                 class="glyphicon glyphicon-minus"></span></button>
                                     </span>
 
-                                    <input type="text" class="form-control text-center" id="bl-avg" value="1" min="0" >
+                                    <input type="text" class="form-control text-center" id="bl-avg" value="1" min="0">
 
                                     <span class="input-group-btn">
                                         <button class="btn btn-default" data-dir="up"><span
@@ -506,7 +515,7 @@
                                                 class="glyphicon glyphicon-minus"></span></button>
                                     </span>
 
-                                    <input type="text" class="form-control text-center" id="ab-avg" value="1" min="0" >
+                                    <input type="text" class="form-control text-center" id="ab-avg" value="1" min="0">
 
                                     <span class="input-group-btn">
                                         <button class="btn btn-default" data-dir="up"><span
@@ -557,6 +566,65 @@
                             </button>
                         </div>
 
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!--Modal for Network data  -->
+<div class="modal fade" id="network-div" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div class="mod-list">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <div class="t2">
+                        <div class="mod-head text-center">
+                            <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
+                            <h2>Networks</h2>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="networks-modal-body">
+
+                        </div>
+                        <hr>
+                        <button type="button" id="network-auto-suggest" class="btn btn-default btn-lg"
+                                data-toggle="button" aria-pressed="false" autocomplete="off">
+                            <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
+                            Auto parameter
+                        </button>
+
+                        <p id="network-limit-p">
+                            <label for="network-limit">Limit value for network edges</label>
+                            <input id="network-limit" readonly="" style="border:0; color:#f6931f; font-weight:bold;"
+                                   type="text">
+                        </p>
+                        <div id="network-slider"></div>
+
+                        <hr>
+                        <button type="button" id="network-remove" class="btn btn-default btn-lg btn-block">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                            Remove network
+                        </button>
                     </div>
                 </div>
 

@@ -204,7 +204,7 @@ class MyDatasetView(sqla.ModelView):
                 return redirect(request.url)
 
             # check if background image has the right extension
-            print('Hello world!', file=sys.stderr)
+            # print('Hello world!', file=sys.stderr)
 
             if request.files['background_image']:
                 file = request.files['background_image']

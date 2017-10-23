@@ -1,5 +1,6 @@
 import os
 import os.path as op
+import atexit
 
 from flask import Flask, render_template, url_for, redirect
 from flask_security import Security, SQLAlchemyUserDatastore
@@ -10,7 +11,9 @@ from view.admin_view import MyAdminView
 from view.home_view import MyHomeView
 from view.file_view import MyFileAdminView
 from view.dataset_view import MyDatasetView
+from view.network_view import MyNetworkView
 
+from model.network_model import Network
 from model.user_role_model import *
 
 from helpers.restless import *
@@ -25,6 +28,7 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 path = op.join(op.dirname(__file__), 'files')
+
 
 # Flask views
 @app.route('/')
@@ -52,13 +56,20 @@ def get_dataset():
 def get_dataset_id(id):
     return api_get_dataset(id)
 
+
 @app.route('/api/dataset/user/<int:user_id>', methods=['GET'])
 def get_dataset_user_id(user_id):
     return api_get_dataset_user(user_id)
 
+
 @app.route('/api/dataset/<int:id>/<feature>', methods=['GET'])
 def get_feature(id, feature):
     return api_get_feature(id, feature)
+
+
+@app.route('/api/dataset/<int:id>/vc', methods=['GET'])
+def get_vc_feature(id):
+    return api_get_vc(id)
 
 
 @app.route('/api/movement_only/<int:id>', methods=['GET'])
@@ -70,9 +81,21 @@ def get_movment_only(id):
 def get_percentile(id):
     return api_get_percentile(id)
 
+
 @app.route('/api/metadata/<int:id>', methods=['GET'])
 def get_metadata(id):
     return api_get_metadata(id)
+
+
+@app.route('/api/dataset/networks/<int:id>', methods=['GET'])
+def get_dataset_networks(id):
+    return api_get_dataset_networks(id)
+
+
+@app.route('/api/dataset/networks/<int:dataset_id>/<int:network_id>', methods=['GET'])
+def get_dataset_network_data(dataset_id, network_id):
+    return api_get_network_data(dataset_id, network_id)
+
 
 # Create view
 admin = Admin(
@@ -86,6 +109,7 @@ admin = Admin(
 # Add model views
 admin.add_view(MyFileAdminView(path, '/files/', name='Upload'))
 admin.add_view(MyDatasetView(Dataset, db.session, name='Explore'))
+admin.add_view(MyNetworkView(Network, db.session))
 admin.add_view(MyAdminView(Role, db.session))
 admin.add_view(MyAdminView(User, db.session))
 
@@ -105,6 +129,12 @@ def security_context_processor():
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
+
+#defining function to run on shutdown
+def close_running_threads():
+    db.session.remove()
+#Register the function to be called on exit
+atexit.register(close_running_threads)
 
 
 if __name__ == '__main__':

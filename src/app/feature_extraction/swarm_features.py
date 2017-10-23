@@ -47,8 +47,8 @@ def calculate_swarm_features(id):
         #  calculate the polarisation for the whole swarm
         calculate_polarisation(id, session)
         # ToDO change this here sometime
-        # dataset[0].status = 'Complete'
-        # dataset[0].progress = 100
+        dataset[0].status = 'Complete'
+        dataset[0].progress = 100
     except Exception as e:
         # Something went wrong when calculating swarm features
         session.rollback()
