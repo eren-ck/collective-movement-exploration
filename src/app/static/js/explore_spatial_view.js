@@ -59,6 +59,7 @@ animalNameSpace.spatialView = function() {
                     containment: 'parent'
                 }).resizable({
                     aspectRatio: true,
+                    maxWidth: $('#main-vis-div').width()
                 }).height(tankHeight * 0.5)
                 .width(tankWidth * 0.5);
 
@@ -112,7 +113,7 @@ animalNameSpace.spatialView = function() {
                 range: 'max',
                 min: 0,
                 max: 1,
-                step: 0.05,
+                step: 0.01,
                 value: 0,
                 slide: function(event, ui) {
                     networkLimit = ui.value;
@@ -344,8 +345,6 @@ animalNameSpace.spatialView = function() {
 
         //Draw the fish swarm line chart
         self.lineChart();
-        //Initialize the Adjacency matrix
-        self.initAdjacencyMatrix();
 
         draw();
 
@@ -1512,7 +1511,6 @@ animalNameSpace.spatialView = function() {
     $('#networks-modal-body button').click(function() {
         let network_id = $(this).attr('data');
         // get the data
-        $('#matrix-vis').removeClass('hidden');
         $.ajax({
             url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
             dataType: 'json',
@@ -1534,7 +1532,6 @@ animalNameSpace.spatialView = function() {
      * Network buttons clicked - get the data
      */
     $('#network-remove').click(function() {
-        $('#matrix-vis').addClass('hidden');
         self.networkData = {};
     });
 

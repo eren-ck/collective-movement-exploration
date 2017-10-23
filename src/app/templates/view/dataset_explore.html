@@ -230,7 +230,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-12" id="main-vis-div">
                         <!-- loading gif -->
                         <div id="loading">
                             <img src="/static/img/loading.gif"/>
@@ -243,13 +243,6 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <!-- matrix -->
-                        <div id="matrix-vis" class="hidden">
-                        </div>
-                        <div id="matrix-vis-legend" class="hidden">
-                        </div>
-                    </div>
 
                     <div class="col-md-12">
                         <div id="swarm-vis">
@@ -655,5 +648,4 @@
 <script src="{{url_for('static', filename='js/explore_init.js')}}"></script>
 <script src="{{url_for('static', filename='js/explore_spatial_view.js')}}"></script>
 <script src="{{url_for('static', filename='js/explore_line_chart.js')}}"></script>
-<script src="{{url_for('static', filename='js/explore_matrix.js')}}"></script>
 {% endblock %}

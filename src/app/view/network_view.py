@@ -75,7 +75,7 @@ class MyNetworkView(sqla.ModelView):
         """
         Accessible if user is logged in and it is his dataset
         """
-        if current_user.is_authenticated and current_user.has_role('admin'):
+        if current_user.is_authenticated:
             return True
 
         return False

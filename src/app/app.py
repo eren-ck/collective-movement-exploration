@@ -1,5 +1,6 @@
 import os
 import os.path as op
+import atexit
 
 from flask import Flask, render_template, url_for, redirect
 from flask_security import Security, SQLAlchemyUserDatastore
@@ -128,6 +129,12 @@ def security_context_processor():
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
+
+#defining function to run on shutdown
+def close_running_threads():
+    db.session.remove()
+#Register the function to be called on exit
+atexit.register(close_running_threads)
 
 
 if __name__ == '__main__':

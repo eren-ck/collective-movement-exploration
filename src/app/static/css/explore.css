@@ -69,7 +69,6 @@
     background-color: #ccc;
 }
 
-
 /* SVG elements and text */
 
 .svg-container {
@@ -146,7 +145,6 @@
     stroke-width: 5px;
 }
 
-
 /* Time  */
 
 .frameText {
@@ -159,7 +157,6 @@
     line-height: 1.1;
 }
 
-
 /* Slider ticks  */
 
 .ui-slider-tick {
@@ -170,14 +167,12 @@
     position: absolute;
 }
 
-
 /* Laoding gif   */
 
 #loading {
     display: block;
     text-align: center;
 }
-
 
 /* Color legend    */
 
@@ -205,7 +200,6 @@
     stroke-width: 5px;
     stroke: #000;
 }
-
 
 /*swarm features */
 
@@ -282,7 +276,6 @@
     background: #4d4d4d;
 }
 
-
 /* Color brewer picker div */
 
 .palette {
@@ -326,7 +319,6 @@
     line-height: 1.33;
     border-radius: 25px;
 }
-
 
 /* Tooltip */
 
@@ -499,14 +491,4 @@ div.tooltip table td:nth-child(2) {
 .networkEdges {
     fill-opacity: 0;
     stroke-width: 2;
-}
-
-.matrix-cell {
-    stroke: black;
-    stroke-width: 1px;
-    fill: rgb(255, 255, 255);
-}
-
-#matrix-vis{
-    overflow: visible;
 }

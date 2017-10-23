@@ -2,12 +2,9 @@ from model.dataset_model import Dataset
 from model.percentile_model import Percentile
 from model.metadata_model import Metadata
 from model.network_model import Network
-
-import geojson
 import sys
 import decimal
 
-from geoalchemy2.shape import to_shape
 from sqlalchemy import text
 
 from flask import Response, jsonify, abort, json
