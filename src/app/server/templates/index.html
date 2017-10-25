@@ -2,7 +2,7 @@
 
 {% block head_css %}
 {{ super() }}
-<link href="{{url_for('static', filename='css/index.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='index.css')}}" rel="stylesheet">
 {% endblock %}
 
 
@@ -28,7 +28,8 @@
             <ul class="timeline">
                 <li>
                     <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="/static/img/csv_upload.png" alt="">
+                        <img class="img-circle img-responsive"
+                             src="{{url_for('static', filename='csv_upload.png')}}" alt="">
                     </div>
                     <div class="timeline-panel">
                         <div class="timeline-heading">
@@ -47,7 +48,8 @@
                 </li>
                 <li class="timeline-inverted">
                     <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="/static/img/feature_extraction.png" alt="">
+                        <img class="img-circle img-responsive"
+                             src="{{url_for('static', filename='feature_extraction.png')}}" alt="">
                     </div>
                     <div class="timeline-panel">
                         <div class="timeline-heading">
@@ -55,7 +57,7 @@
                             <h4 class="subheading">Feature Extraction
                             </h4>
                         </div>
-                       <div class="timeline-body">
+                        <div class="timeline-body">
                             <p class="text-justify" style="width:50%">
                                 From your dataset various features are extracted and calculated.
                                 For instance speed of each animal, convex hull of the animal group
@@ -68,7 +70,8 @@
                 </li>
                 <li>
                     <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="/static/img/explore.gif" alt="">
+                        <img class="img-circle img-responsive" src="{{url_for('static', filename='explore.gif')}}"
+                             alt="">
                     </div>
                     <div class="timeline-panel">
                         <div class="timeline-heading">
@@ -88,16 +91,17 @@
                 </li>
                 <li class="timeline-inverted">
                     <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="/static/img/export.png" alt="">
+                        <img class="img-circle img-responsive" src="{{url_for('static', filename='export.png')}}"
+                             alt="">
                     </div>
                     <div class="timeline-panel">
                         <div class="timeline-heading">
                             <h4>Step Four</h4>
                             <h4 class="subheading">Export</h4>
                         </div>
-                         <div class="timeline-body">
+                        <div class="timeline-body">
                             <p class="text-justify" style="width:50%">
-                               Download your dataset with the extracted features in .csv format for further analysis.
+                                Download your dataset with the extracted features in .csv format for further analysis.
                             </p>
                         </div>
                     </div>
@@ -105,7 +109,8 @@
                 </li>
                 <li>
                     <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="/static/img/think.png" alt="">
+                        <img class="img-circle img-responsive" src="{{url_for('static', filename='think.png')}}"
+                             alt="">
                     </div>
                     <div class="timeline-panel">
                         <div class="timeline-heading">
@@ -114,7 +119,8 @@
                         </div>
                         <div class="timeline-body col-md-offset-6">
                             <p class="text-justify">
-                                Generate new hypotheses and knowledge from different visualizations and extracted features.
+                                Generate new hypotheses and knowledge from different visualizations and extracted
+                                features.
                             </p>
                         </div>
                     </div>

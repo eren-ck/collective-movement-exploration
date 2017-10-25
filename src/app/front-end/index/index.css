@@ -114,7 +114,6 @@
     color: #808080;
 }
 
-
 /*Style for even div.line*/
 
 .timeline>li:nth-child(odd) .line:before {
@@ -134,7 +133,6 @@
     box-shadow: 0 0 5px #4582ec;
 }
 
-
 /*Style for odd div.line*/
 
 .timeline>li:nth-child(even) .line:before {
@@ -153,7 +151,6 @@
     transform: rotate(44deg);
     box-shadow: 0 0 5px #4582ec;
 }
-
 
 /* Medium Devices, .visible-md-* */
 
@@ -191,7 +188,6 @@
     }
 }
 
-
 /* Small Devices, Tablets */
 
 @media (min-width: 768px) and (max-width: 991px) {
@@ -227,7 +223,6 @@
         display: none;
     }
 }
-
 
 /* Custom, iPhone Retina */
 
@@ -276,7 +271,7 @@
 }
 
 .bg-overlay {
-    background: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url("/static/img/grey-fishes.jpeg");
+    background: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url("grey-fishes.jpeg");
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;

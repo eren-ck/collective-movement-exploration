@@ -1,5 +1,7 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $*/
+import './network_create.css';
+
 let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 
 /**

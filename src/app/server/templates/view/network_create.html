@@ -5,7 +5,6 @@
 {% block head %}
 {{ super() }}
 {{ lib.form_css() }}
-<link href="{{url_for('static', filename='css/network_create.css')}}" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
@@ -83,6 +82,6 @@
 {% block tail %}
 {{ super() }}
 {{ lib.form_js() }}
-<script src="{{url_for('static', filename='js/network_create.js')}}"></script>
+<script src="{{url_for('static', filename='network_create.js')}}"></script>
 
 {% endblock %}

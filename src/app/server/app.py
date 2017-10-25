@@ -19,7 +19,7 @@ from model.user_role_model import *
 from helpers.restless import *
 
 # Create Flask application
-app = Flask(__name__, static_folder="../static")
+app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db.init_app(app)
 

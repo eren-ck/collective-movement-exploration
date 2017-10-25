@@ -1,6 +1,7 @@
 /*eslint-disable no-unused-lets*/
 /*global $, Set*/
 'use strict';
+import './upload.css';
 
 //disable the submit button
 disableSubmitButton();

@@ -1,7 +1,7 @@
 /*eslint-disable no-unused-lets*/
 /*global $,Papa, dataset_id, window*/
-
 'use strict';
+import './export.css';
 
 let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 
