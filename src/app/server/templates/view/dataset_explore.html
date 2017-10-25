@@ -3,9 +3,8 @@
 
 {% block head_css %}
 {{ super() }}
-<link href="{{url_for('static', filename='css/explore.css')}}" rel="stylesheet">
-<link href="{{url_for('static', filename='css/jquery-ui.min.css')}}" rel="stylesheet">
-<link href="{{url_for('static', filename='css/theme.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='jquery-ui.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='theme.css')}}" rel="stylesheet">
 
 
 {% endblock %}
@@ -235,7 +234,7 @@
                     <div class="col-md-12" id="main-vis-div">
                         <!-- loading gif -->
                         <div id="loading">
-                            <img src="/static/img/loading.gif"/>
+                            <img src="{{url_for('static', filename='loading.gif')}}"/>
                         </div>
                         <!-- The div for the svg  -->
 
@@ -642,12 +641,10 @@
 {% block tail_js %}
 {{ super() }}
 <!-- D3, jQuery ui libs loaded -->
-<script src="{{url_for('static', filename='libs/d3.min.js')}}"></script>
-<script src="{{url_for('static', filename='libs/jquery-ui.min.js')}}"></script>
-<script src="{{url_for('static', filename='libs/colorbrewer.min.js')}}"></script>
+<script src="{{url_for('static', filename='d3.min.js')}}"></script>
+<script src="{{url_for('static', filename='jquery-ui.min.js')}}"></script>
+<script src="{{url_for('static', filename='colorbrewer.min.js')}}"></script>
 
 <!-- Own js scripts -->
-<script src="{{url_for('static', filename='js/explore_init.js')}}"></script>
-<script src="{{url_for('static', filename='js/explore_spatial_view.js')}}"></script>
-<script src="{{url_for('static', filename='js/explore_line_chart.js')}}"></script>
+<script src="{{url_for('static', filename='explore.js')}}"></script>
 {% endblock %}

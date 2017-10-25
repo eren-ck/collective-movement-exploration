@@ -1,16 +1,38 @@
 /*eslint-disable no-unused-lets*/
-/*global window, $,d3, parameters, Set, colorbrewer, animalNameSpace, JSONAPI_MIMETYPE */
+/*global window, $,d3, parameters, Set, colorbrewer, JSONAPI_MIMETYPE */
 
 'use strict';
+import * as self from './explore.js';
+
+import {
+    lineChart
+} from './line_chart';
+
+
+let zoomFunction;
+let indexTime = 0;
+
+export function setIndexTime(value) {
+    indexTime = value;
+}
+
+export function getZoomFunction() {
+    return zoomFunction;
+}
+
+export function setZoomFunction(value) {
+    zoomFunction = value;
+}
+
+
 
 /**
  * Create a namespace to minimize global variables
  * Code is in a closure and manually expose only those
  * variables that need to be global.
  */
-animalNameSpace.spatialView = function() {
+export function spatialView() {
 
-    let self = this;
     // Global namespace variables
     let $slider;
     let svgContainer;
@@ -35,6 +57,7 @@ animalNameSpace.spatialView = function() {
     let networkColorScale;
     let networkLimit = 0;
     let networkAuto = false; // if true the network edge limit is automatically suggested
+    let animal_ids;
 
 
     initialize();
@@ -90,7 +113,7 @@ animalNameSpace.spatialView = function() {
                 i = self.dataset.length;
             }
         }
-        self.animal_ids = Array.from(num_animals).sort();
+        animal_ids = Array.from(num_animals).sort();
 
         // initialize the slider
         $slider = $('#slider')
@@ -99,7 +122,7 @@ animalNameSpace.spatialView = function() {
                 max: self.swarmData.length,
                 step: 25,
                 slide: function(event, ui) {
-                    self.indexTime = ui.value;
+                    indexTime = ui.value;
                     // if paused apply changes
                     if (!$('#play-button').hasClass('active')) {
                         //this applys the changes
@@ -296,7 +319,7 @@ animalNameSpace.spatialView = function() {
 
 
         //definte the line chart time scale
-        self.zoomFunction = d3.scaleLinear()
+        zoomFunction = d3.scaleLinear()
             .domain([0, self.swarmData.length])
             .range([0, self.swarmData.length]);
 
@@ -319,7 +342,7 @@ animalNameSpace.spatialView = function() {
                     .hasClass('active')) {
                     //go back one second and draw the next frame
                     //this applys the changes
-                    self.indexTime--;
+                    indexTime--;
                     draw();
                 }
             })
@@ -344,7 +367,7 @@ animalNameSpace.spatialView = function() {
             .range(['#ffffff', '#dfdfdf', '#c0c0c0', '#a3a3a3', '#858585', '#696969', '#4e4e4e', '#353535', '#1d1d1d', '#000000']);
 
         //Draw the fish swarm line chart
-        self.lineChart();
+        lineChart();
 
         draw();
 
@@ -353,7 +376,7 @@ animalNameSpace.spatialView = function() {
 
     /**
      * Drawing function - is called for each timestep
-     * self.indexTime saves the current time
+     * indexTime saves the current time
      *
      */
     function draw() {
@@ -368,16 +391,16 @@ animalNameSpace.spatialView = function() {
             .val();
 
         //get the next animals
-        arrayAnimals = self.dataset.slice(self.animal_ids.length * self.indexTime, self.animal_ids.length * self.indexTime + self.animal_ids.length);
+        arrayAnimals = self.dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
 
         //the timeout is set after one update 30 ms
         setTimeout(function() {
                 //change the time frame text
                 svgContainer.select('.frameText')
-                    .text(Math.floor(self.indexTime / 1500) % 60 + ':' + Math.floor(self.indexTime / parameters['fps']) % 60 + '::' + self.indexTime % parameters['fps']);
+                    .text(Math.floor(indexTime / 1500) % 60 + ':' + Math.floor(indexTime / parameters['fps']) % 60 + '::' + indexTime % parameters['fps']);
                 // if a second has changed move the slider
-                if (self.indexTime % parameters['fps'] === 0) {
-                    $slider.slider('value', self.indexTime);
+                if (indexTime % parameters['fps'] === 0) {
+                    $slider.slider('value', indexTime);
                 }
 
                 let svgAnimals = tank.selectAll('g.animal')
@@ -385,9 +408,9 @@ animalNameSpace.spatialView = function() {
 
                 // Network vis
                 let networkVis;
-                if (self.indexTime in self.networkData) {
+                if (indexTime in self.networkData) {
                     let network = [];
-                    let tmp = self.networkData[self.indexTime];
+                    let tmp = self.networkData[indexTime];
 
                     let tmp_index = 0;
                     for (let i = 0; i < arrayAnimals.length; i++) {
@@ -483,7 +506,7 @@ animalNameSpace.spatialView = function() {
                     .is(':checked')) {
                     triangulation = tank.select('#delaunayTriangulationGroup')
                         .selectAll('path.delaunayTriangulation')
-                        .data([self.swarmData[self.indexTime]['triangulation']]);
+                        .data([self.swarmData[indexTime]['triangulation']]);
 
                     // UPDATE - triangulation
                     triangulation
@@ -514,7 +537,7 @@ animalNameSpace.spatialView = function() {
                     voronoi = tank
                         .select('#vornoiGroup')
                         .selectAll('path.voronoi')
-                        .data(self.swarmData[self.indexTime]['voronoi'].split(';'));
+                        .data(self.swarmData[indexTime]['voronoi'].split(';'));
 
 
                     // UPDATE - voronoi
@@ -577,7 +600,7 @@ animalNameSpace.spatialView = function() {
                             .hasClass('active')) {
                             //go back one second and draw the next frame
                             //this applys the changes
-                            self.indexTime--;
+                            indexTime--;
                             draw();
                         }
                     });
@@ -649,7 +672,7 @@ animalNameSpace.spatialView = function() {
                     .is(':checked')) {
                     // DATA JOIN - paths
                     var hullPath = tank.selectAll('path.hullPath')
-                        .data([self.swarmData[self.indexTime]['hull']]);
+                        .data([self.swarmData[indexTime]['hull']]);
 
                     // UPDATE - hull path
                     hullPath
@@ -734,39 +757,39 @@ animalNameSpace.spatialView = function() {
                 d3.select('.centroid')
                     .attr('cx', function() {
                         if ('centroid' in self.swarmData[0]) {
-                            return self.swarmData[self.indexTime]['centroid'][0];
+                            return self.swarmData[indexTime]['centroid'][0];
                         } else {
                             return 0;
                         }
                     })
                     .attr('cy', function() {
                         if ('centroid' in self.swarmData[0]) {
-                            return -self.swarmData[self.indexTime]['centroid'][1];
+                            return -self.swarmData[indexTime]['centroid'][1];
                         } else {
                             return 0;
                         }
                     });
                 if ($('#draw-direction').is(':checked') &&
-                    self.swarmData[self.indexTime].centroid &&
+                    self.swarmData[indexTime].centroid &&
                     $('#draw-centroid').is(':checked')) {
                     d3.select('#centroid-line')
                         .classed('hidden', false);
                     // UPDATE animal direction arrow
                     d3.select('#centroid-line')
                         .attr('x1', function() {
-                            return self.swarmData[self.indexTime]['centroid'][0];
+                            return self.swarmData[indexTime]['centroid'][0];
                         })
                         .attr('y1', function() {
-                            return -self.swarmData[self.indexTime]['centroid'][1];
+                            return -self.swarmData[indexTime]['centroid'][1];
                         })
                         .attr('x2', function() {
-                            return (self.swarmData[self.indexTime]['centroid'][0] + 2 * animalScale);
+                            return (self.swarmData[indexTime]['centroid'][0] + 2 * animalScale);
                         })
                         .attr('y2', function() {
-                            return -self.swarmData[self.indexTime]['centroid'][1];
+                            return -self.swarmData[indexTime]['centroid'][1];
                         })
                         .attr('transform', function() {
-                            return 'rotate(' + -self.swarmData[self.indexTime]['direction'] + ' ' + self.swarmData[self.indexTime]['centroid'][0] + ' ' + -self.swarmData[self.indexTime]['centroid'][1] + ')';
+                            return 'rotate(' + -self.swarmData[indexTime]['direction'] + ' ' + self.swarmData[indexTime]['centroid'][0] + ' ' + -self.swarmData[indexTime]['centroid'][1] + ')';
                         });
                 } else {
                     // hide the arrows
@@ -779,18 +802,18 @@ animalNameSpace.spatialView = function() {
                 if (medoidAnimal !== -1) {
                     d3.selectAll('#animal-' + medoidAnimal)
                         .classed('medoid', false);
-                    medoidAnimal = self.swarmData[self.indexTime]['medoid'];
+                    medoidAnimal = self.swarmData[indexTime]['medoid'];
                     d3.selectAll('#animal-' + medoidAnimal)
                         .classed('medoid', true);
                 }
 
                 //next frame
-                self.indexTime++;
+                indexTime++;
 
-                if (d3.select('#lineChartTimeLine') && self.swarmData[Math.ceil(self.indexTime / lineChartRatio)]) {
-                    let tmp = Math.ceil(self.indexTime / lineChartRatio);
+                if (d3.select('#lineChartTimeLine') && self.swarmData[Math.ceil(indexTime / lineChartRatio)]) {
+                    let tmp = Math.ceil(indexTime / lineChartRatio);
                     //update the line chart legend text values per second
-                    if (self.indexTime % 25 === 0) {
+                    if (indexTime % 25 === 0) {
                         // TODO change this to a more modular way
                         d3.select('#convex_hull_areaLineValue')
                             .text((self.swarmData[tmp]['convex_hull_area']) + 'mm²');
@@ -807,14 +830,14 @@ animalNameSpace.spatialView = function() {
                     }
 
                     d3.select('#lineChartTimeLine')
-                        .attr('transform', 'translate(' + self.zoomFunction(tmp) + ',0)');
+                        .attr('transform', 'translate(' + zoomFunction(tmp) + ',0)');
                 }
 
 
                 //check if play button is active and if the animation is not finished
-                if (self.indexTime >= self.swarmData.length) {
+                if (indexTime >= self.swarmData.length) {
                     //start again from the start
-                    self.indexTime = 0;
+                    indexTime = 0;
                     draw();
                 } else if (playBoolean) {
                     //measure execution time
@@ -835,7 +858,7 @@ animalNameSpace.spatialView = function() {
             playBoolean = false;
         } else {
             playBoolean = true;
-            self.indexTime = $slider.slider('value');
+            indexTime = $slider.slider('value');
             $('.brush').remove();
             draw();
         }
@@ -895,7 +918,7 @@ animalNameSpace.spatialView = function() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            self.indexTime--;
+            indexTime--;
             draw();
         }
     });
@@ -943,7 +966,7 @@ animalNameSpace.spatialView = function() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            self.indexTime--;
+            indexTime--;
             draw();
         }
     });
@@ -991,7 +1014,7 @@ animalNameSpace.spatialView = function() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            self.indexTime--;
+            indexTime--;
             draw();
         }
     });
@@ -1031,7 +1054,7 @@ animalNameSpace.spatialView = function() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            self.indexTime--;
+            indexTime--;
             draw();
         }
     });
@@ -1060,7 +1083,7 @@ animalNameSpace.spatialView = function() {
                 });
 
             }
-            medoidAnimal = self.swarmData[self.indexTime]['medoid'];
+            medoidAnimal = self.swarmData[indexTime]['medoid'];
             // display the medoid
             d3.selectAll('#animal-' + medoidAnimal)
                 .classed('medoid', true);
@@ -1160,7 +1183,7 @@ animalNameSpace.spatialView = function() {
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                self.indexTime--;
+                indexTime--;
                 draw();
             }
         }
@@ -1193,7 +1216,7 @@ animalNameSpace.spatialView = function() {
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                self.indexTime--;
+                indexTime--;
                 draw();
             }
         }
@@ -1208,7 +1231,7 @@ animalNameSpace.spatialView = function() {
     function brushend() {
         var rect = d3.event.selection;
         //iterate over the 151 fish to check which are in the brush
-        for (var i = 0; i < self.animal_ids.length; i++) {
+        for (var i = 0; i < animal_ids.length; i++) {
             var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
             //check which fish are in  the brushed area
             if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
@@ -1221,7 +1244,7 @@ animalNameSpace.spatialView = function() {
             .hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            self.indexTime--;
+            indexTime--;
             draw();
         }
         $('#brushing-button')
@@ -1266,7 +1289,7 @@ animalNameSpace.spatialView = function() {
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                self.indexTime--;
+                indexTime--;
                 draw();
             }
         }
@@ -1362,7 +1385,7 @@ animalNameSpace.spatialView = function() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            self.indexTime--;
+            indexTime--;
             draw();
         }
     });

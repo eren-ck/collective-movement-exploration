@@ -95,43 +95,28 @@ module.exports = {
     }
 };
 
-// module.exports = {
-//     entry: './misc/js/base.js',
-//     output: {
-//         filename: 'base.js',
-//         path: path.resolve('../server', 'static')
-//     },
-//
-//     module: {
-//         rules: [{
-//                 test: /\.css$/,
-//                 use: [
-//                     'style-loader',
-//                     'css-loader'
-//                 ]
-//             },
-//             {
-//                 test: /\.(png|svg|jpg|gif)$/,
-//                 use: [
-//                     'file-loader'
-//                 ]
-//             },
-//             {
-//                 test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-//                 loader: 'url-loader?limit=100000'
-//             },
-//             // Use one of these to serve jQuery for Bootstrap scripts:
-//
-//             // Bootstrap 4
-//             {
-//                 test: /bootstrap\/dist\/js\/umd\//,
-//                 use: 'imports-loader?jQuery=jquery'
-//             },
-//
-//         ],
-//     },
-//     devtool: 'inline-source-map',
-//     plugins: [
-//         new UglifyJSPlugin()
-//     ]
-// };
+module.exports = {
+    entry: './explore/explore.js',
+    output: {
+        filename: 'explore.js',
+        path: path.resolve('../server', 'static')
+    },
+
+    module: {
+        rules: [{
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
+            },
+            {
+                test: /\.(png|svg|jpg|gif)$/,
+                use: [
+                    'file-loader'
+                ]
+            }
+        ],
+    },
+    devtool: 'inline-source-map'
+};
