@@ -1,6 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window, $,d3, parameters, Set, colorbrewer, JSONAPI_MIMETYPE */
-
+/*global window, $,d3, parameters, Set, colorbrewer */
 'use strict';
 import * as self from './explore.js';
 
@@ -24,6 +23,7 @@ export function setZoomFunction(value) {
     zoomFunction = value;
 }
 
+let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 
 
 /**
