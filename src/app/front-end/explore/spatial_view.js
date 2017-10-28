@@ -1,29 +1,52 @@
 /*eslint-disable no-unused-lets*/
-/*global window, $,d3, parameters, Set, colorbrewer */
+/*global window, $,d3, parameters, Set */
 'use strict';
 import * as self from './explore.js';
 
+import * as networks from './network.js';
+
 import {
-    lineChart
+    lineChart,
+    getLineChartRatio
 } from './line_chart';
 
+import {
+    percentiles
+} from './helpers.js';
 
+import {
+    setTimeSlider,
+    initTooltip,
+    tooltipFunction,
+    initSliders
+} from './spatial_view_interaction.js';
+
+import {
+    getMetadataColor
+} from './metadata.js';
+
+import {
+    initColorPicker,
+    returnColorScale
+} from './spatial_view_color_picker.js';
+
+
+
+// Global namespace variables
 let zoomFunction;
 let indexTime = 0;
 
-export function setIndexTime(value) {
-    indexTime = value;
-}
-
-export function getZoomFunction() {
-    return zoomFunction;
-}
-
-export function setZoomFunction(value) {
-    zoomFunction = value;
-}
-
-let JSONAPI_MIMETYPE = 'application/vnd.api+json';
+let svgContainer;
+let tank;
+let tooltip; // the tooltip
+let playBoolean = true; // pause and play boolean
+var activeScale = 'black'; // no color scales
+let tankWidth;
+let tankHeight;
+let medoidAnimal = -1;
+let arrayAnimals;
+let activeAnimals = []; // active selected animals
+export let animal_ids;
 
 
 /**
@@ -31,33 +54,8 @@ let JSONAPI_MIMETYPE = 'application/vnd.api+json';
  * Code is in a closure and manually expose only those
  * variables that need to be global.
  */
-export function spatialView() {
+export function spatialViewInit() {
 
-    // Global namespace variables
-    let $slider;
-    let svgContainer;
-    let tank;
-    let tooltip; // the tooltip
-    let playBoolean = true; // pause and play boolean
-    var activeScale = 'black'; // no color scales
-    var colorScales = {
-        type: 'Linear',
-        color: colorbrewer.BuYlBu
-    };
-    let svgLegend;
-    let tankWidth;
-    let tankHeight;
-    let medoidAnimal = -1;
-    let lineChartWidth = 5000;
-    let lineChartRatio = Math.ceil(self.swarmData.length / lineChartWidth);
-    let arrayAnimals;
-    let activeAnimals = []; // active selected animals
-    let brush; // brushing variable
-    let metadataColor = {}; // save the metadata coloring
-    let networkColorScale;
-    let networkLimit = 0;
-    let networkAuto = false; // if true the network edge limit is automatically suggested
-    let animal_ids;
 
 
     initialize();
@@ -69,6 +67,7 @@ export function spatialView() {
      *      Tooltip
      */
     function initialize() {
+
 
         let minPoint = parameters['min']['geometry']['coordinates'];
         let maxPoint = parameters['max']['geometry']['coordinates'];
@@ -115,44 +114,7 @@ export function spatialView() {
         }
         animal_ids = Array.from(num_animals).sort();
 
-        // initialize the slider
-        $slider = $('#slider')
-            .slider({
-                min: 0,
-                max: self.swarmData.length,
-                step: 25,
-                slide: function(event, ui) {
-                    indexTime = ui.value;
-                    // if paused apply changes
-                    if (!$('#play-button').hasClass('active')) {
-                        //this applys the changes
-                        draw();
-                    }
-                }
-            });
-        // initialize the network slider
-        $('#network-slider')
-            .slider({
-                range: 'max',
-                min: 0,
-                max: 1,
-                step: 0.01,
-                value: 0,
-                slide: function(event, ui) {
-                    networkLimit = ui.value;
-                    $('#network-limit').val(networkLimit);
-                }
-            });
 
-        // get the max from the slider this is needed to calculate the ticks
-        let max = $slider.slider('option', 'max');
-        let space = 100 / max;
-        //append the minute ticks
-        for (let i = 0; i < max; i = i + 1500) {
-            $('<span class="ui-slider-tick"></span>')
-                .css('left', (space * i) + '%')
-                .appendTo($slider);
-        }
         //X and Y axis
         let x = d3.scaleLinear()
             .domain([minPoint[0], maxPoint[0]])
@@ -279,17 +241,6 @@ export function spatialView() {
         tank.append('g')
             .attr('id', 'vornoiGroup');
 
-        // group for the legend
-        svgLegend = d3.select('#main-vis-legend-div')
-            .classed('svg-legendContainer', true)
-            // to make it responsive with css
-            .append('svg')
-            .attr('preserveAspectRatio', 'xMinYMin meet')
-            .attr('viewBox', '0 0 ' + tankWidth + ' ' + 100)
-            // add the class svg-content
-            .classed('svg-content-legend', true)
-            .append('svg:g')
-            .attr('class', 'colorLegend');
 
 
         //append the frame time text
@@ -309,62 +260,15 @@ export function spatialView() {
             .call(yAxis);
 
         //tooltip
-        tooltip = d3.select('div.tooltip')
-            .style('left', 0 + 'px')
-            .style('top', 0 + 'px')
-            .on('mouseover', function() {
-                tooltip
-                    .style('opacity', 1);
-            });
-
+        initTooltip();
+        initSliders();
 
         //definte the line chart time scale
         zoomFunction = d3.scaleLinear()
-            .domain([0, self.swarmData.length])
-            .range([0, self.swarmData.length]);
+            .domain([0, self.getSwarmData().length])
+            .range([0, self.getSwarmData().length]);
 
-        d3.select('.colors-body')
-            .selectAll('.palette')
-            .data(d3.entries(colorbrewer))
-            .enter()
-            .append('span')
-            .attr('class', 'palette')
-            .attr('title', function(d) {
-                return d.key;
-            })
-            .on('click', function(d) {
-                // hightlight the right palette
-                $('.palette').removeClass('selected');
-                $('.palette[title=\"' + d.key + '\"]').addClass('selected');
-                colorScales.color = colorbrewer[d.key];
-                changeLegend();
-                if (!$('#play-button')
-                    .hasClass('active')) {
-                    //go back one second and draw the next frame
-                    //this applys the changes
-                    indexTime--;
-                    draw();
-                }
-            })
-            .selectAll('.swatch')
-            .data(function(d) {
-                return d.value;
-            })
-            .enter()
-            .append('span')
-            .attr('class', 'swatch')
-            .style('background-color', function(d) {
-                return d;
-            });
-        // highlight the selected color scheme
-        $('.palette[title=\"BuYlBu\"]').addClass('selected');
-
-        // fixed color scale for the network
-        networkColorScale = d3.scaleThreshold()
-            .domain(
-                [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
-            )
-            .range(['#ffffff', '#dfdfdf', '#c0c0c0', '#a3a3a3', '#858585', '#696969', '#4e4e4e', '#353535', '#1d1d1d', '#000000']);
+        initColorPicker();
 
         //Draw the fish swarm line chart
         lineChart();
@@ -373,1326 +277,555 @@ export function spatialView() {
 
     }
 
+}
 
-    /**
-     * Drawing function - is called for each timestep
-     * indexTime saves the current time
-     *
-     */
-    function draw() {
-        //measure execution time of function draw
-        // let t0 = performance.now();
+/**
+ * Drawing function - is called for each timestep
+ * indexTime saves the current time
+ *
+ */
+export function draw() {
+    //measure execution time of function draw
+    // let t0 = performance.now();
 
-        //update time to wait aka speed of replay
-        let timeToWait = $('input[name=group1]:checked', '#group1')
-            .val();
-        //scale the size by this number
-        let animalScale = $('input[type="radio"].group-size:checked')
-            .val();
+    //update time to wait aka speed of replay
+    let timeToWait = $('input[name=group1]:checked', '#group1')
+        .val();
+    //scale the size by this number
+    let animalScale = $('input[type="radio"].group-size:checked')
+        .val();
 
-        //get the next animals
-        arrayAnimals = self.dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
+    //get the next animals
+    arrayAnimals = self.dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
 
-        //the timeout is set after one update 30 ms
-        setTimeout(function() {
-                //change the time frame text
-                svgContainer.select('.frameText')
-                    .text(Math.floor(indexTime / 1500) % 60 + ':' + Math.floor(indexTime / parameters['fps']) % 60 + '::' + indexTime % parameters['fps']);
-                // if a second has changed move the slider
-                if (indexTime % parameters['fps'] === 0) {
-                    $slider.slider('value', indexTime);
-                }
+    //the timeout is set after one update 30 ms
+    setTimeout(function() {
+            //change the time frame text
+            svgContainer.select('.frameText')
+                .text(Math.floor(indexTime / 1500) % 60 + ':' + Math.floor(indexTime / parameters['fps']) % 60 + '::' + indexTime % parameters['fps']);
+            // if a second has changed move the slider
+            if (indexTime % parameters['fps'] === 0) {
+                setTimeSlider(indexTime);
+            }
 
-                let svgAnimals = tank.selectAll('g.animal')
-                    .data(arrayAnimals);
+            let svgAnimals = tank.selectAll('g.animal')
+                .data(arrayAnimals);
 
-                // Network vis
-                let networkVis;
-                if (indexTime in self.networkData) {
-                    let network = [];
-                    let tmp = self.networkData[indexTime];
+            // Network vis
+            let networkVis;
+            if (indexTime in self.networkData) {
+                let network = [];
+                let tmp = self.networkData[indexTime];
 
-                    let tmp_index = 0;
-                    for (let i = 0; i < arrayAnimals.length; i++) {
-                        for (let j = i + 1; j < arrayAnimals.length; j++) {
-                            network.push({
-                                'node1': arrayAnimals[i]['a'],
-                                'node2': arrayAnimals[j]['a'],
-                                'start': arrayAnimals[i]['p'],
-                                'end': arrayAnimals[j]['p'],
-                                'val': tmp[tmp_index]
-                            });
-                            tmp_index = tmp_index + 1;
-                        }
+                let tmp_index = 0;
+                for (let i = 0; i < arrayAnimals.length; i++) {
+                    for (let j = i + 1; j < arrayAnimals.length; j++) {
+                        network.push({
+                            'node1': arrayAnimals[i]['a'],
+                            'node2': arrayAnimals[j]['a'],
+                            'start': arrayAnimals[i]['p'],
+                            'end': arrayAnimals[j]['p'],
+                            'val': tmp[tmp_index]
+                        });
+                        tmp_index = tmp_index + 1;
                     }
-                    network.forEach(function(d) {
-                        $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
-                        $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
-                    });
+                }
+                network.forEach(function(d) {
+                    $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networks.networkColorScale(d['val']));
+                    $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networks.networkColorScale(d['val']));
+                });
 
-                    if (networkAuto) {
-                        let tmpArray = [];
-                        for (let i = 0; i < network.length; i++) {
-                            tmpArray.push(network[i]['val']);
-                        }
-                        networkLimit = percentiles(tmpArray);
+                if (networks.getNetworkAuto()) {
+                    let tmpArray = [];
+                    for (let i = 0; i < network.length; i++) {
+                        tmpArray.push(network[i]['val']);
                     }
+                    networks.setNetworLimit(percentiles(tmpArray));
+                }
 
-                    network = network.filter(function(d) {
-                        return d['val'] >= networkLimit;
+                network = network.filter(function(d) {
+                    return d['val'] >= networks.getNetworLimit();
+                });
+                // DATA JOIN
+                networkVis = tank.select('#networkGroup')
+                    .selectAll('line.networkEdges')
+                    .data(network);
+                // UPDATE
+                networkVis
+                    .attr('x1', function(d) {
+                        return d['start'][0];
+                    })
+                    .attr('y1', function(d) {
+                        return -d['start'][1];
+                    })
+                    .attr('x2', function(d) {
+                        return (d['end'][0]);
+                    })
+                    .attr('y2', function(d) {
+                        return (-d['end'][1]);
+                    })
+                    .attr('stroke', function(d) {
+                        return networks.networkColorScale(d['val']);
+                    })
+                    .attr('stroke-opacity', function(d) {
+                        return d['val'];
                     });
-                    // DATA JOIN
-                    networkVis = tank.select('#networkGroup')
-                        .selectAll('line.networkEdges')
-                        .data(network);
-                    // UPDATE
-                    networkVis
-                        .attr('x1', function(d) {
-                            return d['start'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['start'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['end'][0]);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['end'][1]);
-                        })
-                        .attr('stroke', function(d) {
-                            return networkColorScale(d['val']);
-                        })
-                        .attr('stroke-opacity', function(d) {
-                            return d['val'];
-                        });
-                    //ENTER
-                    networkVis
-                        .enter()
-                        .append('line')
-                        .attr('class', 'networkEdges')
-                        .attr('x1', function(d) {
-                            return d['start'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['start'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['end'][0]);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['end'][1]);
-                        })
-                        .attr('stroke', function(d) {
-                            return networkColorScale(d['val']);
-                        })
-                        .attr('stroke-opacity', function(d) {
-                            return d['val'];
-                        });
-
-
-
-                } else {
-                    networkVis = tank.selectAll('line.networkEdges')
-                        .data([]);
-                }
-                // EXIT - network
-                networkVis.exit()
-                    .remove();
-
-                // delaunay triangulation
-                // DATA JOIN  - triangulation
-                var triangulation;
-                if ($('#draw-triangulation')
-                    .is(':checked')) {
-                    triangulation = tank.select('#delaunayTriangulationGroup')
-                        .selectAll('path.delaunayTriangulation')
-                        .data([self.swarmData[indexTime]['triangulation']]);
-
-                    // UPDATE - triangulation
-                    triangulation
-                        .attr('d', function(d) {
-                            return d;
-                        });
-                    //ENTER - triangulation
-                    triangulation.enter()
-                        .append('path')
-                        .attr('class', 'delaunayTriangulation')
-                        .attr('d', function(d) {
-                            return d;
-                        });
-                } else {
-                    triangulation = tank.selectAll('path.delaunayTriangulation')
-                        .data([]);
-                }
-                // EXIT - triangulation
-                triangulation.exit()
-                    .remove();
-
-                // Voronoi
-                // DATA JOIN  - voronoi
-                var voronoi;
-                if ($('#draw-voronoi')
-                    .is(':checked')) {
-                    //append the group for the voronoi paths
-                    voronoi = tank
-                        .select('#vornoiGroup')
-                        .selectAll('path.voronoi')
-                        .data(self.swarmData[indexTime]['voronoi'].split(';'));
-
-
-                    // UPDATE - voronoi
-                    voronoi
-                        .attr('d', function(d) {
-                            return d;
-                        });
-                    //ENTER - voronoi
-                    voronoi.enter()
-                        .append('path')
-                        .attr('class', 'voronoi')
-                        .attr('d', function(d) {
-                            return d;
-                        });
-                } else {
-                    voronoi = tank.select('#vornoiGroup')
-                        .selectAll('path.voronoi')
-                        .data([]);
-                }
-                // EXIT - voronoi
-                voronoi.exit()
-                    .remove();
-
-
-                //ENTER - append the animal groups
-                let animalGroupings = svgAnimals
+                //ENTER
+                networkVis
                     .enter()
-                    .append('g')
-                    .attr('class', 'animal')
-                    .attr('id', function(d) {
-                        return 'animal-' + d['a'];
-                    });
-
-                // Append the circles for each animal to the animalgroup
-                animalGroupings.append('circle')
-                    .attr('r', 1.5 * animalScale)
-                    .attr('cx', function(d) {
-                        return d['p'][0];
-                    })
-                    .attr('cy', function(d) {
-                        return -d['p'][1];
-                    })
-                    .on('mouseover', function(d) {
-                        tooltipFunction(d);
-                    })
-                    .on('mouseout', function() {
-                        tooltip
-                            .transition()
-                            .duration(500)
-                            .style('opacity', 0);
-                    })
-                    // add on click for the active fishs
-                    .on('click', function(d) {
-                        if (activeAnimals.includes(d['a'])) {
-                            activeAnimals = activeAnimals.filter(item => item !== d['a']);
-                        } else {
-                            activeAnimals.push(d['a']);
-                        }
-                        if (!$('#play-button')
-                            .hasClass('active')) {
-                            //go back one second and draw the next frame
-                            //this applys the changes
-                            indexTime--;
-                            draw();
-                        }
-                    });
-
-                // UPDATE - animals circles
-                svgAnimals.select('circle')
-                    .attr('cx', function(d) {
-                        return d['p'][0];
-                    })
-                    .attr('cy', function(d) {
-                        return -d['p'][1];
-                    })
-                    .attr('r', animalScale);
-
-                // Append for each group the arrow, needed for coloring
-                animalGroupings.append('svg:defs')
-                    .append('svg:marker')
-                    .attr('id', function(d) {
-                        return 'arrow-marker-' + d['a'];
-                    })
-                    .attr('refX', 2)
-                    .attr('refY', 6)
-                    .attr('markerWidth', 13)
-                    .attr('markerHeight', 13)
-                    .attr('orient', 'auto')
-                    .append('svg:path')
-                    .attr('d', 'M2,2 L2,11 L10,6 L2,2');
-
-                // Append the line for the direction arrow
-                animalGroupings
                     .append('line')
-                    .attr('class', 'arrow')
-                    .attr('marker-end', function(d) {
-                        return 'url(#arrow-marker-' + d['a'] + ')';
-                    });
-
-                //execute only when draw direction button is checked
-                if ($('#draw-direction')
-                    .is(':checked')) {
-                    // UPDATE animal direction arrow
-                    svgAnimals.select('line')
-                        .attr('x1', function(d) {
-                            return d['p'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['p'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['p'][0] + 2 * animalScale);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['p'][1]);
-                        })
-                        .attr('transform', function(d) {
-                            return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
-                        });
-                } else {
-                    // hide the arrows
-                    svgAnimals.select('line')
-                        .attr('class', 'arrow hidden');
-                }
-
-                // EXIT - the groups
-                svgAnimals.exit()
-                    .remove();
-
-                //Convex hull
-                if ($('#draw-convex-hull')
-                    .is(':checked')) {
-                    // DATA JOIN - paths
-                    var hullPath = tank.selectAll('path.hullPath')
-                        .data([self.swarmData[indexTime]['hull']]);
-
-                    // UPDATE - hull path
-                    hullPath
-                        .attr('d', function(d) {
-                            return d;
-                        });
-
-                    // ENTER - hull paths
-                    hullPath.enter()
-                        .append('path')
-                        .attr('class', 'hullPath')
-                        .attr('d', function(d) {
-                            return d;
-                        });
-
-                } else {
-                    // draw no hull
-                    hullPath = tank.select('path.hullPath')
-                        .data([]);
-                }
-                // EXIT - hull paths
-                hullPath.exit()
-                    .remove();
-
-                //change the colors of the fish
-                if (activeScale !== 'black') {
-                    // once the fill for the heads and the stroke for the path
-                    var tmpScale = returnColorScale();
-                    svgAnimals
-                        .transition()
-                        .duration(10)
-                        .style('fill', function(d) {
-                            return tmpScale(d[activeScale]);
-                        })
-                        .attr('stroke', function(d) {
-                            return tmpScale(d[activeScale]);
-                        });
-                } else {
-                    //color every fish black
-                    svgAnimals
-                        .style('fill', '#000')
-                        .attr('stroke', '#000');
-
-                    if (!$.isEmptyObject(metadataColor)) {
-                        Object.keys(metadataColor).forEach(function(key) {
-                            d3
-                                .select('#animal-' + key)
-                                .style('fill', metadataColor[key])
-                                .attr('stroke', metadataColor[key]);
-                        });
-                    }
-                }
-
-
-                //change opactiy if the fish is selected
-                if (activeAnimals.length) {
-                    svgAnimals
-                        .style('opacity', function(d) {
-                            if (activeAnimals.includes(d['a'])) {
-                                return 1;
-                            } else {
-                                return 0.25;
-                            }
-                        });
-                    if ($('#remove-active-selected-button')
-                        .is(':disabled')) {
-                        $('#remove-active-selected-button')
-                            .prop('disabled', false);
-                    }
-                } else {
-                    if (!$('#remove-active-selected-button')
-                        .is(':disabled')) {
-                        $('#remove-active-selected-button')
-                            .prop('disabled', true);
-                    }
-                    // normal opacity
-                    svgAnimals
-                        .style('opacity', 1);
-                }
-
-                //draw centroid
-                d3.select('.centroid')
-                    .attr('cx', function() {
-                        if ('centroid' in self.swarmData[0]) {
-                            return self.swarmData[indexTime]['centroid'][0];
-                        } else {
-                            return 0;
-                        }
+                    .attr('class', 'networkEdges')
+                    .attr('x1', function(d) {
+                        return d['start'][0];
                     })
-                    .attr('cy', function() {
-                        if ('centroid' in self.swarmData[0]) {
-                            return -self.swarmData[indexTime]['centroid'][1];
+                    .attr('y1', function(d) {
+                        return -d['start'][1];
+                    })
+                    .attr('x2', function(d) {
+                        return (d['end'][0]);
+                    })
+                    .attr('y2', function(d) {
+                        return (-d['end'][1]);
+                    })
+                    .attr('stroke', function(d) {
+                        return networks.networkColorScale(d['val']);
+                    })
+                    .attr('stroke-opacity', function(d) {
+                        return d['val'];
+                    });
+
+
+
+            } else {
+                networkVis = tank.selectAll('line.networkEdges')
+                    .data([]);
+            }
+            // EXIT - network
+            networkVis.exit()
+                .remove();
+
+            // delaunay triangulation
+            // DATA JOIN  - triangulation
+            var triangulation;
+            if ($('#draw-triangulation')
+                .is(':checked')) {
+                triangulation = tank.select('#delaunayTriangulationGroup')
+                    .selectAll('path.delaunayTriangulation')
+                    .data([self.getSwarmData()[indexTime]['triangulation']]);
+
+                // UPDATE - triangulation
+                triangulation
+                    .attr('d', function(d) {
+                        return d;
+                    });
+                //ENTER - triangulation
+                triangulation.enter()
+                    .append('path')
+                    .attr('class', 'delaunayTriangulation')
+                    .attr('d', function(d) {
+                        return d;
+                    });
+            } else {
+                triangulation = tank.selectAll('path.delaunayTriangulation')
+                    .data([]);
+            }
+            // EXIT - triangulation
+            triangulation.exit()
+                .remove();
+
+            // Voronoi
+            // DATA JOIN  - voronoi
+            var voronoi;
+            if ($('#draw-voronoi')
+                .is(':checked')) {
+                //append the group for the voronoi paths
+                voronoi = tank
+                    .select('#vornoiGroup')
+                    .selectAll('path.voronoi')
+                    .data(self.getSwarmData()[indexTime]['voronoi'].split(';'));
+
+
+                // UPDATE - voronoi
+                voronoi
+                    .attr('d', function(d) {
+                        return d;
+                    });
+                //ENTER - voronoi
+                voronoi.enter()
+                    .append('path')
+                    .attr('class', 'voronoi')
+                    .attr('d', function(d) {
+                        return d;
+                    });
+            } else {
+                voronoi = tank.select('#vornoiGroup')
+                    .selectAll('path.voronoi')
+                    .data([]);
+            }
+            // EXIT - voronoi
+            voronoi.exit()
+                .remove();
+
+
+            //ENTER - append the animal groups
+            let animalGroupings = svgAnimals
+                .enter()
+                .append('g')
+                .attr('class', 'animal')
+                .attr('id', function(d) {
+                    return 'animal-' + d['a'];
+                });
+
+            // Append the circles for each animal to the animalgroup
+            animalGroupings.append('circle')
+                .attr('r', 1.5 * animalScale)
+                .attr('cx', function(d) {
+                    return d['p'][0];
+                })
+                .attr('cy', function(d) {
+                    return -d['p'][1];
+                })
+                .on('mouseover', function(d) {
+                    tooltipFunction(d);
+                })
+                .on('mouseout', function() {
+                    tooltip
+                        .transition()
+                        .duration(500)
+                        .style('opacity', 0);
+                })
+                // add on click for the active fishs
+                .on('click', function(d) {
+                    if (activeAnimals.includes(d['a'])) {
+                        activeAnimals = activeAnimals.filter(item => item !== d['a']);
+                    } else {
+                        activeAnimals.push(d['a']);
+                    }
+                    if (!$('#play-button')
+                        .hasClass('active')) {
+                        //go back one second and draw the next frame
+                        //this applys the changes
+                        indexTime--;
+                        draw();
+                    }
+                });
+
+            // UPDATE - animals circles
+            svgAnimals.select('circle')
+                .attr('cx', function(d) {
+                    return d['p'][0];
+                })
+                .attr('cy', function(d) {
+                    return -d['p'][1];
+                })
+                .attr('r', animalScale);
+
+            // Append for each group the arrow, needed for coloring
+            animalGroupings.append('svg:defs')
+                .append('svg:marker')
+                .attr('id', function(d) {
+                    return 'arrow-marker-' + d['a'];
+                })
+                .attr('refX', 2)
+                .attr('refY', 6)
+                .attr('markerWidth', 13)
+                .attr('markerHeight', 13)
+                .attr('orient', 'auto')
+                .append('svg:path')
+                .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+            // Append the line for the direction arrow
+            animalGroupings
+                .append('line')
+                .attr('class', 'arrow')
+                .attr('marker-end', function(d) {
+                    return 'url(#arrow-marker-' + d['a'] + ')';
+                });
+
+            //execute only when draw direction button is checked
+            if ($('#draw-direction')
+                .is(':checked')) {
+                // UPDATE animal direction arrow
+                svgAnimals.select('line')
+                    .attr('x1', function(d) {
+                        return d['p'][0];
+                    })
+                    .attr('y1', function(d) {
+                        return -d['p'][1];
+                    })
+                    .attr('x2', function(d) {
+                        return (d['p'][0] + 2 * animalScale);
+                    })
+                    .attr('y2', function(d) {
+                        return (-d['p'][1]);
+                    })
+                    .attr('transform', function(d) {
+                        return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
+                    });
+            } else {
+                // hide the arrows
+                svgAnimals.select('line')
+                    .attr('class', 'arrow hidden');
+            }
+
+            // EXIT - the groups
+            svgAnimals.exit()
+                .remove();
+
+            //Convex hull
+            if ($('#draw-convex-hull')
+                .is(':checked')) {
+                // DATA JOIN - paths
+                var hullPath = tank.selectAll('path.hullPath')
+                    .data([self.getSwarmData()[indexTime]['hull']]);
+
+                // UPDATE - hull path
+                hullPath
+                    .attr('d', function(d) {
+                        return d;
+                    });
+
+                // ENTER - hull paths
+                hullPath.enter()
+                    .append('path')
+                    .attr('class', 'hullPath')
+                    .attr('d', function(d) {
+                        return d;
+                    });
+
+            } else {
+                // draw no hull
+                hullPath = tank.select('path.hullPath')
+                    .data([]);
+            }
+            // EXIT - hull paths
+            hullPath.exit()
+                .remove();
+
+            //change the colors of the fish
+            if (activeScale !== 'black') {
+                // once the fill for the heads and the stroke for the path
+                var tmpScale = returnColorScale();
+                svgAnimals
+                    .transition()
+                    .duration(10)
+                    .style('fill', function(d) {
+                        return tmpScale(d[activeScale]);
+                    })
+                    .attr('stroke', function(d) {
+                        return tmpScale(d[activeScale]);
+                    });
+            } else {
+                //color every fish black
+                svgAnimals
+                    .style('fill', '#000')
+                    .attr('stroke', '#000');
+
+                if (!$.isEmptyObject(getMetadataColor())) {
+                    Object.keys(getMetadataColor()).forEach(function(key) {
+                        d3
+                            .select('#animal-' + key)
+                            .style('fill', getMetadataColor()[key])
+                            .attr('stroke', getMetadataColor()[key]);
+                    });
+                }
+            }
+
+
+            //change opactiy if the fish is selected
+            if (activeAnimals.length) {
+                svgAnimals
+                    .style('opacity', function(d) {
+                        if (activeAnimals.includes(d['a'])) {
+                            return 1;
                         } else {
-                            return 0;
+                            return 0.25;
                         }
                     });
-                if ($('#draw-direction').is(':checked') &&
-                    self.swarmData[indexTime].centroid &&
-                    $('#draw-centroid').is(':checked')) {
-                    d3.select('#centroid-line')
-                        .classed('hidden', false);
-                    // UPDATE animal direction arrow
-                    d3.select('#centroid-line')
-                        .attr('x1', function() {
-                            return self.swarmData[indexTime]['centroid'][0];
-                        })
-                        .attr('y1', function() {
-                            return -self.swarmData[indexTime]['centroid'][1];
-                        })
-                        .attr('x2', function() {
-                            return (self.swarmData[indexTime]['centroid'][0] + 2 * animalScale);
-                        })
-                        .attr('y2', function() {
-                            return -self.swarmData[indexTime]['centroid'][1];
-                        })
-                        .attr('transform', function() {
-                            return 'rotate(' + -self.swarmData[indexTime]['direction'] + ' ' + self.swarmData[indexTime]['centroid'][0] + ' ' + -self.swarmData[indexTime]['centroid'][1] + ')';
-                        });
-                } else {
-                    // hide the arrows
-                    d3.select('#centroid-line')
-                        .attr('class', 'hidden');
+                if ($('#remove-active-selected-button')
+                    .is(':disabled')) {
+                    $('#remove-active-selected-button')
+                        .prop('disabled', false);
                 }
-
-
-                // medoid
-                if (medoidAnimal !== -1) {
-                    d3.selectAll('#animal-' + medoidAnimal)
-                        .classed('medoid', false);
-                    medoidAnimal = self.swarmData[indexTime]['medoid'];
-                    d3.selectAll('#animal-' + medoidAnimal)
-                        .classed('medoid', true);
+            } else {
+                if (!$('#remove-active-selected-button')
+                    .is(':disabled')) {
+                    $('#remove-active-selected-button')
+                        .prop('disabled', true);
                 }
-
-                //next frame
-                indexTime++;
-
-                if (d3.select('#lineChartTimeLine') && self.swarmData[Math.ceil(indexTime / lineChartRatio)]) {
-                    let tmp = Math.ceil(indexTime / lineChartRatio);
-                    //update the line chart legend text values per second
-                    if (indexTime % 25 === 0) {
-                        // TODO change this to a more modular way
-                        d3.select('#convex_hull_areaLineValue')
-                            .text((self.swarmData[tmp]['convex_hull_area']) + 'mm²');
-                        d3.select('#speedLineValue')
-                            .text(self.swarmData[tmp]['speed'] + 'mm/s');
-                        d3.select('#accelerationLineValue')
-                            .text(self.swarmData[tmp]['acceleration'] + 'mm/s²');
-                        d3.select('#distance_centroidLineValue')
-                            .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
-                        d3.select('#directionLineValue')
-                            .text(self.swarmData[tmp]['direction'] + '°');
-                        d3.select('#polarisationLineValue')
-                            .text(self.swarmData[tmp]['polarisation']);
-                    }
-
-                    d3.select('#lineChartTimeLine')
-                        .attr('transform', 'translate(' + zoomFunction(tmp) + ',0)');
-                }
-
-
-                //check if play button is active and if the animation is not finished
-                if (indexTime >= self.swarmData.length) {
-                    //start again from the start
-                    indexTime = 0;
-                    draw();
-                } else if (playBoolean) {
-                    //measure execution time
-                    //   let t1 = performance.now();
-                    //   console.log(t1 - t0); // in milliseconds
-                    draw();
-                }
-            },
-            timeToWait);
-    }
-
-
-    /**
-     * Play or stop the animation
-     */
-    $('#play-button').click(function() {
-        if ($('#play-button').hasClass('active') === true) {
-            playBoolean = false;
-        } else {
-            playBoolean = true;
-            indexTime = $slider.slider('value');
-            $('.brush').remove();
-            draw();
-        }
-    });
-
-    /**
-     * Pause the animation and show only the next frame
-     */
-    $('#next-frame-button').click(function() {
-        if ($('#play-button').hasClass('active') === true) {
-            playBoolean = false;
-        }
-        $('#play-button').removeClass('active');
-        draw();
-    });
-
-    /**
-     * Draw Speed button
-     */
-    $('#draw-speed').click(function() {
-        if ($('#draw-speed').is(':checked')) {
-            // load absolute feature speed data once
-            if (!('speed' in self.dataset[0])) {
-                disablePlayButton();
-                // ajax query to get the absolute feature speed
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/speed',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        // add the speed feature to the dataset
-                        for (let i = 0; i < self.dataset.length; i++) {
-                            self.dataset[i]['speed'] = +data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-            $('.draw-details').addClass('hidden');
-            $('#draw-speed-details').removeClass('hidden');
-            $('#draw-acceleration').prop('checked', false);
-            $('#draw-distance-centroid').prop('checked', false);
-            activeScale = 'speed';
-        } else {
-            $('#draw-speed-details').addClass('hidden');
-            activeScale = 'black';
-        }
-        $('.draw-details.active').click();
-        //change color legend
-        d3.selectAll('.colorLegend *').remove();
-        changeLegend();
-
-        if (!$('#play-button').hasClass('active')) {
-            //go back one second and draw the next frame
-            //this applys the changes
-            indexTime--;
-            draw();
-        }
-    });
-
-    /**
-     * Draw acceleration button
-     */
-    $('#draw-acceleration').click(function() {
-        if ($('#draw-acceleration').is(':checked')) {
-            // load absolute feature acceleration data once
-            if (!('acceleration' in self.dataset[0])) {
-                disablePlayButton();
-                // ajax query to get the absolute feature acceleration
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/acceleration',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        // add the acceleration feature to the self.dataset
-                        for (let i = 0; i < self.dataset.length; i++) {
-                            self.dataset[i]['acceleration'] = +data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-            $('.draw-details').addClass('hidden');
-            $('#draw-acceleration-details').removeClass('hidden');
-            $('#draw-speed').prop('checked', false);
-            $('#draw-distance-centroid').prop('checked', false);
-            activeScale = 'acceleration';
-        } else {
-            $('#draw-acceleration-details').addClass('hidden');
-            activeScale = 'black';
-        }
-        $('.draw-details.active').click();
-        //change color legend
-        d3.selectAll('.colorLegend *').remove();
-        changeLegend();
-
-        if (!$('#play-button').hasClass('active')) {
-            //go back one second and draw the next frame
-            //this applys the changes
-            indexTime--;
-            draw();
-        }
-    });
-
-    /**
-     * Draw distance to centroid button
-     */
-    $('#draw-distance-centroid').click(function() {
-        if ($('#draw-distance-centroid').is(':checked')) {
-            // load absolute feature distance_centroid data once
-            if (!('distance_centroid' in self.dataset[0])) {
-                disablePlayButton();
-                // ajax query to get the absolute feature distance_centroid
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/distance_centroid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        // add the distance_centroid feature to the self.dataset
-                        for (let i = 0; i < self.dataset.length; i++) {
-                            self.dataset[i]['distance_centroid'] = +data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-            $('.draw-details').addClass('hidden');
-            $('#draw-distance-centroid-details').removeClass('hidden');
-            $('#draw-speed').prop('checked', false);
-            $('#draw-acceleration').prop('checked', false);
-            activeScale = 'distance_centroid';
-        } else {
-            $('#draw-distance-centroid-details').addClass('hidden');
-            activeScale = 'black';
-        }
-        $('.draw-details.active').click();
-        //change color legend
-        d3.selectAll('.colorLegend *').remove();
-        changeLegend();
-
-        if (!$('#play-button').hasClass('active')) {
-            //go back one second and draw the next frame
-            //this applys the changes
-            indexTime--;
-            draw();
-        }
-    });
-
-    /**
-     * Draw direction arrow of the animal
-     */
-    $('#draw-direction').click(function() {
-        if ($('#draw-direction').is(':checked')) {
-            // load absolute feature speed data once
-            if (!('direction' in self.dataset[0])) {
-                disablePlayButton();
-                // ajax query to get the absolute feature speed
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/direction',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        // add the speed feature to the dataset
-                        for (let i = 0; i < self.dataset.length; i++) {
-                            self.dataset[i]['direction'] = +data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-            d3.selectAll('.arrow')
-                .classed('hidden', false);
-        } else {
-            d3.selectAll('.arrow')
-                .classed('hidden', true);
-        }
-        if (!$('#play-button').hasClass('active')) {
-            //go back one second and draw the next frame
-            //this applys the changes
-            indexTime--;
-            draw();
-        }
-    });
-
-    /**
-     * Draw medoid in color button
-     */
-    $('#draw-medoid').click(function() {
-        if ($('#draw-medoid').is(':checked')) {
-            if (!('medoid' in self.swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/medoid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < self.swarmData.length; i++) {
-                            self.swarmData[i]['medoid'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-
-            }
-            medoidAnimal = self.swarmData[indexTime]['medoid'];
-            // display the medoid
-            d3.selectAll('#animal-' + medoidAnimal)
-                .classed('medoid', true);
-        } else {
-            // do not display the medoid fish
-            d3.selectAll('#animal-' + medoidAnimal)
-                .classed('medoid', false);
-            medoidAnimal = -1;
-        }
-    });
-
-    /**
-     * Draw centroid button
-     */
-    $('#draw-centroid').click(function() {
-        if ($('#draw-centroid').is(':checked')) {
-            if (!('centroid' in self.swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/centroid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < self.swarmData.length; i++) {
-                            self.swarmData[i]['centroid'] = [Math.round(data[i][0] * 100) / 100, Math.round(data[i][1] * 100) / 100];
-                        }
-                        enablePlayButton();
-                    }
-                });
-
-            }
-            // hide the centroid
-            d3.select('circle.centroid')
-                .classed('hidden', false);
-        } else {
-            // display the centroid
-            d3.select('circle.centroid')
-                .classed('hidden', true);
-        }
-    });
-
-
-    /**
-     * Draw convex hull in color button
-     */
-    $('#draw-convex-hull').click(function() {
-        if ($('#draw-convex-hull').is(':checked')) {
-            if (!('hull' in self.swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/convex_hull',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < self.swarmData.length; i++) {
-                            self.swarmData[i]['hull'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-        }
-    });
-
-
-    /**
-     * Draw triangulation
-     */
-    $('#draw-triangulation').click(function() {
-        if ($('#draw-triangulation').is(':checked')) {
-            if (!('triangulation' in self.swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/triangulation',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < self.swarmData.length; i++) {
-                            self.swarmData[i]['triangulation'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-            if (!$('#play-button').hasClass('active')) {
-                //go back one second and draw the next frame
-                //this applys the changes
-                indexTime--;
-                draw();
-            }
-        }
-    });
-
-
-    /**
-     * Draw triangulation
-     */
-    $('#draw-voronoi').click(function() {
-        if ($('#draw-voronoi').is(':checked')) {
-            if (!('voronoi' in self.swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/voronoi',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < self.swarmData.length; i++) {
-                            self.swarmData[i]['voronoi'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
-            }
-            if (!$('#play-button').hasClass('active')) {
-                //go back one second and draw the next frame
-                //this applys the changes
-                indexTime--;
-                draw();
-            }
-        }
-    });
-
-
-    /**
-     * Brush end function
-     * Add the fish in the brush to the active fish and remove the brush again
-     *
-     */
-    function brushend() {
-        var rect = d3.event.selection;
-        //iterate over the 151 fish to check which are in the brush
-        for (var i = 0; i < animal_ids.length; i++) {
-            var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
-            //check which fish are in  the brushed area
-            if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
-                (rect[0][1] <= point[1]) && (point[1] <= rect[1][1])) {
-                // Point is in the brush
-                activeAnimals.push(arrayAnimals[i]['a']);
-            }
-        }
-        if (!$('#play-button')
-            .hasClass('active')) {
-            //go back one second and draw the next frame
-            //this applys the changes
-            indexTime--;
-            draw();
-        }
-        $('#brushing-button')
-            .removeClass('active');
-        // remove the brush
-        $('.brush')
-            .remove();
-    }
-
-    /**
-     * Brushing button
-     */
-    $('#brushing-button').click(function() {
-        //stop the animation
-        playBoolean = false;
-        $('#play-button').removeClass('active');
-        if (!$('#brushing-button').hasClass('active')) {
-            //define the brush
-            brush = d3.brush()
-                .extent([
-                    [0, 0],
-                    [tankWidth, tankHeight]
-                ])
-                .on('end', brushend);
-            //add the brush
-            svgContainer.append('g')
-                .attr('class', 'brush')
-                .call(brush);
-        } else {
-            // remove the brush
-            $('.brush').remove();
-        }
-    });
-
-    /**
-     * Unselect all button
-     */
-    $('#remove-active-selected-button').click(function() {
-        if (!$('#remove-active-selected-button').is(':disabled')) {
-            $('#remove-active-selected-button').prop('disabled', true);
-            activeAnimals = [];
-            if (!$('#play-button').hasClass('active')) {
-                //go back one second and draw the next frame
-                //this applys the changes
-                indexTime--;
-                draw();
-            }
-        }
-    });
-
-    /**
-     * Spatial view background color
-     */
-    $('#background-color').change(function() {
-        let color = $('input[type="radio"].group-background:checked').val();
-        $('#main-vis-svg').css('background-color', color);
-    });
-
-    /**
-     * Show the spatial view axis button
-     */
-    $('#draw-axis').on('change', function() {
-        if (this.checked) {
-            $('#main-vis g.x.axis').show();
-            $('#main-vis g.y.axis').show();
-        } else {
-            $('#main-vis g.x.axis').hide();
-            $('#main-vis g.y.axis').hide();
-        }
-
-    });
-
-    /**
-     * Show the frame (time) number in the spatial view button
-     */
-    $('#draw-time').on('change', function() {
-        if (this.checked) {
-            $('#main-vis .frameText').show();
-        } else {
-            $('#main-vis .frameText').hide();
-        }
-    });
-
-    /**
-     * Tooltip function
-     *
-     */
-    function tooltipFunction(d) {
-        for (let i = 0; i < self.datasetMetadata.length; i++) {
-            if (d['a'] === self.datasetMetadata[i]['animal_id']) {
-                tooltip
-                    .style('left', (d3.event.pageX + 5) + 'px')
-                    .style('top', (d3.event.pageY - 100) + 'px')
+                // normal opacity
+                svgAnimals
                     .style('opacity', 1);
-                // set the values
-                tooltip.select('#tooltip-animal-id')
-                    .html(self.datasetMetadata[i]['animal_id']);
-                tooltip.select('#tooltip-species')
-                    .html(self.datasetMetadata[i]['species']);
-                tooltip.select('#tooltip-sex')
-                    .html(self.datasetMetadata[i]['sex']);
-                tooltip.select('#tooltip-size')
-                    .html(self.datasetMetadata[i]['size']);
-                tooltip.select('#tooltip-weight')
-                    .html(self.datasetMetadata[i]['weight']);
             }
-        }
 
-    }
-
-    /**
-     * Returns the color scale
-     *
-     */
-    function returnColorScale() {
-        //if linear is choosen
-        if (colorScales['type'] === 'Linear') {
-            return d3.scaleLinear()
-                .domain(
-                    self.dataSetPercentile[activeScale]
-                )
-                .range(colorScales['color']);
-        } //Threshold color scale
-        else if (colorScales['type'] === 'Threshold') {
-            return d3.scaleThreshold()
-                .domain(
-                    self.dataSetPercentile[activeScale]
-                )
-                .range(colorScales['color']);
-        }
-    }
-
-    /**
-     * Color Scale Function Radio buttons
-     */
-    $('#color-scale-radio-form input').on('change', function() {
-        colorScales['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
-        if (!$('#play-button').hasClass('active')) {
-            //go back one second and draw the next frame
-            //this applys the changes
-            indexTime--;
-            draw();
-        }
-    });
-
-    /**
-     * Metadata swatch functions coloring individual animals
-     */
-    $('.metadata-swatch.metadata-swatch-clickable').click(function() {
-        let id = $(this).attr('value');
-        let colorRGB = $(this).css('background-color');
-        // set the color of the swatch preview
-        $('#metadata-row-' + id + ' #preview')
-            .css('background-color', colorRGB);
-        // if white than reset the color
-        if (colorRGB === 'rgb(255, 255, 255)') {
-            if (metadataColor[id]) {
-                delete metadataColor[id];
-            }
-        } else {
-            metadataColor[id] = colorRGB;
-        }
-    });
-
-    /**
-     * Metadata group metadata functions for instance color sex
-     */
-    $('#group-metadata :input').change(function() {
-        // reset the metadat acoloring
-        resetIndividualMetadata();
-
-        let value = $(this).attr('value');
-        let tmp = [];
-
-        // metadata sex is choosen - coloring based on m and f
-        if (value === 'sex') {
-            $('#metadata-div').modal('toggle');
-            // close and color here
-            for (let i = 0; i < self.datasetMetadata.length; i++) {
-                tmp.push(self.datasetMetadata[i][value].toLowerCase());
-            }
-            // create a set of individual strings in sex
-            tmp = Array.from(new Set(tmp));
-            let colors = ['#7fc97f', '#386cb0'];
-
-            for (let i = 0; i < self.datasetMetadata.length; i++) {
-                for (let j = 0; j < tmp.length; j++) {
-                    if (self.datasetMetadata[i][value].toLowerCase() === tmp[j]) {
-                        // add the coloring to the metadatacolor object
-                        metadataColor[self.datasetMetadata[i]['animal_id']] = colors[j];
+            //draw centroid
+            d3.select('.centroid')
+                .attr('cx', function() {
+                    if ('centroid' in self.swarmData[0]) {
+                        return self.getSwarmData()[indexTime]['centroid'][0];
+                    } else {
+                        return 0;
                     }
-                }
-            }
-            $('#metadata-input').addClass('hidden');
-        } else {
-            $('#metadata-input').removeClass('hidden');
-            // set values of inputs
-            // here are automatically input values calculated
-            // .25 and .75 percentiles are used
-            for (let i = 0; i < self.datasetMetadata.length; i++) {
-                tmp.push(self.datasetMetadata[i][value]);
-            }
-            let blAvg = d3.quantile(tmp, 0.25); // below average value
-            let abAvg = d3.quantile(tmp, 0.75); // above average
-            $('#bl-avg').val(blAvg);
-            $('#ab-avg').val(abAvg);
-            // color the animals
-            colorMetadata();
-        }
-    });
-
-    /**
-     * Size and weight coloring for the metadata
-     */
-    function colorMetadata() {
-        resetIndividualMetadata();
-        // get the input values
-        let value = $('#group-metadata .btn.btn-default.active input')
-            .attr('value');
-        let blAvg = $('#bl-avg').val();
-        let abAvg = $('#ab-avg').val();
-        // color scheme for the inputs
-        let colors = ['#7fc97f', '#fdc086', '#386cb0'];
-        // color the animals
-        for (let i = 0; i < self.datasetMetadata.length; i++) {
-            if (self.datasetMetadata[i][value] < blAvg) {
-                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[0];
-            } else if (self.datasetMetadata[i][value] > abAvg) {
-                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[2];
+                })
+                .attr('cy', function() {
+                    if ('centroid' in self.getSwarmData()[0]) {
+                        return -self.getSwarmData()[indexTime]['centroid'][1];
+                    } else {
+                        return 0;
+                    }
+                });
+            if ($('#draw-direction').is(':checked') &&
+                self.getSwarmData()[indexTime].centroid &&
+                $('#draw-centroid').is(':checked')) {
+                d3.select('#centroid-line')
+                    .classed('hidden', false);
+                // UPDATE animal direction arrow
+                d3.select('#centroid-line')
+                    .attr('x1', function() {
+                        return self.getSwarmData()[indexTime]['centroid'][0];
+                    })
+                    .attr('y1', function() {
+                        return -self.getSwarmData()[indexTime]['centroid'][1];
+                    })
+                    .attr('x2', function() {
+                        return (self.getSwarmData()[indexTime]['centroid'][0] + 2 * animalScale);
+                    })
+                    .attr('y2', function() {
+                        return -self.getSwarmData()[indexTime]['centroid'][1];
+                    })
+                    .attr('transform', function() {
+                        return 'rotate(' + -self.getSwarmData()[indexTime]['direction'] + ' ' + self.getSwarmData()[indexTime]['centroid'][0] + ' ' + -self.getSwarmData()[indexTime]['centroid'][1] + ')';
+                    });
             } else {
-                metadataColor[self.datasetMetadata[i]['animal_id']] = colors[1];
+                // hide the arrows
+                d3.select('#centroid-line')
+                    .attr('class', 'hidden');
             }
-        }
-    }
 
-    /**
-     * Metadata group metadata input spinner
-     * +/- 0.1 to the input value
-     */
-    $('.number-spinner button').click(function() {
-        let btn = $(this),
-            oldValue = btn.closest('.number-spinner').find('input').val().trim(),
-            newVal = 0;
 
-        if (btn.attr('data-dir') == 'up') {
-            newVal = parseFloat(oldValue) + 0.1;
-        } else {
-            if (oldValue > 0) {
-                newVal = parseFloat(oldValue) - 0.1;
-            } else {
-                newVal = 0;
+            // medoid
+            if (medoidAnimal !== -1) {
+                d3.selectAll('#animal-' + medoidAnimal)
+                    .classed('medoid', false);
+                medoidAnimal = self.getSwarmData()[indexTime]['medoid'];
+                d3.selectAll('#animal-' + medoidAnimal)
+                    .classed('medoid', true);
             }
-        }
-        newVal = Math.round(newVal * 100) / 100; -
-        btn.closest('.number-spinner').find('input').val(newVal);
-        // change the coloring
-        colorMetadata();
-    });
 
-    /**
-     * Metadata input fields change
-     */
-    $('.number-spinner input').on('input', function() {
-        colorMetadata();
-    });
+            //next frame
+            indexTime++;
 
-    /**
-     * Reset all metadata input parameters
-     */
-    $('#metadata-reset').click(function() {
-        $('#metadata-input').addClass('hidden');
-        resetIndividualMetadata();
-    });
-
-    /**
-     * Metadata reset all individual metadata input fields
-     */
-    function resetIndividualMetadata() {
-        metadataColor = {};
-        $('.dropdown #preview')
-            .css('background-color', 'rgb(255, 255, 255)');
-    }
-
-    /**
-     * Network buttons clicked - get the data
-     */
-    $('#networks-modal-body button').click(function() {
-        let network_id = $(this).attr('data');
-        // get the data
-        $.ajax({
-            url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
-            dataType: 'json',
-            type: 'GET',
-            contentType: 'application/json; charset=utf-8',
-            headers: {
-                'Accept': JSONAPI_MIMETYPE
-            },
-            success: function(data) {
-                if (data.length) {
-                    self.networkData = JSON.parse(data[0]['data']);
+            if (d3.select('#lineChartTimeLine') && self.getSwarmData()[Math.ceil(indexTime / getLineChartRatio())]) {
+                let tmp = Math.ceil(indexTime / getLineChartRatio());
+                //update the line chart legend text values per second
+                if (indexTime % 25 === 0) {
+                    // TODO change this to a more modular way
+                    d3.select('#convex_hull_areaLineValue')
+                        .text((self.getSwarmData()[tmp]['convex_hull_area']) + 'mm²');
+                    d3.select('#speedLineValue')
+                        .text(self.getSwarmData()[tmp]['speed'] + 'mm/s');
+                    d3.select('#accelerationLineValue')
+                        .text(self.getSwarmData()[tmp]['acceleration'] + 'mm/s²');
+                    d3.select('#distance_centroidLineValue')
+                        .text(self.getSwarmData()[tmp]['distance_centroid'] + 'mm');
+                    d3.select('#directionLineValue')
+                        .text(self.getSwarmData()[tmp]['direction'] + '°');
+                    d3.select('#polarisationLineValue')
+                        .text(self.getSwarmData()[tmp]['polarisation']);
                 }
+
+                d3.select('#lineChartTimeLine')
+                    .attr('transform', 'translate(' + zoomFunction(tmp) + ',0)');
             }
-        });
-
-    });
-
-    /**
-     * Network buttons clicked - get the data
-     */
-    $('#network-remove').click(function() {
-        self.networkData = {};
-    });
-
-    /**
-     * Network auto button set acive or remove
-     */
-    $('#network-auto-suggest').click(function() {
-        if (!$('#network-auto-suggest').hasClass('active')) {
-            $('#network-limit-p').hide();
-            $('#network-slider').hide();
-
-            networkAuto = true;
-        } else {
-            $('#network-limit-p').show();
-            $('#network-slider').show();
-            networkAuto = false;
-            networkLimit = $('#network-slider').slider('value');
-            $('#network-limit').val(networkLimit);
-        }
-    });
 
 
-    /**
-     * Disable the play button --> Loading symbol
-     *
-     */
-    function disablePlayButton() {
+            //check if play button is active and if the animation is not finished
+            if (indexTime >= self.getSwarmData().length) {
+                //start again from the start
+                indexTime = 0;
+                draw();
+            } else if (playBoolean) {
+                //measure execution time
+                //   let t1 = performance.now();
+                //   console.log(t1 - t0); // in milliseconds
+                draw();
+            }
+        },
+        timeToWait);
+}
+
+/************************************************
+    Getter and setter
+ *************************************************/
+
+export function getPlayBoolean() {
+    return playBoolean;
+}
+
+export function setPlayBoolean(value) {
+    if (typeof value === 'boolean') {
+        playBoolean = value;
+    } else {
         playBoolean = false;
-        $('#play-button').removeClass('active');
-        $('#play-button').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
-        $('#play-button').prop('disabled', true);
     }
+}
 
-    /**
-     * Enable the play button remove loading symbol
-     *
-     */
-    function enablePlayButton() {
-        playBoolean = true;
-        $('#play-button').addClass('active');
-        $('#play-button').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
-        $('#play-button').prop('disabled', false);
-        draw();
+export function getIndexTime() {
+    return indexTime;
+}
+
+export function setIndexTime(value) {
+    if (typeof value === 'number' && (indexTime <= self.getSwarmData().length)) {
+        indexTime = value;
+    } else {
+        indexTime = 0;
     }
+}
 
-    /**
-     * Change the color legend
-     */
-    function changeLegend() {
-        var legend; // the color legend
-        var legendText; // color legend text
-        // vars for the legend
-        var legendWidth = tankWidth * 0.08;
-        var legendHeight = tankHeight * 0.04;
-        var differentColors = 0;
+export function getZoomFunction() {
+    return zoomFunction;
+}
 
-        //change the colors of the animals
-        if (activeScale !== 'black') {
-            var tmpScale = returnColorScale();
-            // once the fill for the heads and the stroke for the path
-            legend = svgLegend.selectAll('rect.legend')
-                .data(tmpScale.range());
-            legendText = svgLegend.selectAll('text.legendText')
-                .data(tmpScale.domain());
-            differentColors = tmpScale.range()
-                .length;
-        } else {
-            legend = svgLegend.selectAll('rect.legend')
-                .data([]);
-            legendText = svgLegend.selectAll('text.legendText')
-                .data([]);
-        }
-        // UPDATE - legend
-        legend.style('fill', function(d) {
-            return d;
-        });
-        // ENTER - legend
-        legend
-            .enter()
-            .append('rect')
-            .attr('class', 'legend')
-            .attr('width', legendWidth)
-            .attr('height', legendHeight)
-            .attr('y', 0)
-            .attr('x', function(d, i) {
-                return ((tankWidth - differentColors * legendWidth) + i * legendWidth - 30) + 'px';
-            })
-            .style('fill', function(d) {
-                return d;
-            });
-        // EXIT - legend
-        legend.exit()
-            .remove();
+export function setZoomFunction(value) {
+    zoomFunction = value;
+}
 
-        // UPDATE - legend text
-        legendText.text(function(d) {
-            return d;
-        });
-        // ENTER - legend text
-        legendText
-            .enter()
-            .append('text')
-            .attr('class', 'legendText')
-            .attr('y', 2 * legendHeight)
-            .attr('x', function(d, i) {
-                // plus 15 has to be changed
-                return ((tankWidth - differentColors * legendWidth) + i * legendWidth - 10) + 'px';
-            })
-            .text(function(d) {
-                return Math.ceil(d * 2) / 2;
-            });
+export function getTankWidth() {
+    return tankWidth;
+}
 
-        // EXIT - legend text
-        legendText.exit()
-            .remove();
-    }
+export function getTankHeight() {
+    return tankHeight;
+}
 
-    /**
-     * Return  .95 percentiles of the array
-     *
-     */
-    function percentiles(arr) {
-        let p = 0.95;
-        if (arr.length === 0) {
-            return 0;
-        }
-        arr.sort(function(a, b) {
-            return a - b;
-        });
-        let index = (arr.length - 1) * p;
-        let lower = Math.floor(index);
-        let upper = lower + 1;
-        let weight = index % 1;
-        if (upper >= arr.length) {
-            return arr[lower];
-        } else {
-            return arr[lower] * (1 - weight) + arr[upper] * weight;
-        }
-    }
+export function getActiveScale() {
+    return activeScale;
+}
 
-};
+export function setActiveScale(value) {
+    activeScale = value;
+}
+
+export function getMedoidAnimal() {
+    return medoidAnimal;
+}
+
+export function setMedoidAnimal(value) {
+    medoidAnimal = value;
+}
+
+export function getActiveAnimals() {
+    return activeAnimals;
+}
+
+export function setActiveAnimals(value) {
+    activeAnimals = value;
+}
+
+export function getArrayAnimals() {
+    return arrayAnimals;
+}
+
+export function setArrayAnimals(value) {
+    arrayAnimals = value;
+}

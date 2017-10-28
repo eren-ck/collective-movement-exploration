@@ -3,7 +3,7 @@
 
 'use strict';
 import {
-    swarmData,
+    getSwarmData,
     dataset,
 } from './explore.js';
 
@@ -13,12 +13,20 @@ import {
     setZoomFunction
 } from './spatial_view.js';
 
+import * as self from './explore.js';
+
+let lineChartRatio = 0;
+
+
 /**
  * Create a namespace to minimize global variables
  * Code is in a closure and manually expose only those
  * variables that need to be global.
  */
 export function lineChart() {
+    let lineChartWidth = 5000;
+
+    lineChartRatio = Math.ceil(self.getSwarmData().length / lineChartWidth);
 
     /**
      * Draw the line chart for the averaged swarm features
@@ -33,9 +41,8 @@ export function lineChart() {
         left: 10
     };
     let marginToLegend = 50;
-    let lineChartWidth = 5000;
 
-    let swarm_features = Object.keys(swarmData[0]);
+    let swarm_features = Object.keys(getSwarmData()[0]);
     // remove the time key
     let index = swarm_features.indexOf('time');
     swarm_features.splice(index, 1);
@@ -57,15 +64,15 @@ export function lineChart() {
     let lineChartData = [];
     let ratio = 1;
     // aggregate and average the swarm data to lineChartWidth points in the line chart
-    if (swarmData.length > lineChartWidth) {
-        ratio = Math.ceil(swarmData.length / lineChartWidth);
+    if (getSwarmData().length > lineChartWidth) {
+        ratio = Math.ceil(getSwarmData().length / lineChartWidth);
         // tmp array for the aggregated and averaged features
         let tmp = new Array(swarm_features.length).fill(0);
 
-        for (let i = 0; i < swarmData.length; i++) {
+        for (let i = 0; i < getSwarmData().length; i++) {
             // aggregate the features in the temp array
             for (let j = 0; j < swarm_features.length; j++) {
-                tmp[j] += swarmData[i][swarm_features[j]];
+                tmp[j] += getSwarmData()[i][swarm_features[j]];
             }
             // if the ratio is zero then average it and set it to zero
             if (i % ratio === 0) {
@@ -83,7 +90,7 @@ export function lineChart() {
             }
         }
     } else {
-        lineChartData = swarmData;
+        lineChartData = getSwarmData();
     }
 
 
@@ -410,8 +417,9 @@ export function lineChart() {
         if (!$(('#' + feature + 'TrendChart')).length) {
             // get the data for the trend chart
             let trendChartData = [];
+            let num_animals = self.animal_ids.length;
             // calculate the percetiles for every time step
-            for (let i = 0; i < swarmData.length; i++) {
+            for (let i = 0; i < getSwarmData().length; i++) {
                 let tmp = [];
                 for (let j = 0; j < num_animals; j++) {
                     if (dataset[i * num_animals + j]) {
@@ -555,4 +563,13 @@ export function lineChart() {
         $('#lineChartLegend').show();
     }
 
+}
+
+
+/************************************************
+    Getter and setter
+ *************************************************/
+
+export function getLineChartRatio() {
+    return lineChartRatio;
 }

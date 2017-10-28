@@ -3,7 +3,7 @@
 // import all js
 import * as queries from './ajax_queries.js';
 import {
-    spatialView
+    spatialViewInit
 } from './spatial_view.js';
 
 import {
@@ -19,7 +19,7 @@ export let swarmData = [];
 export let dataSetPercentile = {};
 export let zoomFunction;
 export let networkData = {};
-export let animal_ids = [];
+
 
 /**
  * Load the movement data with ajax queries
@@ -50,13 +50,17 @@ $(document).ready(function() {
             if ($.active > 0) {
                 window.setTimeout(checkPendingRequest, 100);
             } else {
-                spatialView();
+                spatialViewInit();
             }
         }
         window.setTimeout(checkPendingRequest, 100);
     })();
 
 });
+
+/************************************************
+    Getter and setter
+ *************************************************/
 
 /**
  * Concact to the dataset
@@ -83,6 +87,11 @@ export function setMetaData(value) {
     datasetMetadata = value;
     // initialize the metadata modal
     initializeMetaddata();
+}
+
+
+export function getSwarmData() {
+    return swarmData;
 }
 
 /**

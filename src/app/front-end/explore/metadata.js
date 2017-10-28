@@ -1,11 +1,17 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $, */
+// import * as spv from './spatial_view.js';
 
 import {
     datasetMetadata
 } from './explore.js';
 
+
+let metadataColor = {}; // save the metadata coloring
+
+
 export function initializeMetaddata() {
+    let colors = ['#fff', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628'];
     // add the data to the metadata modal
     if (datasetMetadata.length) {
         for (let i = 0; i < datasetMetadata.length; i++) {
@@ -30,7 +36,6 @@ export function initializeMetaddata() {
                                               </a>
                                               <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel"> ` +
                             function(id) {
-                                let colors = ['#fff', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628'];
                                 let resultString = '';
                                 for (let i = 0; i < colors.length; i++) {
                                     resultString += '<div class="metadata-swatch metadata-swatch-clickable" style="background-color:' + colors[i] + '" value="' + id + '"></div>';
@@ -46,4 +51,46 @@ export function initializeMetaddata() {
             .append('There is no metadata for this dataset');
     }
 
+}
+
+/**
+ * Size and weight coloring for the metadata
+ */
+export function colorMetadata() {
+    resetIndividualMetadata();
+    // get the input values
+    let value = $('#group-metadata .btn.btn-default.active input')
+        .attr('value');
+    let blAvg = $('#bl-avg').val();
+    let abAvg = $('#ab-avg').val();
+    // color scheme for the inputs
+    let colors = ['#7fc97f', '#fdc086', '#386cb0'];
+    // color the animals
+    for (let i = 0; i < self.datasetMetadata.length; i++) {
+        if (self.datasetMetadata[i][value] < blAvg) {
+            metadataColor[self.datasetMetadata[i]['animal_id']] = colors[0];
+        } else if (self.datasetMetadata[i][value] > abAvg) {
+            metadataColor[self.datasetMetadata[i]['animal_id']] = colors[2];
+        } else {
+            metadataColor[self.datasetMetadata[i]['animal_id']] = colors[1];
+        }
+    }
+}
+
+
+/**
+ * Metadata reset all individual metadata input fields
+ */
+export function resetIndividualMetadata() {
+    metadataColor = {};
+    $('.dropdown #preview')
+        .css('background-color', 'rgb(255, 255, 255)');
+}
+
+/************************************************
+    Getter and setter
+ *************************************************/
+
+export function getMetadataColor() {
+    return metadataColor;
 }
