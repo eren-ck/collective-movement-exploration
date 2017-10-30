@@ -3,14 +3,16 @@
 
 import * as spv from './spatial_view.js';
 
-import * as colorpicker from './spatial_view_color_picker.js';
+import * as colorpicker from './color_picker.js';
 
 let svgLegend;
-
+let tankWidth;
+let tankHeight;
 
 // group for the legend
 export function addSpatialViewGroup() {
-    let tankWidth = spv.getTankWidth();
+    tankWidth = spv.tankWidth;
+    tankHeight = spv.tankHeight;
 
     svgLegend = d3.select('#main-vis-legend-div')
         .classed('svg-legendContainer', true)
@@ -30,8 +32,6 @@ export function addSpatialViewGroup() {
  * Change the color legend
  */
 export function changeLegend() {
-    let tankWidth = spv.getTankWidth();
-    let tankHeight = spv.getTankHeight();
     var legend; // the color legend
     var legendText; // color legend text
     // vars for the legend
@@ -40,7 +40,7 @@ export function changeLegend() {
     var differentColors = 0;
 
     //change the colors of the animals
-    if (spv.getActiveScale() !== 'black') {
+    if (spv.activeScale !== 'black') {
         var tmpScale = colorpicker.returnColorScale();
         // once the fill for the heads and the stroke for the path
         legend = svgLegend.selectAll('rect.legend')

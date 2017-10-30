@@ -1,16 +1,16 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $*/
 import {
-    getSwarmData,
-    datasetMetadata
-} from './explore.js';
+    datasetMetadata,
+    swarmData
+} from '../explore.js';
 
 import * as spv from './spatial_view.js';
 
-import * as network from './network.js';
+import * as network from '../network.js';
 
-let slider;
-let tooltip;
+export let slider;
+export let tooltip;
 
 /**
  * Brush end function
@@ -18,8 +18,8 @@ let tooltip;
  *
  */
 export function brushend() {
-    let arrayAnimals = spv.getArrayAnimals();
-    let activeAnimals = spv.getActiveAnimals();
+    let arrayAnimals = spv.arrayAnimals;
+    let activeAnimals = spv.activeAnimals;
     var rect = d3.event.selection;
     //iterate over the 151 fish to check which are in the brush
     for (var i = 0; i < spv.animal_ids.length; i++) {
@@ -36,8 +36,7 @@ export function brushend() {
         .hasClass('active')) {
         //go back one second and draw the next frame
         //this applys the changes
-
-        spv.setIndexTime(spv.getIndexTime() - 1);
+        spv.decIndexTime();
         spv.draw();
     }
     $('#brushing-button')
@@ -55,7 +54,6 @@ export function initTooltip() {
             tooltip
                 .style('opacity', 1);
         });
-    spv.setToolTip(tooltip);
 }
 
 /**
@@ -90,7 +88,7 @@ export function initSliders() {
     slider = $('#slider')
         .slider({
             min: 0,
-            max: getSwarmData().length,
+            max: swarmData.length,
             step: 25,
             slide: function(event, ui) {
                 spv.setIndexTime(ui.value);
@@ -127,12 +125,8 @@ export function initSliders() {
 }
 
 /************************************************
-    Getter and setter
+    Setter
  *************************************************/
-
-export function getTimeSlider() {
-    return slider;
-}
 
 export function setTimeSlider(value) {
     slider.slider('value', value);

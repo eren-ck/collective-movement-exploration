@@ -4,13 +4,13 @@ import * as spv from './spatial_view.js';
 
 import {
     changeLegend
-} from './spatial_view_legend.js';
+} from './legend.js';
 
 import {
     dataSetPercentile
-} from './explore.js';
+} from '../explore.js';
 
-let colorScale = {
+export let colorScale = {
     type: 'Linear',
     color: colorbrewer.BuYlBu
 };
@@ -25,14 +25,14 @@ export function returnColorScale() {
     if (colorScale['type'] === 'Linear') {
         return d3.scaleLinear()
             .domain(
-                dataSetPercentile[spv.getActiveScale()]
+                dataSetPercentile[spv.activeScale]
             )
             .range(colorScale['color']);
     } //Threshold color scale
     else if (colorScale['type'] === 'Threshold') {
         return d3.scaleThreshold()
             .domain(
-                dataSetPercentile[spv.getActiveScale()]
+                dataSetPercentile[spv.activeScale]
             )
             .range(colorScale['color']);
     }
@@ -58,7 +58,7 @@ export function initColorPicker() {
                 .hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                spv.setIndexTime(spv.getIndexTime() - 1);
+                spv.decIndexTime();
                 spv.draw();
             }
         })
@@ -76,12 +76,4 @@ export function initColorPicker() {
     // highlight the selected color scheme
     $('.palette[title="BuYlBu"]').addClass('selected');
 
-}
-
-/************************************************
-    Getter and setter
- *************************************************/
-
-export function getColorScale() {
-    return colorScale;
 }

@@ -4,7 +4,7 @@
 import * as queries from './ajax_queries.js';
 import {
     spatialViewInit
-} from './spatial_view.js';
+} from './spatial_view/spatial_view.js';
 
 import {
     initializeMetaddata
@@ -87,11 +87,6 @@ export function setMetaData(value) {
     datasetMetadata = value;
     // initialize the metadata modal
     initializeMetaddata();
-}
-
-
-export function getSwarmData() {
-    return swarmData;
 }
 
 /**

@@ -7,7 +7,7 @@ import {
 } from './explore.js';
 
 
-let metadataColor = {}; // save the metadata coloring
+export let metadataColor = {}; // save the metadata coloring
 
 
 export function initializeMetaddata() {
@@ -66,13 +66,13 @@ export function colorMetadata() {
     // color scheme for the inputs
     let colors = ['#7fc97f', '#fdc086', '#386cb0'];
     // color the animals
-    for (let i = 0; i < self.datasetMetadata.length; i++) {
-        if (self.datasetMetadata[i][value] < blAvg) {
-            metadataColor[self.datasetMetadata[i]['animal_id']] = colors[0];
-        } else if (self.datasetMetadata[i][value] > abAvg) {
-            metadataColor[self.datasetMetadata[i]['animal_id']] = colors[2];
+    for (let i = 0; i < datasetMetadata.length; i++) {
+        if (datasetMetadata[i][value] < blAvg) {
+            metadataColor[datasetMetadata[i]['animal_id']] = colors[0];
+        } else if (datasetMetadata[i][value] > abAvg) {
+            metadataColor[datasetMetadata[i]['animal_id']] = colors[2];
         } else {
-            metadataColor[self.datasetMetadata[i]['animal_id']] = colors[1];
+            metadataColor[datasetMetadata[i]['animal_id']] = colors[1];
         }
     }
 }
@@ -85,12 +85,4 @@ export function resetIndividualMetadata() {
     metadataColor = {};
     $('.dropdown #preview')
         .css('background-color', 'rgb(255, 255, 255)');
-}
-
-/************************************************
-    Getter and setter
- *************************************************/
-
-export function getMetadataColor() {
-    return metadataColor;
 }

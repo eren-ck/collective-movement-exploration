@@ -1,294 +1,271 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $,d3, parameters, Set */
 'use strict';
-import * as self from './explore.js';
+import * as self from '../explore.js';
 
-import * as networks from './network.js';
+import * as networks from '../network.js';
 
 import {
     lineChart,
-    getLineChartRatio
-} from './line_chart';
+    lineChartRatio,
+    zoomFunction
+} from '../line_chart';
 
 import {
     percentiles
-} from './helpers.js';
+} from '../helpers.js';
 
 import {
     setTimeSlider,
     initTooltip,
     tooltipFunction,
-    initSliders
-} from './spatial_view_interaction.js';
+    initSliders,
+    tooltip
+} from './interaction.js';
 
 import {
-    getMetadataColor
-} from './metadata.js';
+    metadataColor
+} from '../metadata.js';
 
 import {
     initColorPicker,
     returnColorScale
-} from './spatial_view_color_picker.js';
+} from './color_picker.js';
 
 import {
-    initListeners
-} from './listener.js';
+    initListeners,
+    playBoolean
+} from '../listener.js';
 
 import {
     addSpatialViewGroup
-} from './spatial_view_legend.js';
+} from './legend.js';
 
 // Global namespace variables
-let zoomFunction;
-let indexTime = 0;
-
-let svgContainer;
-let tank;
-let tooltip; // the tooltip
-let playBoolean = true; // pause and play boolean
-var activeScale = 'black'; // no color scales
-let tankWidth;
-let tankHeight;
-let medoidAnimal = -1;
-let arrayAnimals;
-let activeAnimals = []; // active selected animals
+export let indexTime = 0;
+export let tankWidth;
+export let tankHeight;
+export let activeScale = 'black'; // no color scales
+export let medoidAnimal = -1;
+export let activeAnimals = []; // active selected animals
+export let arrayAnimals;
 export let animal_ids;
 
 
-/**
- * Create a namespace to minimize global variables
- * Code is in a closure and manually expose only those
- * variables that need to be global.
- */
+let svgContainer;
+let tank;
+
+
 export function spatialViewInit() {
 
+    let minPoint = parameters['min']['geometry']['coordinates'];
+    let maxPoint = parameters['max']['geometry']['coordinates'];
+    // let coordinateOrigin = parameters['coordinate_origin']['geometry']['coordinates'];
+    // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
+    tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
+    tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
+
+    $(function() {
+        $('#main-vis').draggable({
+                containment: 'parent'
+            }).resizable({
+                aspectRatio: true,
+                maxWidth: $('#main-vis-div').width()
+            }).height(tankHeight * 0.5)
+            .width(tankWidth * 0.5);
+
+    });
+
+    //reset all checkboxes
+    $('input[type=checkbox]')
+        .attr('checked', false);
+    //set the color scale function to linear
+    $('#color-scale-linear')
+        .prop('checked', true);
+    $('#group-size-m')
+        .prop('checked', true);
+    $('#background-white')
+        .prop('checked', true);
+    $('#settings-div input[type=checkbox]')
+        .prop('checked', true);
+    //hide the loading gif
+    $('#loading')
+        .hide();
+
+    // number of distinct animal ids
+    let num_animals = new Set();
+    for (let i = 0; i < self.dataset.length; i++) {
+        if (self.dataset[i]['t'] === self.dataset[0]['t']) {
+            num_animals.add(self.dataset[i]['a']);
+        } else {
+            i = self.dataset.length;
+        }
+    }
+    animal_ids = Array.from(num_animals).sort();
 
 
-    initialize();
+    //X and Y axis
+    let x = d3.scaleLinear()
+        .domain([minPoint[0], maxPoint[0]])
+        .range([minPoint[0], maxPoint[0]]);
 
-    /**
-     * Initialize various components:
-     *      SVG and Animal Tank
-     *      Zoom
-     *      Tooltip
-     */
-    function initialize() {
+    let xAxis = d3.axisBottom(x)
+        .ticks(10)
+        .tickSize(10)
+        .tickPadding(5);
 
+    let y = d3.scaleLinear()
+        .domain([minPoint[1], maxPoint[1]])
+        .range([minPoint[1], maxPoint[1]]);
 
-        let minPoint = parameters['min']['geometry']['coordinates'];
-        let maxPoint = parameters['max']['geometry']['coordinates'];
-        // let coordinateOrigin = parameters['coordinate_origin']['geometry']['coordinates'];
-        // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
-        tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
-        tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
+    let yAxis = d3.axisRight(y)
+        .ticks(7)
+        .tickSize(10)
+        .tickPadding(5);
 
-        $(function() {
-            $('#main-vis').draggable({
-                    containment: 'parent'
-                }).resizable({
-                    aspectRatio: true,
-                    maxWidth: $('#main-vis-div').width()
-                }).height(tankHeight * 0.5)
-                .width(tankWidth * 0.5);
+    // ZOOMING AND PANNING STUFF
+    let zoomGroup;
+    let zoom = d3.zoom()
+        .scaleExtent([1, 6])
+        .on('zoom', function() {
+            //constrained zooming
+            // modify the translate so that it never exits the tank
+            d3.event.transform.x = Math.min(0, tankWidth * (d3.event.transform.k - 1),
+                Math.max(tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
 
+            d3.event.transform.y = Math.min(0, tankHeight * (d3.event.transform.k - 1),
+                Math.max(tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+
+            // translate and scale
+            zoomGroup.attr('transform', d3.event.transform);
+
+            // rescale the axis
+            gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+            gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
         });
 
-        //reset all checkboxes
-        $('input[type=checkbox]')
-            .attr('checked', false);
-        //set the color scale function to linear
-        $('#color-scale-linear')
-            .prop('checked', true);
-        $('#group-size-m')
-            .prop('checked', true);
-        $('#background-white')
-            .prop('checked', true);
-        $('#settings-div input[type=checkbox]')
-            .prop('checked', true);
-        //hide the loading gif
-        $('#loading')
-            .hide();
-
-        // number of distinct animal ids
-        let num_animals = new Set();
-        for (let i = 0; i < self.dataset.length; i++) {
-            if (self.dataset[i]['t'] === self.dataset[0]['t']) {
-                num_animals.add(self.dataset[i]['a']);
-            } else {
-                i = self.dataset.length;
-            }
-        }
-        animal_ids = Array.from(num_animals).sort();
+    //the svg container
+    svgContainer = d3.select('#main-vis')
+        .classed('svg-container', true)
+        // to make it responsive with css
+        .append('svg')
+        .attr('preserveAspectRatio', 'xMinYMin meet')
+        .attr('viewBox', '0 0 ' + tankWidth + ' ' + tankHeight)
+        // add the class svg-content
+        .classed('svg-content', true)
+        .attr('id', 'main-vis-svg')
+        .call(zoom);
 
 
-        //X and Y axis
-        let x = d3.scaleLinear()
-            .domain([minPoint[0], maxPoint[0]])
-            .range([minPoint[0], maxPoint[0]]);
+    /* depends on svg ratio, for  1240/1900 = 0.65 so padding-bottom = 65% */
+    let percentage = Math.ceil((tankHeight / tankWidth) * 100);
+    $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
-        let xAxis = d3.axisBottom(x)
-            .ticks(10)
-            .tickSize(10)
-            .tickPadding(5);
+    zoomGroup = svgContainer.append('svg:g');
 
-        let y = d3.scaleLinear()
-            .domain([minPoint[1], maxPoint[1]])
-            .range([minPoint[1], maxPoint[1]]);
-
-        let yAxis = d3.axisRight(y)
-            .ticks(7)
-            .tickSize(10)
-            .tickPadding(5);
-
-        // ZOOMING AND PANNING STUFF
-        let zoomGroup;
-        let zoom = d3.zoom()
-            .scaleExtent([1, 6])
-            .on('zoom', function() {
-                //constrained zooming
-                // modify the translate so that it never exits the tank
-                d3.event.transform.x = Math.min(0, tankWidth * (d3.event.transform.k - 1),
-                    Math.max(tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
-
-                d3.event.transform.y = Math.min(0, tankHeight * (d3.event.transform.k - 1),
-                    Math.max(tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
-
-                // translate and scale
-                zoomGroup.attr('transform', d3.event.transform);
-
-                // rescale the axis
-                gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
-                gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
-            });
-
-        //the svg container
-        svgContainer = d3.select('#main-vis')
-            .classed('svg-container', true)
-            // to make it responsive with css
-            .append('svg')
-            .attr('preserveAspectRatio', 'xMinYMin meet')
-            .attr('viewBox', '0 0 ' + tankWidth + ' ' + tankHeight)
-            // add the class svg-content
-            .classed('svg-content', true)
-            .attr('id', 'main-vis-svg')
-            .call(zoom);
-
-
-        /* depends on svg ratio, for  1240/1900 = 0.65 so padding-bottom = 65% */
-        let percentage = Math.ceil((tankHeight / tankWidth) * 100);
-        $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
-
-        zoomGroup = svgContainer.append('svg:g');
-
-        if (parameters.background_image) {
-            zoomGroup
-                .append('image')
-                //  .attr('d',path)
-                .attr('xlink:href', '/' + parameters.background_image)
-                .attr('class', 'backgroundImage')
-                .attr('height', tankHeight)
-                .attr('width', tankWidth)
-                // while adding an image to an svg these are the coordinates i think of the top left
-                .attr('x', '0')
-                .attr('y', '0')
-                .attr('background', '#fff');
-
-        }
-
-        //append the tank group with a transformation which rotates the y axis
-        tank = zoomGroup.append('svg:g')
-            .attr('class', 'tank')
-            .attr('transform', function() {
-                let x = 1;
-                let y = 1;
-                if (parameters.inverted_x) {
-                    x = -1;
-                }
-                if (parameters.inverted_y) {
-                    y = -1;
-                }
-                return 'scale(' + x + ',' + y + ')';
-            });
-
-        //add the centroid
-        tank.append('g')
-            .attr('id', 'g-centroid')
-            .append('circle')
-            .attr('class', 'centroid hidden')
-            .attr('r', 6)
-            .attr('cx', 0)
-            .attr('cy', 0);
-
-        // arrow for the centroid direction
-        tank.select('#g-centroid')
-            .append('svg:defs')
-            .append('svg:marker')
-            .attr('id', 'centroid-arrow')
-            .attr('refX', 2)
-            .attr('refY', 6)
-            .attr('markerWidth', 13)
-            .attr('markerHeight', 13)
-            .attr('orient', 'auto')
-            .append('svg:path')
-            .attr('d', 'M2,2 L2,11 L10,6 L2,2');
-
-        // Append the line for the direction arrow
-        tank.select('#g-centroid')
-            .append('line')
-            .attr('id', 'centroid-line')
-            .attr('marker-end', 'url(#centroid-arrow)');
-
-        //append network  group
-        tank.append('g')
-            .attr('id', 'networkGroup');
-
-        //append delaunayTriangulation group
-        tank.append('g')
-            .attr('id', 'delaunayTriangulationGroup');
-
-        //append voronoi group
-        tank.append('g')
-            .attr('id', 'vornoiGroup');
-
-
-
-        //append the frame time text
-        svgContainer.append('text')
-            .attr('class', 'frameText')
-            .attr('x', 30)
-            .attr('y', 30)
-            .text('-- : -- : -- ');
-
-        // add the axis
-        let gXaxis = svgContainer.append('g')
-            .attr('class', 'x axis')
-            .call(xAxis);
-
-        let gYaxis = svgContainer.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
-
-        //tooltip
-        initTooltip();
-        initSliders();
-        addSpatialViewGroup();
-
-        //definte the line chart time scale
-        zoomFunction = d3.scaleLinear()
-            .domain([0, self.getSwarmData().length])
-            .range([0, self.getSwarmData().length]);
-
-        initColorPicker();
-
-        //Draw the fish swarm line chart
-        lineChart();
-
-        // init listeners
-        initListeners();
-
-        draw();
+    if (parameters.background_image) {
+        zoomGroup
+            .append('image')
+            //  .attr('d',path)
+            .attr('xlink:href', '/' + parameters.background_image)
+            .attr('class', 'backgroundImage')
+            .attr('height', tankHeight)
+            .attr('width', tankWidth)
+            // while adding an image to an svg these are the coordinates i think of the top left
+            .attr('x', '0')
+            .attr('y', '0')
+            .attr('background', '#fff');
 
     }
+
+    //append the tank group with a transformation which rotates the y axis
+    tank = zoomGroup.append('svg:g')
+        .attr('class', 'tank')
+        .attr('transform', function() {
+            let x = 1;
+            let y = 1;
+            if (parameters.inverted_x) {
+                x = -1;
+            }
+            if (parameters.inverted_y) {
+                y = -1;
+            }
+            return 'scale(' + x + ',' + y + ')';
+        });
+
+    //add the centroid
+    tank.append('g')
+        .attr('id', 'g-centroid')
+        .append('circle')
+        .attr('class', 'centroid hidden')
+        .attr('r', 6)
+        .attr('cx', 0)
+        .attr('cy', 0);
+
+    // arrow for the centroid direction
+    tank.select('#g-centroid')
+        .append('svg:defs')
+        .append('svg:marker')
+        .attr('id', 'centroid-arrow')
+        .attr('refX', 2)
+        .attr('refY', 6)
+        .attr('markerWidth', 13)
+        .attr('markerHeight', 13)
+        .attr('orient', 'auto')
+        .append('svg:path')
+        .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+    // Append the line for the direction arrow
+    tank.select('#g-centroid')
+        .append('line')
+        .attr('id', 'centroid-line')
+        .attr('marker-end', 'url(#centroid-arrow)');
+
+    //append network  group
+    tank.append('g')
+        .attr('id', 'networkGroup');
+
+    //append delaunayTriangulation group
+    tank.append('g')
+        .attr('id', 'delaunayTriangulationGroup');
+
+    //append voronoi group
+    tank.append('g')
+        .attr('id', 'vornoiGroup');
+
+
+
+    //append the frame time text
+    svgContainer.append('text')
+        .attr('class', 'frameText')
+        .attr('x', 30)
+        .attr('y', 30)
+        .text('-- : -- : -- ');
+
+    // add the axis
+    let gXaxis = svgContainer.append('g')
+        .attr('class', 'x axis')
+        .call(xAxis);
+
+    let gYaxis = svgContainer.append('g')
+        .attr('class', 'y axis')
+        .call(yAxis);
+
+    //tooltip
+    initTooltip();
+    initSliders();
+    addSpatialViewGroup();
+
+    initColorPicker();
+
+    //Draw the fish swarm line chart
+    lineChart();
+
+    // init listeners
+    initListeners();
+
+    draw();
+
 
 }
 
@@ -348,7 +325,7 @@ export function draw() {
                     $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networks.networkColorScale(d['val']));
                 });
 
-                if (networks.getNetworkAuto()) {
+                if (networks.networkAuto) {
                     let tmpArray = [];
                     for (let i = 0; i < network.length; i++) {
                         tmpArray.push(network[i]['val']);
@@ -357,7 +334,7 @@ export function draw() {
                 }
 
                 network = network.filter(function(d) {
-                    return d['val'] >= networks.getNetworLimit();
+                    return d['val'] >= networks.networkLimit;
                 });
                 // DATA JOIN
                 networkVis = tank.select('#networkGroup')
@@ -424,7 +401,7 @@ export function draw() {
                 .is(':checked')) {
                 triangulation = tank.select('#delaunayTriangulationGroup')
                     .selectAll('path.delaunayTriangulation')
-                    .data([self.getSwarmData()[indexTime]['triangulation']]);
+                    .data([self.swarmData[indexTime]['triangulation']]);
 
                 // UPDATE - triangulation
                 triangulation
@@ -455,7 +432,7 @@ export function draw() {
                 voronoi = tank
                     .select('#vornoiGroup')
                     .selectAll('path.voronoi')
-                    .data(self.getSwarmData()[indexTime]['voronoi'].split(';'));
+                    .data(self.swarmData[indexTime]['voronoi'].split(';'));
 
 
                 // UPDATE - voronoi
@@ -590,7 +567,7 @@ export function draw() {
                 .is(':checked')) {
                 // DATA JOIN - paths
                 var hullPath = tank.selectAll('path.hullPath')
-                    .data([self.getSwarmData()[indexTime]['hull']]);
+                    .data([self.swarmData[indexTime]['hull']]);
 
                 // UPDATE - hull path
                 hullPath
@@ -634,12 +611,12 @@ export function draw() {
                     .style('fill', '#000')
                     .attr('stroke', '#000');
 
-                if (!$.isEmptyObject(getMetadataColor())) {
-                    Object.keys(getMetadataColor()).forEach(function(key) {
+                if (!$.isEmptyObject(metadataColor)) {
+                    Object.keys(metadataColor).forEach(function(key) {
                         d3
                             .select('#animal-' + key)
-                            .style('fill', getMetadataColor()[key])
-                            .attr('stroke', getMetadataColor()[key]);
+                            .style('fill', metadataColor[key])
+                            .attr('stroke', metadataColor[key]);
                     });
                 }
             }
@@ -675,39 +652,39 @@ export function draw() {
             d3.select('.centroid')
                 .attr('cx', function() {
                     if ('centroid' in self.swarmData[0]) {
-                        return self.getSwarmData()[indexTime]['centroid'][0];
+                        return self.swarmData[indexTime]['centroid'][0];
                     } else {
                         return 0;
                     }
                 })
                 .attr('cy', function() {
-                    if ('centroid' in self.getSwarmData()[0]) {
-                        return -self.getSwarmData()[indexTime]['centroid'][1];
+                    if ('centroid' in self.swarmData[0]) {
+                        return -self.swarmData[indexTime]['centroid'][1];
                     } else {
                         return 0;
                     }
                 });
             if ($('#draw-direction').is(':checked') &&
-                self.getSwarmData()[indexTime].centroid &&
+                self.swarmData[indexTime].centroid &&
                 $('#draw-centroid').is(':checked')) {
                 d3.select('#centroid-line')
                     .classed('hidden', false);
                 // UPDATE animal direction arrow
                 d3.select('#centroid-line')
                     .attr('x1', function() {
-                        return self.getSwarmData()[indexTime]['centroid'][0];
+                        return self.swarmData[indexTime]['centroid'][0];
                     })
                     .attr('y1', function() {
-                        return -self.getSwarmData()[indexTime]['centroid'][1];
+                        return -self.swarmData[indexTime]['centroid'][1];
                     })
                     .attr('x2', function() {
-                        return (self.getSwarmData()[indexTime]['centroid'][0] + 2 * animalScale);
+                        return (self.swarmData[indexTime]['centroid'][0] + 2 * animalScale);
                     })
                     .attr('y2', function() {
-                        return -self.getSwarmData()[indexTime]['centroid'][1];
+                        return -self.swarmData[indexTime]['centroid'][1];
                     })
                     .attr('transform', function() {
-                        return 'rotate(' + -self.getSwarmData()[indexTime]['direction'] + ' ' + self.getSwarmData()[indexTime]['centroid'][0] + ' ' + -self.getSwarmData()[indexTime]['centroid'][1] + ')';
+                        return 'rotate(' + -self.swarmData[indexTime]['direction'] + ' ' + self.swarmData[indexTime]['centroid'][0] + ' ' + -self.swarmData[indexTime]['centroid'][1] + ')';
                     });
             } else {
                 // hide the arrows
@@ -720,7 +697,7 @@ export function draw() {
             if (medoidAnimal !== -1) {
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', false);
-                medoidAnimal = self.getSwarmData()[indexTime]['medoid'];
+                medoidAnimal = self.swarmData[indexTime]['medoid'];
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', true);
             }
@@ -728,23 +705,23 @@ export function draw() {
             //next frame
             indexTime++;
 
-            if (d3.select('#lineChartTimeLine') && self.getSwarmData()[Math.ceil(indexTime / getLineChartRatio())]) {
-                let tmp = Math.ceil(indexTime / getLineChartRatio());
+            if (d3.select('#lineChartTimeLine') && self.swarmData[Math.ceil(indexTime / lineChartRatio)]) {
+                let tmp = Math.ceil(indexTime / lineChartRatio);
                 //update the line chart legend text values per second
                 if (indexTime % 25 === 0) {
                     // TODO change this to a more modular way
                     d3.select('#convex_hull_areaLineValue')
-                        .text((self.getSwarmData()[tmp]['convex_hull_area']) + 'mm²');
+                        .text((self.swarmData[tmp]['convex_hull_area']) + 'mm²');
                     d3.select('#speedLineValue')
-                        .text(self.getSwarmData()[tmp]['speed'] + 'mm/s');
+                        .text(self.swarmData[tmp]['speed'] + 'mm/s');
                     d3.select('#accelerationLineValue')
-                        .text(self.getSwarmData()[tmp]['acceleration'] + 'mm/s²');
+                        .text(self.swarmData[tmp]['acceleration'] + 'mm/s²');
                     d3.select('#distance_centroidLineValue')
-                        .text(self.getSwarmData()[tmp]['distance_centroid'] + 'mm');
+                        .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
                     d3.select('#directionLineValue')
-                        .text(self.getSwarmData()[tmp]['direction'] + '°');
+                        .text(self.swarmData[tmp]['direction'] + '°');
                     d3.select('#polarisationLineValue')
-                        .text(self.getSwarmData()[tmp]['polarisation']);
+                        .text(self.swarmData[tmp]['polarisation']);
                 }
 
                 d3.select('#lineChartTimeLine')
@@ -753,7 +730,7 @@ export function draw() {
 
 
             //check if play button is active and if the animation is not finished
-            if (indexTime >= self.getSwarmData().length) {
+            if (indexTime >= self.swarmData.length) {
                 //start again from the start
                 indexTime = 0;
                 draw();
@@ -771,78 +748,27 @@ export function draw() {
     Getter and setter
  *************************************************/
 
-export function getPlayBoolean() {
-    return playBoolean;
-}
-
-export function setPlayBoolean(value) {
-    if (typeof value === 'boolean') {
-        playBoolean = value;
-    } else {
-        playBoolean = false;
-    }
-}
-
-export function getIndexTime() {
-    return indexTime;
-}
 
 export function setIndexTime(value) {
-    if (typeof value === 'number' && (indexTime <= self.getSwarmData().length)) {
+    if (typeof value === 'number' && (indexTime <= self.swarmData.length)) {
         indexTime = value;
     } else {
         indexTime = 0;
     }
 }
 
-export function getZoomFunction() {
-    return zoomFunction;
-}
-
-export function setZoomFunction(value) {
-    zoomFunction = value;
-}
-
-export function getTankWidth() {
-    return tankWidth;
-}
-
-export function getTankHeight() {
-    return tankHeight;
-}
-
-export function getActiveScale() {
-    return activeScale;
+export function decIndexTime() {
+    indexTime = indexTime - 1;
 }
 
 export function setActiveScale(value) {
     activeScale = value;
 }
 
-export function getMedoidAnimal() {
-    return medoidAnimal;
-}
-
 export function setMedoidAnimal(value) {
     medoidAnimal = value;
 }
 
-export function getActiveAnimals() {
-    return activeAnimals;
-}
-
 export function setActiveAnimals(value) {
     activeAnimals = value;
-}
-
-export function getArrayAnimals() {
-    return arrayAnimals;
-}
-
-export function setArrayAnimals(value) {
-    arrayAnimals = value;
-}
-
-export function setToolTip(value) {
-    tooltip = value;
 }

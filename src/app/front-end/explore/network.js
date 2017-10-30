@@ -2,8 +2,8 @@
 /*global window, $, d3 */
 
 
-let networkAuto = false; // if true the network edge limit is automatically suggested
-let networkLimit = 0;
+export let networkAuto = false; // if true the network edge limit is automatically suggested
+export let networkLimit = 0;
 // fixed color scale for the network
 
 export let networkColorScale = d3.scaleThreshold()
@@ -38,16 +38,9 @@ export function addNetworkButtons(data) {
     Getter and setter
  *************************************************/
 
-export function getNetworkAuto() {
-    return networkAuto;
-}
 
 export function setNetworkAuto(value) {
     networkAuto = value;
-}
-
-export function getNetworLimit() {
-    return networkLimit;
 }
 
 export function setNetworLimit(value) {

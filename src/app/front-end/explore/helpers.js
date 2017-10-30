@@ -3,10 +3,12 @@
 // import * as spv from './spatial_view.js';
 
 import {
-    draw,
-    setPlayBoolean
-} from './spatial_view.js';
+    draw
+} from './spatial_view/spatial_view.js';
 
+import {
+    setPlayBoolean
+} from './listener.js';
 
 /**
  * Disable the play button --> Loading symbol

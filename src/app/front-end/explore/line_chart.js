@@ -1,22 +1,14 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $, parameters*/
-
-'use strict';
-import {
-    getSwarmData,
-    dataset,
-} from './explore.js';
-
 import {
     setIndexTime,
-    getZoomFunction,
-    setZoomFunction,
     animal_ids
-} from './spatial_view.js';
+} from './spatial_view/spatial_view.js';
 
 import * as self from './explore.js';
 
-let lineChartRatio = 0;
+export let zoomFunction;
+export let lineChartRatio = 0;
 
 
 /**
@@ -27,7 +19,11 @@ let lineChartRatio = 0;
 export function lineChart() {
     let lineChartWidth = 5000;
 
-    lineChartRatio = Math.ceil(self.getSwarmData().length / lineChartWidth);
+    zoomFunction = d3.scaleLinear()
+        .domain([0, self.swarmData.length])
+        .range([0, self.swarmData.length]);
+
+    lineChartRatio = Math.ceil(self.swarmData.length / lineChartWidth);
 
     /**
      * Draw the line chart for the averaged swarm features
@@ -43,7 +39,7 @@ export function lineChart() {
     };
     let marginToLegend = 50;
 
-    let swarm_features = Object.keys(getSwarmData()[0]);
+    let swarm_features = Object.keys(self.swarmData[0]);
     // remove the time key
     let index = swarm_features.indexOf('time');
     swarm_features.splice(index, 1);
@@ -65,15 +61,15 @@ export function lineChart() {
     let lineChartData = [];
     let ratio = 1;
     // aggregate and average the swarm data to lineChartWidth points in the line chart
-    if (getSwarmData().length > lineChartWidth) {
-        ratio = Math.ceil(getSwarmData().length / lineChartWidth);
+    if (self.swarmData.length > lineChartWidth) {
+        ratio = Math.ceil(self.swarmData.length / lineChartWidth);
         // tmp array for the aggregated and averaged features
         let tmp = new Array(swarm_features.length).fill(0);
 
-        for (let i = 0; i < getSwarmData().length; i++) {
+        for (let i = 0; i < self.swarmData.length; i++) {
             // aggregate the features in the temp array
             for (let j = 0; j < swarm_features.length; j++) {
-                tmp[j] += getSwarmData()[i][swarm_features[j]];
+                tmp[j] += self.swarmData[i][swarm_features[j]];
             }
             // if the ratio is zero then average it and set it to zero
             if (i % ratio === 0) {
@@ -91,7 +87,7 @@ export function lineChart() {
             }
         }
     } else {
-        lineChartData = getSwarmData();
+        lineChartData = self.swarmData;
     }
 
 
@@ -130,8 +126,8 @@ export function lineChart() {
         }
         // tmp scale to include the zoom factor
         let tmpScale = d3.scaleLinear()
-            .domain(getZoomFunction().range())
-            .range(getZoomFunction().domain());
+            .domain(zoomFunction.range())
+            .range(zoomFunction.domain());
         // set the new time
         setIndexTime(Math.floor((tmpScale(coords[0] - margin.left)) * ratio));
     };
@@ -151,7 +147,7 @@ export function lineChart() {
             // get the transform factor
             let t = d3.event.transform;
             // change scaling function
-            setZoomFunction(x.domain(t.rescaleX(x2).domain()));
+            zoomFunction = x.domain(t.rescaleX(x2).domain());
             // zoom each avaiable line
             for (let key in lines) {
                 if (lines.hasOwnProperty(key)) {
@@ -408,7 +404,7 @@ export function lineChart() {
             return;
         }
         // data is not loaded fully -- return
-        if (!dataset[0][feature]) {
+        if (!self.dataset[0][feature]) {
             return;
         }
         // change to the trend chart legend
@@ -420,11 +416,11 @@ export function lineChart() {
             let trendChartData = [];
             let num_animals = animal_ids.length;
             // calculate the percetiles for every time step
-            for (let i = 0; i < getSwarmData().length; i++) {
+            for (let i = 0; i < self.swarmData.length; i++) {
                 let tmp = [];
                 for (let j = 0; j < num_animals; j++) {
-                    if (dataset[i * num_animals + j]) {
-                        tmp.push(dataset[i * num_animals + j][feature]);
+                    if (self.dataset[i * num_animals + j]) {
+                        tmp.push(self.dataset[i * num_animals + j][feature]);
                     }
                 }
                 trendChartData.push(percentiles(tmp));
@@ -564,13 +560,4 @@ export function lineChart() {
         $('#lineChartLegend').show();
     }
 
-}
-
-
-/************************************************
-    Getter and setter
- *************************************************/
-
-export function getLineChartRatio() {
-    return lineChartRatio;
 }

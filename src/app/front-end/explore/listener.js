@@ -1,7 +1,7 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $, parameters, Set*/
 
-import * as SPV from './spatial_view.js';
+import * as SPV from './spatial_view/spatial_view.js';
 
 import {
     enablePlayButton,
@@ -9,16 +9,16 @@ import {
 } from './helpers.js';
 
 import {
-    getTimeSlider,
-    brushend
-} from './spatial_view_interaction.js';
+    brushend,
+    slider
+} from './spatial_view/interaction.js';
 
 import {
     changeLegend,
-} from './spatial_view_legend.js';
+} from './spatial_view/legend.js';
 
 import {
-    getMetadataColor,
+    metadataColor,
     resetIndividualMetadata,
     colorMetadata
 } from './metadata.js';
@@ -34,7 +34,6 @@ import {
     swarmData,
     setSwarmData,
     datasetMetadata,
-    getSwarmData,
     setNetworkData
 } from './explore.js';
 
@@ -43,11 +42,13 @@ import {
 } from './ajax_queries.js';
 
 import {
-    getColorScale
-} from './spatial_view_color_picker';
+    colorScale
+} from './spatial_view/color_picker';
 
 let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 let brush; // brushing variable
+export let playBoolean = true; // pause and play boolean
+
 
 export function initListeners() {
     cp_listener();
@@ -65,10 +66,10 @@ function cp_listener() {
      */
     $('#play-button').click(function() {
         if ($('#play-button').hasClass('active') === true) {
-            SPV.setPlayBoolean(false);
+            playBoolean = false;
         } else {
-            SPV.setPlayBoolean(true);
-            SPV.setIndexTime(getTimeSlider().slider('value'));
+            playBoolean = true;
+            SPV.setIndexTime(slider.slider('value'));
             $('.brush').remove();
             SPV.draw();
         }
@@ -79,7 +80,7 @@ function cp_listener() {
      */
     $('#next-frame-button').click(function() {
         if ($('#play-button').hasClass('active') === true) {
-            SPV.setPlayBoolean(false);
+            playBoolean = false;
         }
         $('#play-button').removeClass('active');
         SPV.draw();
@@ -91,14 +92,14 @@ function cp_listener() {
      */
     $('#brushing-button').click(function() {
         //stop the animation
-        SPV.setPlayBoolean(false);
+        playBoolean = false;
         $('#play-button').removeClass('active');
         if (!$('#brushing-button').hasClass('active')) {
             //define the brush
             brush = d3.brush()
                 .extent([
                     [0, 0],
-                    [SPV.getTankWidth(), SPV.getTankHeight()]
+                    [SPV.tankWidth, SPV.tankHeight]
                 ])
                 .on('end', brushend);
             //add the brush
@@ -122,7 +123,8 @@ function cp_listener() {
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                SPV.setIndexTime(SPV.getIndexTime() - 1);
+
+                SPV.decIndexTime();
                 SPV.draw();
             }
         }
@@ -165,11 +167,11 @@ function cp_listener() {
      * Color Scale Function Radio buttons
      */
     $('#color-scale-radio-form input').on('change', function() {
-        getColorScale()['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
+        colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            SPV.setIndexTime(SPV.getIndexTime() - 1);
+            SPV.decIndexTime();
             SPV.draw();
         }
     });
@@ -197,7 +199,7 @@ function sf_listeners() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            SPV.setIndexTime(SPV.getIndexTime() - 1);
+            SPV.decIndexTime();
             SPV.draw();
         }
     });
@@ -220,20 +222,20 @@ function sf_listeners() {
                     },
                     success: function(data) {
                         for (let i = 0; i < swarmData.length; i++) {
-                            getSwarmData()[i]['medoid'] = data[i];
+                            swarmData[i]['medoid'] = data[i];
                         }
                         enablePlayButton();
                     }
                 });
 
             }
-            SPV.setMedoidAnimal(swarmData[SPV.getIndexTime()]['medoid']);
+            SPV.setMedoidAnimal(swarmData[SPV.indexTime]['medoid']);
             // display the medoid
-            d3.selectAll('#animal-' + SPV.getMedoidAnimal())
+            d3.selectAll('#animal-' + SPV.medoidAnimal)
                 .classed('medoid', true);
         } else {
             // do not display the medoid fish
-            d3.selectAll('#animal-' + SPV.getMedoidAnimal())
+            d3.selectAll('#animal-' + SPV.medoidAnimal)
                 .classed('medoid', false);
             SPV.setMedoidAnimal(-1);
         }
@@ -256,7 +258,7 @@ function sf_listeners() {
                     },
                     success: function(data) {
                         for (let i = 0; i < swarmData.length; i++) {
-                            getSwarmData()[i]['centroid'] = [Math.round(data[i][0] * 100) / 100, Math.round(data[i][1] * 100) / 100];
+                            swarmData[i]['centroid'] = [Math.round(data[i][0] * 100) / 100, Math.round(data[i][1] * 100) / 100];
                         }
                         enablePlayButton();
                     }
@@ -323,7 +325,7 @@ function sf_listeners() {
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                SPV.setIndexTime(SPV.getIndexTime() - 1);
+                SPV.decIndexTime();
                 SPV.draw();
             }
         }
@@ -347,7 +349,7 @@ function sf_listeners() {
                     },
                     success: function(data) {
                         for (let i = 0; i < swarmData.length; i++) {
-                            getSwarmData()[i]['voronoi'] = data[i];
+                            swarmData[i]['voronoi'] = data[i];
                         }
                         enablePlayButton();
                     }
@@ -356,7 +358,7 @@ function sf_listeners() {
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
-                SPV.setIndexTime(SPV.getIndexTime() - 1);
+                SPV.decIndexTime();
                 SPV.draw();
             }
         }
@@ -394,7 +396,7 @@ function af_listeners() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            SPV.setIndexTime(SPV.getIndexTime() - 1);
+            SPV.decIndexTime();
             SPV.draw();
         }
     });
@@ -427,7 +429,7 @@ function af_listeners() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            SPV.setIndexTime(SPV.getIndexTime() - 1);
+            SPV.decIndexTime();
             SPV.draw();
         }
     });
@@ -460,7 +462,7 @@ function af_listeners() {
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
             //this applys the changes
-            SPV.setIndexTime(SPV.getIndexTime() - 1);
+            SPV.decIndexTime();
             SPV.draw();
         }
     });
@@ -536,11 +538,11 @@ function md_listeners() {
             .css('background-color', colorRGB);
         // if white than reset the color
         if (colorRGB === 'rgb(255, 255, 255)') {
-            if (getMetadataColor()[id]) {
-                delete getMetadataColor()[id];
+            if (metadataColor[id]) {
+                delete metadataColor[id];
             }
         } else {
-            getMetadataColor()[id] = colorRGB;
+            metadataColor[id] = colorRGB;
         }
     });
 
@@ -569,7 +571,7 @@ function md_listeners() {
                 for (let j = 0; j < tmp.length; j++) {
                     if (datasetMetadata[i][value].toLowerCase() === tmp[j]) {
                         // add the coloring to the metadatacolor object
-                        getMetadataColor()[datasetMetadata[i]['animal_id']] = colors[j];
+                        metadataColor[datasetMetadata[i]['animal_id']] = colors[j];
                     }
                 }
             }
@@ -631,4 +633,15 @@ function md_listeners() {
         resetIndividualMetadata();
     });
 
+}
+/************************************************
+    Getter and setter
+ *************************************************/
+
+export function setPlayBoolean(value) {
+    if (typeof value === 'boolean') {
+        playBoolean = value;
+    } else {
+        playBoolean = false;
+    }
 }
