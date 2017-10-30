@@ -105,6 +105,32 @@ export function setSwarmData(data, feature) {
         if (typeof swarmData[i] === 'undefined') {
             swarmData.push({});
         }
-        swarmData[i][feature] = +data[i];
+        // check if integer or float
+        if (data[i] && !(isNaN(data[i]))) {
+            swarmData[i][feature] = +data[i];
+        } else {
+            // is string
+            swarmData[i][feature] = data[i];
+        }
+
     }
+}
+
+/**
+ * Add a new feature dimension to the swarm dataset
+ * makes this modular
+ * @param {array} data - Array of swarm values consisting of [{time:.., feature:..},{...}...]
+ * @param {string} feature - string array of the feature
+ */
+export function setDatasetFeature(data, feature) {
+    for (let i = 0; i < data.length; i++) {
+        if (typeof dataset[i] === 'undefined') {
+            dataset.push({});
+        }
+        dataset[i][feature] = +data[i];
+    }
+}
+
+export function setNetworkData(value) {
+    networkData = value;
 }

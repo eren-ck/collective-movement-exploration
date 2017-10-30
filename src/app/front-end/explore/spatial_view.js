@@ -30,7 +30,13 @@ import {
     returnColorScale
 } from './spatial_view_color_picker.js';
 
+import {
+    initListeners
+} from './listener.js';
 
+import {
+    addSpatialViewGroup
+} from './spatial_view_legend.js';
 
 // Global namespace variables
 let zoomFunction;
@@ -141,8 +147,11 @@ export function spatialViewInit() {
             .on('zoom', function() {
                 //constrained zooming
                 // modify the translate so that it never exits the tank
-                d3.event.transform.x = Math.min(0, tankWidth * (d3.event.transform.k - 1), Math.max(tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
-                d3.event.transform.y = Math.min(0, tankHeight * (d3.event.transform.k - 1), Math.max(tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+                d3.event.transform.x = Math.min(0, tankWidth * (d3.event.transform.k - 1),
+                    Math.max(tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
+
+                d3.event.transform.y = Math.min(0, tankHeight * (d3.event.transform.k - 1),
+                    Math.max(tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
 
                 // translate and scale
                 zoomGroup.attr('transform', d3.event.transform);
@@ -262,6 +271,7 @@ export function spatialViewInit() {
         //tooltip
         initTooltip();
         initSliders();
+        addSpatialViewGroup();
 
         //definte the line chart time scale
         zoomFunction = d3.scaleLinear()
@@ -272,6 +282,9 @@ export function spatialViewInit() {
 
         //Draw the fish swarm line chart
         lineChart();
+
+        // init listeners
+        initListeners();
 
         draw();
 
@@ -828,4 +841,8 @@ export function getArrayAnimals() {
 
 export function setArrayAnimals(value) {
     arrayAnimals = value;
+}
+
+export function setToolTip(value) {
+    tooltip = value;
 }

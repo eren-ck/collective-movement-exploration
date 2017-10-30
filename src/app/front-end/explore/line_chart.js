@@ -10,7 +10,8 @@ import {
 import {
     setIndexTime,
     getZoomFunction,
-    setZoomFunction
+    setZoomFunction,
+    animal_ids
 } from './spatial_view.js';
 
 import * as self from './explore.js';
@@ -417,7 +418,7 @@ export function lineChart() {
         if (!$(('#' + feature + 'TrendChart')).length) {
             // get the data for the trend chart
             let trendChartData = [];
-            let num_animals = self.animal_ids.length;
+            let num_animals = animal_ids.length;
             // calculate the percetiles for every time step
             for (let i = 0; i < getSwarmData().length; i++) {
                 let tmp = [];

@@ -1,7 +1,8 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $*/
 import {
-    getSwarmData
+    getSwarmData,
+    datasetMetadata
 } from './explore.js';
 
 import * as spv from './spatial_view.js';
@@ -54,6 +55,7 @@ export function initTooltip() {
             tooltip
                 .style('opacity', 1);
         });
+    spv.setToolTip(tooltip);
 }
 
 /**
@@ -61,23 +63,23 @@ export function initTooltip() {
  *
  */
 export function tooltipFunction(d) {
-    for (let i = 0; i < spv.datasetMetadata.length; i++) {
-        if (d['a'] === spv.datasetMetadata[i]['animal_id']) {
+    for (let i = 0; i < datasetMetadata.length; i++) {
+        if (d['a'] === datasetMetadata[i]['animal_id']) {
             tooltip
                 .style('left', (d3.event.pageX + 5) + 'px')
                 .style('top', (d3.event.pageY - 100) + 'px')
                 .style('opacity', 1);
             // set the values
             tooltip.select('#tooltip-animal-id')
-                .html(spv.datasetMetadata[i]['animal_id']);
+                .html(datasetMetadata[i]['animal_id']);
             tooltip.select('#tooltip-species')
-                .html(spv.datasetMetadata[i]['species']);
+                .html(datasetMetadata[i]['species']);
             tooltip.select('#tooltip-sex')
-                .html(spv.datasetMetadata[i]['sex']);
+                .html(datasetMetadata[i]['sex']);
             tooltip.select('#tooltip-size')
-                .html(spv.datasetMetadata[i]['size']);
+                .html(datasetMetadata[i]['size']);
             tooltip.select('#tooltip-weight')
-                .html(spv.datasetMetadata[i]['weight']);
+                .html(datasetMetadata[i]['weight']);
         }
     }
 

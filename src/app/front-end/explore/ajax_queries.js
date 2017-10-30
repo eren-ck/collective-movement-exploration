@@ -8,12 +8,17 @@ import {
     addToDataset,
     setDataSetPercentile,
     setSwarmData,
-    setMetaData
+    setMetaData,
+    setDatasetFeature
 } from './explore.js';
 
 import {
     addNetworkButtons
 } from './network.js';
+
+import {
+    enablePlayButton,
+} from './helpers.js';
 
 /**
  * Stream the movement data from the API
@@ -71,7 +76,7 @@ export function getPercentile() {
  *
  */
 export function getSwarmFeatures() {
-    let swarm_features = ['swarm_time', 'swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area',
+    const swarm_features = ['swarm_time', 'swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area',
         'swarm_distance_centroid', 'swarm_direction', 'swarm_polarisation'
     ];
 
@@ -129,4 +134,19 @@ export function getNetworkData() {
 }
 
 
-// export function aa() {}
+export function getDatasetFeature(feature) {
+    $.ajax({
+        url: '/api/dataset/' + parameters['id'] + '/' + feature,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            // add the speed feature to the dataset
+            setDatasetFeature(data, feature);
+            enablePlayButton();
+        }
+    });
+}

@@ -6,6 +6,9 @@ import {
     changeLegend
 } from './spatial_view_legend.js';
 
+import {
+    dataSetPercentile
+} from './explore.js';
 
 let colorScale = {
     type: 'Linear',
@@ -22,14 +25,14 @@ export function returnColorScale() {
     if (colorScale['type'] === 'Linear') {
         return d3.scaleLinear()
             .domain(
-                self.dataSetPercentile[spv.getActiveScale()]
+                dataSetPercentile[spv.getActiveScale()]
             )
             .range(colorScale['color']);
     } //Threshold color scale
     else if (colorScale['type'] === 'Threshold') {
         return d3.scaleThreshold()
             .domain(
-                self.dataSetPercentile[spv.getActiveScale()]
+                dataSetPercentile[spv.getActiveScale()]
             )
             .range(colorScale['color']);
     }
