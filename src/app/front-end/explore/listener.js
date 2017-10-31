@@ -49,16 +49,20 @@ let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 let brush; // brushing variable
 export let playBoolean = true; // pause and play boolean
 
-
+/**
+ * Init all the listeners
+ */
 export function initListeners() {
     cp_listener();
     sf_listeners();
     af_listeners();
-    lc_listeners();
     md_listeners();
     n_listeners();
 }
 
+/**
+ * Init control panel listeners
+ */
 function cp_listener() {
 
     /**
@@ -177,6 +181,9 @@ function cp_listener() {
     });
 }
 
+/**
+ * Init swarm features listeners
+ */
 function sf_listeners() {
 
     /**
@@ -333,7 +340,7 @@ function sf_listeners() {
 
 
     /**
-     * Draw triangulation
+     * Draw voronoi
      */
     $('#draw-voronoi').click(function() {
         if ($('#draw-voronoi').is(':checked')) {
@@ -367,7 +374,11 @@ function sf_listeners() {
 
 }
 
+/**
+ * Init absolute feature listeners
+ */
 function af_listeners() {
+
     /**
      * Draw Speed button
      */
@@ -469,10 +480,9 @@ function af_listeners() {
 
 }
 
-function lc_listeners() {
-    // nothing yet
-}
-
+/**
+ * Init network listeeners
+ */
 function n_listeners() {
     /**
      * Network buttons clicked - get the data
@@ -526,6 +536,9 @@ function n_listeners() {
 
 }
 
+/**
+ * Init metadata listeners
+ */
 function md_listeners() {
     /**
      * Metadata swatch functions coloring individual animals
@@ -638,6 +651,10 @@ function md_listeners() {
     Getter and setter
  *************************************************/
 
+/**
+ * Set play boolean
+ * @param {Boolean} value - pause (false) or play (true)
+ */
 export function setPlayBoolean(value) {
     if (typeof value === 'boolean') {
         playBoolean = value;

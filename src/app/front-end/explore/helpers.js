@@ -12,7 +12,6 @@ import {
 
 /**
  * Disable the play button --> Loading symbol
- *
  */
 export function disablePlayButton() {
     setPlayBoolean(false);
@@ -23,7 +22,6 @@ export function disablePlayButton() {
 
 /**
  * Enable the play button remove loading symbol
- *
  */
 export function enablePlayButton() {
     setPlayBoolean(true);
@@ -36,7 +34,6 @@ export function enablePlayButton() {
 
 /**
  * Return  .95 percentiles of the array
- *
  */
 export function percentiles(arr) {
     let p = 0.95;

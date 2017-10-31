@@ -9,7 +9,9 @@ import {
 
 export let metadataColor = {}; // save the metadata coloring
 
-
+/**
+ * Init Metadata buttons 
+ */
 export function initializeMetaddata() {
     let colors = ['#fff', '#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628'];
     // add the data to the metadata modal

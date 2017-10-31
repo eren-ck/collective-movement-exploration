@@ -1,18 +1,23 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3,*/
 
-import * as spv from './spatial_view.js';
+import * as SPV from './spatial_view.js';
 
-import * as colorpicker from './color_picker.js';
+import {
+    returnColorScale
+} from './color_picker.js';
 
-let svgLegend;
-let tankWidth;
-let tankHeight;
+let svgLegend; // svg container for the legend
+let tankWidth; // spatial view width
+let tankHeight; // spatial view height 
 
-// group for the legend
+/**
+ * Add the group to the svg where the legend for the color legend is
+ * TODO change this - so that the legend is also responsive
+ */
 export function addSpatialViewGroup() {
-    tankWidth = spv.tankWidth;
-    tankHeight = spv.tankHeight;
+    tankWidth = SPV.tankWidth;
+    tankHeight = SPV.tankHeight;
 
     svgLegend = d3.select('#main-vis-legend-div')
         .classed('svg-legendContainer', true)
@@ -26,10 +31,9 @@ export function addSpatialViewGroup() {
         .attr('class', 'colorLegend');
 }
 
-
-
 /**
  * Change the color legend
+ *
  */
 export function changeLegend() {
     var legend; // the color legend
@@ -40,8 +44,8 @@ export function changeLegend() {
     var differentColors = 0;
 
     //change the colors of the animals
-    if (spv.activeScale !== 'black') {
-        var tmpScale = colorpicker.returnColorScale();
+    if (SPV.activeScale !== 'black') {
+        var tmpScale = returnColorScale();
         // once the fill for the heads and the stroke for the path
         legend = svgLegend.selectAll('rect.legend')
             .data(tmpScale.range());

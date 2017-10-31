@@ -47,7 +47,6 @@ export function streamMovementData() {
 
 /**
  * Get the percentile data from the api
- *
  */
 export function getPercentile() {
     let dataSetPercentile = [];
@@ -73,7 +72,6 @@ export function getPercentile() {
 
 /**
  * Get the swarm features for the line chart from the api
- *
  */
 export function getSwarmFeatures() {
     const swarm_features = ['swarm_time', 'swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area',
@@ -98,10 +96,11 @@ export function getSwarmFeatures() {
         });
     }
 }
-//
-//
+
+/**
+ * Get the meadata information
+ */
 export function getMetaData() {
-    //get metadata information
     $.ajax({
         url: '/api/metadata/' + parameters['id'],
         dataType: 'json',
@@ -111,13 +110,14 @@ export function getMetaData() {
             'Accept': JSONAPI_MIMETYPE
         },
         success: function(data) {
-            // add the speed feature to the dataset
             setMetaData(data);
         }
     });
 }
 
-
+/**
+ * Get the network data
+ */
 export function getNetworkData() {
     $.ajax({
         url: '/api/dataset/networks/' + parameters['id'],
@@ -133,7 +133,10 @@ export function getNetworkData() {
     });
 }
 
-
+/**
+ * Get the specifc feature
+ * @param {String} feature - for instance speed, swarm_convex_hull_area etc.
+ */
 export function getDatasetFeature(feature) {
     $.ajax({
         url: '/api/dataset/' + parameters['id'] + '/' + feature,

@@ -1,9 +1,18 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $,d3, parameters, Set */
 'use strict';
-import * as self from '../explore.js';
+import {
+    dataset,
+    networkData,
+    swarmData
+} from '../explore.js';
 
-import * as networks from '../network.js';
+import {
+    networkColorScale,
+    networkAuto,
+    setNetworLimit,
+    networkLimit
+} from '../network.js';
 
 import {
     lineChart,
@@ -41,21 +50,22 @@ import {
     addSpatialViewGroup
 } from './legend.js';
 
-// Global namespace variables
-export let indexTime = 0;
+export let indexTime = 0; // actual time moment in the animation
 export let tankWidth;
 export let tankHeight;
-export let activeScale = 'black'; // no color scales
-export let medoidAnimal = -1;
+export let activeScale = 'black'; // can be speed, acceleration, .. and black (meaning no active scale)
+export let medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
 export let activeAnimals = []; // active selected animals
-export let arrayAnimals;
-export let animal_ids;
+export let arrayAnimals; // array of animals for the specific time frame
+export let animal_ids; // array of unique animal ids
+
+let svgContainer; // svg container for the spatial view
+let tank; // svg group for the spatial view tank
 
 
-let svgContainer;
-let tank;
-
-
+/**
+ * Initialize the spatial view with all the important factors
+ */
 export function spatialViewInit() {
 
     let minPoint = parameters['min']['geometry']['coordinates'];
@@ -65,6 +75,7 @@ export function spatialViewInit() {
     tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
     tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
 
+    // make the view resizable
     $(function() {
         $('#main-vis').draggable({
                 containment: 'parent'
@@ -73,7 +84,6 @@ export function spatialViewInit() {
                 maxWidth: $('#main-vis-div').width()
             }).height(tankHeight * 0.5)
             .width(tankWidth * 0.5);
-
     });
 
     //reset all checkboxes
@@ -92,17 +102,16 @@ export function spatialViewInit() {
     $('#loading')
         .hide();
 
-    // number of distinct animal ids
+    // get  number of distinct animal ids
     let num_animals = new Set();
-    for (let i = 0; i < self.dataset.length; i++) {
-        if (self.dataset[i]['t'] === self.dataset[0]['t']) {
-            num_animals.add(self.dataset[i]['a']);
+    for (let i = 0; i < dataset.length; i++) {
+        if (dataset[i]['t'] === dataset[0]['t']) {
+            num_animals.add(dataset[i]['a']);
         } else {
-            i = self.dataset.length;
+            i = dataset.length;
         }
     }
     animal_ids = Array.from(num_animals).sort();
-
 
     //X and Y axis
     let x = d3.scaleLinear()
@@ -124,6 +133,7 @@ export function spatialViewInit() {
         .tickPadding(5);
 
     // ZOOMING AND PANNING STUFF
+    // TODO remove this from here to interaction
     let zoomGroup;
     let zoom = d3.zoom()
         .scaleExtent([1, 6])
@@ -233,8 +243,6 @@ export function spatialViewInit() {
     tank.append('g')
         .attr('id', 'vornoiGroup');
 
-
-
     //append the frame time text
     svgContainer.append('text')
         .attr('class', 'frameText')
@@ -251,28 +259,20 @@ export function spatialViewInit() {
         .attr('class', 'y axis')
         .call(yAxis);
 
-    //tooltip
+    // init stuff from other modules
     initTooltip();
     initSliders();
     addSpatialViewGroup();
-
     initColorPicker();
-
-    //Draw the fish swarm line chart
     lineChart();
-
-    // init listeners
     initListeners();
-
+    // start the animation
     draw();
-
-
 }
 
 /**
  * Drawing function - is called for each timestep
  * indexTime saves the current time
- *
  */
 export function draw() {
     //measure execution time of function draw
@@ -286,7 +286,7 @@ export function draw() {
         .val();
 
     //get the next animals
-    arrayAnimals = self.dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
+    arrayAnimals = dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
 
     //the timeout is set after one update 30 ms
     setTimeout(function() {
@@ -303,9 +303,9 @@ export function draw() {
 
             // Network vis
             let networkVis;
-            if (indexTime in self.networkData) {
+            if (indexTime in networkData) {
                 let network = [];
-                let tmp = self.networkData[indexTime];
+                let tmp = networkData[indexTime];
 
                 let tmp_index = 0;
                 for (let i = 0; i < arrayAnimals.length; i++) {
@@ -321,20 +321,20 @@ export function draw() {
                     }
                 }
                 network.forEach(function(d) {
-                    $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networks.networkColorScale(d['val']));
-                    $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networks.networkColorScale(d['val']));
+                    $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
+                    $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
                 });
 
-                if (networks.networkAuto) {
+                if (networkAuto) {
                     let tmpArray = [];
                     for (let i = 0; i < network.length; i++) {
                         tmpArray.push(network[i]['val']);
                     }
-                    networks.setNetworLimit(percentiles(tmpArray));
+                    setNetworLimit(percentiles(tmpArray));
                 }
 
                 network = network.filter(function(d) {
-                    return d['val'] >= networks.networkLimit;
+                    return d['val'] >= networkLimit;
                 });
                 // DATA JOIN
                 networkVis = tank.select('#networkGroup')
@@ -355,7 +355,7 @@ export function draw() {
                         return (-d['end'][1]);
                     })
                     .attr('stroke', function(d) {
-                        return networks.networkColorScale(d['val']);
+                        return networkColorScale(d['val']);
                     })
                     .attr('stroke-opacity', function(d) {
                         return d['val'];
@@ -378,13 +378,11 @@ export function draw() {
                         return (-d['end'][1]);
                     })
                     .attr('stroke', function(d) {
-                        return networks.networkColorScale(d['val']);
+                        return networkColorScale(d['val']);
                     })
                     .attr('stroke-opacity', function(d) {
                         return d['val'];
                     });
-
-
 
             } else {
                 networkVis = tank.selectAll('line.networkEdges')
@@ -401,7 +399,7 @@ export function draw() {
                 .is(':checked')) {
                 triangulation = tank.select('#delaunayTriangulationGroup')
                     .selectAll('path.delaunayTriangulation')
-                    .data([self.swarmData[indexTime]['triangulation']]);
+                    .data([swarmData[indexTime]['triangulation']]);
 
                 // UPDATE - triangulation
                 triangulation
@@ -432,8 +430,7 @@ export function draw() {
                 voronoi = tank
                     .select('#vornoiGroup')
                     .selectAll('path.voronoi')
-                    .data(self.swarmData[indexTime]['voronoi'].split(';'));
-
+                    .data(swarmData[indexTime]['voronoi'].split(';'));
 
                 // UPDATE - voronoi
                 voronoi
@@ -455,7 +452,6 @@ export function draw() {
             // EXIT - voronoi
             voronoi.exit()
                 .remove();
-
 
             //ENTER - append the animal groups
             let animalGroupings = svgAnimals
@@ -567,7 +563,7 @@ export function draw() {
                 .is(':checked')) {
                 // DATA JOIN - paths
                 var hullPath = tank.selectAll('path.hullPath')
-                    .data([self.swarmData[indexTime]['hull']]);
+                    .data([swarmData[indexTime]['hull']]);
 
                 // UPDATE - hull path
                 hullPath
@@ -621,7 +617,6 @@ export function draw() {
                 }
             }
 
-
             //change opactiy if the fish is selected
             if (activeAnimals.length) {
                 svgAnimals
@@ -651,40 +646,40 @@ export function draw() {
             //draw centroid
             d3.select('.centroid')
                 .attr('cx', function() {
-                    if ('centroid' in self.swarmData[0]) {
-                        return self.swarmData[indexTime]['centroid'][0];
+                    if ('centroid' in swarmData[0]) {
+                        return swarmData[indexTime]['centroid'][0];
                     } else {
                         return 0;
                     }
                 })
                 .attr('cy', function() {
-                    if ('centroid' in self.swarmData[0]) {
-                        return -self.swarmData[indexTime]['centroid'][1];
+                    if ('centroid' in swarmData[0]) {
+                        return -swarmData[indexTime]['centroid'][1];
                     } else {
                         return 0;
                     }
                 });
             if ($('#draw-direction').is(':checked') &&
-                self.swarmData[indexTime].centroid &&
+                swarmData[indexTime].centroid &&
                 $('#draw-centroid').is(':checked')) {
                 d3.select('#centroid-line')
                     .classed('hidden', false);
                 // UPDATE animal direction arrow
                 d3.select('#centroid-line')
                     .attr('x1', function() {
-                        return self.swarmData[indexTime]['centroid'][0];
+                        return swarmData[indexTime]['centroid'][0];
                     })
                     .attr('y1', function() {
-                        return -self.swarmData[indexTime]['centroid'][1];
+                        return -swarmData[indexTime]['centroid'][1];
                     })
                     .attr('x2', function() {
-                        return (self.swarmData[indexTime]['centroid'][0] + 2 * animalScale);
+                        return (swarmData[indexTime]['centroid'][0] + 2 * animalScale);
                     })
                     .attr('y2', function() {
-                        return -self.swarmData[indexTime]['centroid'][1];
+                        return -swarmData[indexTime]['centroid'][1];
                     })
                     .attr('transform', function() {
-                        return 'rotate(' + -self.swarmData[indexTime]['direction'] + ' ' + self.swarmData[indexTime]['centroid'][0] + ' ' + -self.swarmData[indexTime]['centroid'][1] + ')';
+                        return 'rotate(' + -swarmData[indexTime]['direction'] + ' ' + swarmData[indexTime]['centroid'][0] + ' ' + -swarmData[indexTime]['centroid'][1] + ')';
                     });
             } else {
                 // hide the arrows
@@ -692,36 +687,34 @@ export function draw() {
                     .attr('class', 'hidden');
             }
 
-
             // medoid
             if (medoidAnimal !== -1) {
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', false);
-                medoidAnimal = self.swarmData[indexTime]['medoid'];
+                medoidAnimal = swarmData[indexTime]['medoid'];
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', true);
             }
-
             //next frame
             indexTime++;
 
-            if (d3.select('#lineChartTimeLine') && self.swarmData[Math.ceil(indexTime / lineChartRatio)]) {
+            if (d3.select('#lineChartTimeLine') && swarmData[Math.ceil(indexTime / lineChartRatio)]) {
                 let tmp = Math.ceil(indexTime / lineChartRatio);
                 //update the line chart legend text values per second
                 if (indexTime % 25 === 0) {
                     // TODO change this to a more modular way
                     d3.select('#convex_hull_areaLineValue')
-                        .text((self.swarmData[tmp]['convex_hull_area']) + 'mm²');
+                        .text((swarmData[tmp]['convex_hull_area']) + 'mm²');
                     d3.select('#speedLineValue')
-                        .text(self.swarmData[tmp]['speed'] + 'mm/s');
+                        .text(swarmData[tmp]['speed'] + 'mm/s');
                     d3.select('#accelerationLineValue')
-                        .text(self.swarmData[tmp]['acceleration'] + 'mm/s²');
+                        .text(swarmData[tmp]['acceleration'] + 'mm/s²');
                     d3.select('#distance_centroidLineValue')
-                        .text(self.swarmData[tmp]['distance_centroid'] + 'mm');
+                        .text(swarmData[tmp]['distance_centroid'] + 'mm');
                     d3.select('#directionLineValue')
-                        .text(self.swarmData[tmp]['direction'] + '°');
+                        .text(swarmData[tmp]['direction'] + '°');
                     d3.select('#polarisationLineValue')
-                        .text(self.swarmData[tmp]['polarisation']);
+                        .text(swarmData[tmp]['polarisation']);
                 }
 
                 d3.select('#lineChartTimeLine')
@@ -730,7 +723,7 @@ export function draw() {
 
 
             //check if play button is active and if the animation is not finished
-            if (indexTime >= self.swarmData.length) {
+            if (indexTime >= swarmData.length) {
                 //start again from the start
                 indexTime = 0;
                 draw();
@@ -745,30 +738,48 @@ export function draw() {
 }
 
 /************************************************
-    Getter and setter
+    Setter
  *************************************************/
 
-
+/**
+ * Set the index time to a new value
+ * @param {Number} value - new time step
+ */
 export function setIndexTime(value) {
-    if (typeof value === 'number' && (indexTime <= self.swarmData.length)) {
+    if (typeof value === 'number' && (indexTime <= swarmData.length)) {
         indexTime = value;
     } else {
         indexTime = 0;
     }
 }
 
+/**
+ * Decrease time by 1
+ */
 export function decIndexTime() {
     indexTime = indexTime - 1;
 }
 
+/**
+ * Set the the new active scale - e.g. speed, acceleration, black etc.
+ * @param {String} value - active scale for the individual animals
+ */
 export function setActiveScale(value) {
     activeScale = value;
 }
 
+/**
+ * Set the new medoid animal
+ * @param {Number} value - Unique id of the animal
+ */
 export function setMedoidAnimal(value) {
     medoidAnimal = value;
 }
 
+/**
+ * Set the selected and highlighted animals
+ * @param {array} value - array of unqiue id of the animals
+ */
 export function setActiveAnimals(value) {
     activeAnimals = value;
 }

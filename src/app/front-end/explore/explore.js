@@ -13,18 +13,17 @@ import {
 // import css
 import './explore.css';
 
-export let dataset = [];
-export let datasetMetadata = [];
-export let swarmData = [];
-export let dataSetPercentile = {};
-export let zoomFunction;
-export let networkData = {};
+export let dataset = []; // main dataset with values for each individual animal
+export let datasetMetadata = []; // metadataset for each individual fish
+export let swarmData = []; // swarmdata for linechart and also other swarm features
+export let dataSetPercentile = {}; // pecentiles needed for the color mapping
+export let networkData = {}; // network data
 
 
 /**
- * Load the movement data with ajax queries
- * Afterwards if all ajax queries are finished
- * draw the group view
+ * Get the basic data to get the tool running.
+ * after the pending ajax queries are finished
+ * the tool is drawn
  */
 $(document).ready(function() {
     // console.log(parameters);
@@ -63,9 +62,9 @@ $(document).ready(function() {
  *************************************************/
 
 /**
- * Concact to the dataset
+ * Concact to the main dataset
  * the idea is to use this one day for lazy loading
- * @param {array} value -array of movement datasets
+ * @param {array} value - array of movement datasets
  */
 export function addToDataset(value) {
     dataset = dataset.concat(value);
@@ -91,15 +90,17 @@ export function setMetaData(value) {
 
 /**
  * Add a new feature dimension to the swarm dataset
- * makes this modular
- * @param {array} data - Array of swarm values consisting of [{time:.., feature:..},{...}...]
+ * @param {array} data - Array of swarm values consisting of [feature_0,feature_1,...]
  * @param {string} feature - string array of the feature
  */
 export function setSwarmData(data, feature) {
     for (let i = 0; i < data.length; i++) {
+
+        // add the the object to the array if there is no element yet
         if (typeof swarmData[i] === 'undefined') {
             swarmData.push({});
         }
+
         // check if integer or float
         if (data[i] && !(isNaN(data[i]))) {
             swarmData[i][feature] = +data[i];
@@ -112,20 +113,26 @@ export function setSwarmData(data, feature) {
 }
 
 /**
- * Add a new feature dimension to the swarm dataset
- * makes this modular
- * @param {array} data - Array of swarm values consisting of [{time:.., feature:..},{...}...]
+ * Add a new feature dimension to the dataset
+ * @param {array} data - Array of features values consisting of [feature_0, feature_1,...]
  * @param {string} feature - string array of the feature
  */
 export function setDatasetFeature(data, feature) {
     for (let i = 0; i < data.length; i++) {
+        // add the the object to the array if there is no element yet
         if (typeof dataset[i] === 'undefined') {
             dataset.push({});
         }
+        // parse the int
         dataset[i][feature] = +data[i];
     }
 }
 
+/**
+ * Set the network value
+ * @param {array} value - Array of of arrays with all values
+ *                           from the calculated adjacency matrix
+ */
 export function setNetworkData(value) {
     networkData = value;
 }

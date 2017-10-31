@@ -5,24 +5,23 @@ import {
     swarmData
 } from '../explore.js';
 
-import * as spv from './spatial_view.js';
+import * as SPV from './spatial_view.js';
 
-import * as network from '../network.js';
+import * as Network from '../network.js';
 
-export let slider;
-export let tooltip;
+export let slider; // time slider of the app
+export let tooltip; // tooltip function
 
 /**
  * Brush end function
- * Add the fish in the brush to the active fish and remove the brush again
- *
+ * add active animals to the array or remove them
  */
 export function brushend() {
-    let arrayAnimals = spv.arrayAnimals;
-    let activeAnimals = spv.activeAnimals;
+    let arrayAnimals = SPV.arrayAnimals;
+    let activeAnimals = SPV.activeAnimals;
     var rect = d3.event.selection;
     //iterate over the 151 fish to check which are in the brush
-    for (var i = 0; i < spv.animal_ids.length; i++) {
+    for (var i = 0; i < SPV.animal_ids.length; i++) {
         var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
         //check which fish are in  the brushed area
         if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
@@ -31,13 +30,13 @@ export function brushend() {
             activeAnimals.push(arrayAnimals[i]['a']);
         }
     }
-    spv.setActiveAnimals(activeAnimals);
+    SPV.setActiveAnimals(activeAnimals);
     if (!$('#play-button')
         .hasClass('active')) {
         //go back one second and draw the next frame
         //this applys the changes
-        spv.decIndexTime();
-        spv.draw();
+        SPV.decIndexTime();
+        SPV.draw();
     }
     $('#brushing-button')
         .removeClass('active');
@@ -46,6 +45,9 @@ export function brushend() {
         .remove();
 }
 
+/**
+ * Initialize the tooltip
+ */
 export function initTooltip() {
     tooltip = d3.select('div.tooltip')
         .style('left', 0 + 'px')
@@ -58,6 +60,7 @@ export function initTooltip() {
 
 /**
  * Tooltip function
+ * @param {Object} d - d3 data object with the metadata information
  *
  */
 export function tooltipFunction(d) {
@@ -68,6 +71,7 @@ export function tooltipFunction(d) {
                 .style('top', (d3.event.pageY - 100) + 'px')
                 .style('opacity', 1);
             // set the values
+            // TODO make this modular
             tooltip.select('#tooltip-animal-id')
                 .html(datasetMetadata[i]['animal_id']);
             tooltip.select('#tooltip-species')
@@ -83,24 +87,27 @@ export function tooltipFunction(d) {
 
 }
 
+/**
+ * Initialize the time slider and the dynamic network slider
+ */
 export function initSliders() {
-    // initialize the slider
+    // time slider
     slider = $('#slider')
         .slider({
             min: 0,
             max: swarmData.length,
             step: 25,
             slide: function(event, ui) {
-                spv.setIndexTime(ui.value);
+                SPV.setIndexTime(ui.value);
                 // if paused apply changes
                 if (!$('#play-button').hasClass('active')) {
                     //this applys the changes
-                    spv.draw();
+                    SPV.draw();
                 }
             }
         });
-    // initialize the network slider
-    $('#network-slider')
+    // initialize the Network slider
+    $('#Network-slider')
         .slider({
             range: 'max',
             min: 0,
@@ -108,8 +115,8 @@ export function initSliders() {
             step: 0.01,
             value: 0,
             slide: function(event, ui) {
-                network.setNetworLimit(ui.value);
-                $('#network-limit').val(ui.value);
+                Network.setNetworLimit(ui.value);
+                $('#Network-limit').val(ui.value);
             }
         });
 
@@ -128,6 +135,10 @@ export function initSliders() {
     Setter
  *************************************************/
 
+/**
+ * Set the time slider to a new value
+ * @param {Number} value - new value for the time slider
+ */
 export function setTimeSlider(value) {
     slider.slider('value', value);
 }
