@@ -18,6 +18,8 @@ export let datasetMetadata = []; // metadataset for each individual fish
 export let swarmData = []; // swarmdata for linechart and also other swarm features
 export let dataSetPercentile = {}; // pecentiles needed for the color mapping
 export let networkData = {}; // network data
+export let networkHierarchy = {}; // network data
+
 
 
 /**
@@ -41,7 +43,7 @@ $(document).ready(function() {
     queries.getMetaData();
 
     // get the information if there are already networks created for this dastaset
-    queries.getNetworkData();
+    queries.getNetworkDataButton();
 
     // if all ajax queries are compelte initialize
     (function() {
@@ -135,4 +137,13 @@ export function setDatasetFeature(data, feature) {
  */
 export function setNetworkData(value) {
     networkData = value;
+}
+
+/**
+ * Set the network hiearhcy value
+ * @param {array} value - Array of of arrays with all values
+ *                           with hierarchy
+ */
+export function setNetworkHierarchy(value) {
+    networkHierarchy = value;
 }

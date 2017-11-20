@@ -9,7 +9,9 @@ import {
     setDataSetPercentile,
     setSwarmData,
     setMetaData,
-    setDatasetFeature
+    setDatasetFeature,
+    setNetworkData,
+    setNetworkHierarchy
 } from './explore.js';
 
 import {
@@ -116,9 +118,9 @@ export function getMetaData() {
 }
 
 /**
- * Get the network data
+ * Get the network datasets for the buttons
  */
-export function getNetworkData() {
+export function getNetworkDataButton() {
     $.ajax({
         url: '/api/dataset/networks/' + parameters['id'],
         dataType: 'json',
@@ -152,4 +154,30 @@ export function getDatasetFeature(feature) {
             enablePlayButton();
         }
     });
+}
+
+
+/**
+ * Get the network and network hierarchy for the specific network_id
+ * @param {String} network_id - unique network id of a dataset.
+ */
+export function getNetworkData(network_id) {
+    $.ajax({
+        url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            if (data.length) {
+                setNetworkData(JSON.parse(data[0]['data']));
+                console.log(data[0]['hierarchy']);
+                console.log(JSON.parse(data[0]['hierarchy']));
+                setNetworkHierarchy(JSON.parse(data[0]['hierarchy']));
+            }
+        }
+    });
+
 }

@@ -107,7 +107,7 @@ def calculate_network(dataset_id, network_id):
 
         # save the results in the database
         network_model.network = json.dumps(results)
-        network_model.hierarchy = json.dumps(result_hclust)
+        network_model.hierarchy = json.dumps(result_hclust, separators=(',', ':'))
         network_model.finished = True
         session.commit()
     except Exception as e:
@@ -154,8 +154,8 @@ def hierarchical_clustering(args):
             Create a nested dictionary from the ClusterNode's returned by SciPy
         """
         # First create the new node and append it to its parent's children
-        newNode = dict(node_id=node.id, ch=[])
-        parent['ch'].append(newNode)
+        newNode = dict(node_id=node.id, children=[])
+        parent['children'].append(newNode)
 
         # Recursively add the current node's children
         if node.left:
@@ -166,28 +166,28 @@ def hierarchical_clustering(args):
     # Label each node with the names of each leaf in its subtree
     def label_tree(n):
         # If the node is a leaf, then we have its name
-        if len(n['ch']) == 0:
+        if len(n['children']) == 0:
             leafNames = [labels[n['node_id']]]
 
         # If not, flatten all the leaves in the node's subtree
         else:
-            leafNames = reduce(lambda ls, c: ls + label_tree(c), n['ch'], [])
+            leafNames = reduce(lambda ls, c: ls + label_tree(c), n['children'], [])
 
         # Delete the node id since we don't need it anymore and
         # it makes for cleaner JSON
         del n['node_id']
 
         # Labeling convention: "-"-separated leaf names
-        n['id'] = name = "-".join(sorted(map(str, leafNames)))
+        n['name'] = sorted(leafNames)
 
         return leafNames
 
     # parse the scipy tree structure to a json tree structure
-    dendro = dict(ch=[], id='Root')
+    dendro = dict(children=[], name='Root')
     add_node(tree, dendro)
 
     # label the leafs of the tree
-    label_tree(dendro['ch'][0])
+    label_tree(dendro['children'][0])
 
     return {time: dendro}
 

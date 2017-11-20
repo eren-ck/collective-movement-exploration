@@ -107,7 +107,7 @@ export function initSliders() {
             }
         });
     // initialize the Network slider
-    $('#Network-slider')
+    $('#network-slider')
         .slider({
             range: 'max',
             min: 0,
@@ -116,7 +116,7 @@ export function initSliders() {
             value: 0,
             slide: function(event, ui) {
                 Network.setNetworLimit(ui.value);
-                $('#Network-limit').val(ui.value);
+                $('#network-limit').val(ui.value);
             }
         });
 

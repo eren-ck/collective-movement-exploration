@@ -34,11 +34,13 @@ import {
     swarmData,
     setSwarmData,
     datasetMetadata,
-    setNetworkData
+    setNetworkData,
+    setNetworkHierarchy
 } from './explore.js';
 
 import {
-    getDatasetFeature
+    getDatasetFeature,
+    getNetworkData
 } from './ajax_queries.js';
 
 import {
@@ -489,23 +491,8 @@ function n_listeners() {
      */
     $('#networks-modal-body button').click(function() {
         let network_id = $(this).attr('data');
-        // get the data
-        $.ajax({
-            url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
-            dataType: 'json',
-            type: 'GET',
-            contentType: 'application/json; charset=utf-8',
-            headers: {
-                'Accept': JSONAPI_MIMETYPE
-            },
-            success: function(data) {
-                if (data.length) {
 
-                    setNetworkData(JSON.parse(data[0]['data']));
-                }
-            }
-        });
-
+        getNetworkData(network_id);
     });
 
     /**
@@ -513,6 +500,7 @@ function n_listeners() {
      */
     $('#network-remove').click(function() {
         setNetworkData({});
+        setNetworkHierarchy({});
     });
 
     /**

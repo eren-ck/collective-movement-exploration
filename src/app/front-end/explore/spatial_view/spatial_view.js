@@ -50,6 +50,10 @@ import {
     addSpatialViewGroup
 } from './legend.js';
 
+import {
+    draw_dendrogram
+} from '../hierarchy.js';
+
 export let indexTime = 0; // actual time moment in the animation
 export let tankWidth;
 export let tankHeight;
@@ -695,6 +699,10 @@ export function draw() {
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', true);
             }
+
+            // draw hierarchy
+            draw_dendrogram();
+
             //next frame
             indexTime++;
 
