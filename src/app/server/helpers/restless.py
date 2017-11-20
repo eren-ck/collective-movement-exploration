@@ -279,7 +279,7 @@ def api_get_dataset_networks(id=None):
 
 def api_get_network_data(dataset_id=None, network_id=None):
     """
-        Return a json of the network for a specific dataset specific dataset
+        Return a json of the network and hierarchy for a specific dataset
 
         :param
             dataset_id: id of the specific dataset

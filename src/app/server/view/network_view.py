@@ -23,6 +23,7 @@ from model.dataset_model import Dataset
 
 from feature_extraction.network_calculation import calculate_network
 
+
 class NetworkForm(FlaskForm):
     """
        WTForms for editing
@@ -41,10 +42,22 @@ class NetworkForm(FlaskForm):
                                                                                                      message='Please enter a value between 0 and 1')])
     direction = DecimalField(label='Direction', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
                                                                                                    message='Please enter a value between 0 and 1')])
-    euclidean_distance = DecimalField(label='Euclidean Distance to other animals', places=2, validators=[InputRequired(), NumberRange(min=0, max=1,
-                                                                                                   message='Please enter a value between 0 and 1')])
-    submit = SubmitField('')
+    euclidean_distance = DecimalField(label='Euclidean Distance to other animals', places=2,
+                                      validators=[InputRequired(), NumberRange(min=0, max=1,
+                                                                               message='Please enter a value between 0 and 1')])
+    # metric = SelectField(U'Metric', choices=[('euclidean', 'Euclidean distance '),
+    #                                          ('cityblock', 'Manhattan distance'),
+    #                                          ('Sqeuclidean', 'Squared Euclidean distance'),
+    #                                          ('cosine', 'Cosine distance '),
+    #                                          ('correlation', 'Correlation distance '),
+    #                                          ('hamming', 'Hamming distance'),
+    #                                          ('jaccard', 'Jaccard distance'),
+    #                                          ('chebyshev', 'Chebyshev distance'),
+    #                                          ('canberra', 'Canberra distance'),
+    #                                          ('braycurtis', 'Bray-Curtis distance')],
+    #                      validators=[InputRequired()])
 
+    submit = SubmitField('')
 
 
 class MyNetworkView(sqla.ModelView):
@@ -118,12 +131,11 @@ class MyNetworkView(sqla.ModelView):
         """
         template = self.details_template
         ids = request.args['id'].split(',')
-        dataset_id= ids[0]
+        dataset_id = ids[0]
         network_id = ids[1]
-        model = db.session.query(Network).filter_by(dataset_id=dataset_id,network_id=network_id)[0].as_dict()
+        model = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)[0].as_dict()
 
         return self.render(template, model=model)
-
 
     @expose('/new/', methods=('GET', 'POST'))
     def create_view(self):
@@ -144,7 +156,7 @@ class MyNetworkView(sqla.ModelView):
             form = NetworkForm(request.form)
             # set the possible choices for the dataset id
             form.dataset_id.choices = [(d.id, d.name) for d in
-                                       db.session.query(Dataset).filter_by(user_id=current_user.id)]
+                                       db.session.query(Dataset).filter_by(user_id=current_user.id, progress=100)]
 
             if not hasattr(form, '_validated_ruleset') or not form._validated_ruleset:
                 self._validate_form_instance(ruleset=self._form_create_rules, form=form)
@@ -165,7 +177,7 @@ class MyNetworkView(sqla.ModelView):
 
                 # start the calculation in a new process
                 p = Process(target=calculate_network,
-                            args=(model.dataset_id,model.network_id))
+                            args=(model.dataset_id, model.network_id))
                 p.start()
 
                 if '_add_another' in request.form:
