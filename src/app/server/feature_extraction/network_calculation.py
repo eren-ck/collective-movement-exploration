@@ -102,8 +102,15 @@ def calculate_network(dataset_id, network_id):
         for res in results:
             for t in res:
                 tmp[t] = res[t].round(2).tolist()
-
         results = tmp
+
+        # convert the hierarchical clustering in a form which can be converted to json
+        tmp = {}
+        for data in result_hclust:
+            for key, value in data.items():
+                tmp[key] = value;
+
+        result_hclust = tmp;
 
         # save the results in the database
         network_model.network = json.dumps(results)

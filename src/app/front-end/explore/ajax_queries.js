@@ -173,8 +173,6 @@ export function getNetworkData(network_id) {
         success: function(data) {
             if (data.length) {
                 setNetworkData(JSON.parse(data[0]['data']));
-                console.log(data[0]['hierarchy']);
-                console.log(JSON.parse(data[0]['hierarchy']));
                 setNetworkHierarchy(JSON.parse(data[0]['hierarchy']));
             }
         }

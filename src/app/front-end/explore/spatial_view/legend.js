@@ -9,7 +9,7 @@ import {
 
 let svgLegend; // svg container for the legend
 let tankWidth; // spatial view width
-let tankHeight; // spatial view height 
+let tankHeight; // spatial view height
 
 /**
  * Add the group to the svg where the legend for the color legend is

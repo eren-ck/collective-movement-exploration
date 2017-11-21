@@ -10,14 +10,47 @@ import {
     indexTime
 } from './spatial_view/spatial_view';
 
-let margin = {
-        top: 20,
-        right: 90,
-        bottom: 30,
-        left: 90
-    },
-    width = 660 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+let zoomGroup;
+let treemap;
+
+export function init_dendrogram() {
+    let margin = 20,
+        width = 5000,
+        height = 5000;
+    // animal_ids.length * 30
+    let zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .on('zoom', function() {
+            //constrained zooming
+            // modify the translate so that it never exits the tank
+            d3.event.transform.x = Math.min(0, width * (d3.event.transform.k - 1),
+                Math.max(width * (1 - d3.event.transform.k), d3.event.transform.x));
+
+            d3.event.transform.y = Math.min(0, height * (d3.event.transform.k - 1),
+                Math.max(height * (1 - d3.event.transform.k), d3.event.transform.y));
+
+            // translate and scale
+            zoomGroup.attr('transform', d3.event.transform);
+        });
+
+    let svg = d3.select('#dendrogram-vis')
+        .classed('svg-dendrogramContainer', true)
+        .append('svg')
+        .attr('preserveAspectRatio', 'xMinYMin meet')
+        .attr('viewBox', '0 0 ' + width + ' ' + height)
+        // add the class svg-content
+        .classed('svg-content', true)
+        .attr('id', 'main-vis-svg')
+        .call(zoom);
+
+    zoomGroup = svg.append('g')
+        .attr('transform', 'translate(' + margin + ',' + margin + ')')
+        .append('svg:g');
+
+    treemap = d3.tree()
+        .size([(height - margin), (width - margin)]);
+}
+
 
 export function draw_dendrogram() {
     // console.log(networkHierarchy);
@@ -26,9 +59,11 @@ export function draw_dendrogram() {
     // hide if no network is choosen
     if (!$.isEmptyObject(networkHierarchy)) {
         $('#dendrogram-vis').show();
+        if ($('#main-vis-div').attr('class') === 'col-md-12') {
+            $('#main-vis-div').removeClass('col-md-12');
+            $('#main-vis-div').addClass('col-md-8');
+        }
 
-        let treemap = d3.tree()
-            .size([height, width]);
 
         let treeData = networkHierarchy[indexTime];
         let nodes = d3.hierarchy(treeData, function(d) {
@@ -41,35 +76,35 @@ export function draw_dendrogram() {
         // append the svg object to the body of the page
         // appends a 'group' element to 'svg'
         // moves the 'group' element to the top left margin
-        let svg = d3.select('#dendrogram-vis').append('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.top + margin.bottom),
-            g = svg.append('g')
-            .attr('transform',
-                'translate(' + margin.left + ',' + margin.top + ')');
+
 
         // adds the links between the nodes
-        let link = g.selectAll('.link')
+        // let link = zoomGroup
+        zoomGroup
+            .selectAll('.link')
             .data(nodes.descendants().slice(1))
-            .enter().append('path')
+            .enter()
+            .append('path')
             .attr('class', 'link')
             .attr('d', function(d) {
-                return 'M' + d.y + ',' + d.x +
-                    'C' + (d.y + d.parent.y) / 2 + ',' + d.x +
-                    ' ' + (d.y + d.parent.y) / 2 + ',' + d.parent.x +
-                    ' ' + d.parent.y + ',' + d.parent.x;
+                return 'M' + d.x + ',' + d.y +
+                    'C' + (d.x + d.parent.x) / 2 + ',' + d.y +
+                    ' ' + (d.x + d.parent.x) / 2 + ',' + d.parent.y +
+                    ' ' + d.parent.x + ',' + d.parent.y;
             });
 
         // adds each node as a group
-        let node = g.selectAll('.node')
+        let node = zoomGroup
+            .selectAll('.node')
             .data(nodes.descendants())
-            .enter().append('g')
+            .enter()
+            .append('g')
             .attr('class', function(d) {
                 return 'node' +
                     (d.children ? ' node--internal' : ' node--leaf');
             })
             .attr('transform', function(d) {
-                return 'translate(' + d.y + ',' + d.x + ')';
+                return 'translate(' + d.x + ',' + d.y + ')';
             });
 
         // adds the circle to the node
@@ -77,20 +112,24 @@ export function draw_dendrogram() {
             .attr('r', 10);
 
         // adds the text to the node
-        node.append('text')
-            .attr('dy', '.35em')
-            .attr('x', function(d) {
-                return d.children ? -13 : 13;
-            })
-            .style('text-anchor', function(d) {
-                return d.children ? 'end' : 'start';
-            })
-            .text(function(d) {
-                return d.data.name;
-            });
+        // node.append('text')
+        //     .attr('dy', '.35em')
+        //     .attr('x', function(d) {
+        //         return d.children ? -13 : 13;
+        //     })
+        //     .style('text-anchor', function(d) {
+        //         return d.children ? 'end' : 'start';
+        //     })
+        //     .text(function(d) {
+        //         return d.data.name;
+        //     });
 
 
     } else {
         $('#dendrogram-vis').hide();
+        if ($('#main-vis-div').attr('class') === 'col-md-8') {
+            $('#main-vis-div').removeClass('col-md-8');
+            $('#main-vis-div').addClass('col-md-12');
+        }
     }
 }

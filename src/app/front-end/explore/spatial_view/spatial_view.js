@@ -51,6 +51,7 @@ import {
 } from './legend.js';
 
 import {
+    init_dendrogram,
     draw_dendrogram
 } from '../hierarchy.js';
 
@@ -86,8 +87,8 @@ export function spatialViewInit() {
             }).resizable({
                 aspectRatio: true,
                 maxWidth: $('#main-vis-div').width()
-            }).height(tankHeight * 0.5)
-            .width(tankWidth * 0.5);
+            }).height(tankHeight * 0.6)
+            .width(tankWidth * 0.6);
     });
 
     //reset all checkboxes
@@ -270,6 +271,7 @@ export function spatialViewInit() {
     initColorPicker();
     lineChart();
     initListeners();
+    init_dendrogram();
     // start the animation
     draw();
 }
