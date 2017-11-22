@@ -47,7 +47,7 @@ export function init_dendrogram() {
         .attr('transform', 'translate(' + margin + ',' + margin + ')')
         .append('svg:g');
 
-    treemap = d3.tree()
+    treemap = d3.tree() //d3.cluster()
         .size([(height - margin), (width - margin)]);
 }
 
@@ -57,12 +57,13 @@ export function draw_dendrogram() {
 
     // console.log(networkHierarchy[indexTime]);
     // hide if no network is choosen
-    if (!$.isEmptyObject(networkHierarchy)) {
-        $('#dendrogram-vis').show();
-        if ($('#main-vis-div').attr('class') === 'col-md-12') {
-            $('#main-vis-div').removeClass('col-md-12');
-            $('#main-vis-div').addClass('col-md-8');
-        }
+    if ($('#show-dendrogram').hasClass('active') === true && !$.isEmptyObject(networkHierarchy)) {
+        // console.log('hey');
+        // $('#dendrogram-vis').show();
+        // if ($('#main-vis-div').attr('class') === 'col-md-12') {
+        //     $('#main-vis-div').removeClass('col-md-12');
+        //     $('#main-vis-div').addClass('col-md-8');
+        // }
 
 
         let treeData = networkHierarchy[indexTime];
@@ -73,31 +74,34 @@ export function draw_dendrogram() {
         // maps the node data to the tree layout
         nodes = treemap(nodes);
 
-        // append the svg object to the body of the page
-        // appends a 'group' element to 'svg'
-        // moves the 'group' element to the top left margin
+        // DATA JOIN - links (edges)
+        let link = zoomGroup
+            .selectAll('path.link')
+            .data(nodes.descendants().slice(1));
 
-
-        // adds the links between the nodes
-        // let link = zoomGroup
-        zoomGroup
-            .selectAll('.link')
-            .data(nodes.descendants().slice(1))
+        // ENTER
+        link
             .enter()
             .append('path')
             .attr('class', 'link')
-            .attr('d', function(d) {
-                return 'M' + d.x + ',' + d.y +
-                    'C' + (d.x + d.parent.x) / 2 + ',' + d.y +
-                    ' ' + (d.x + d.parent.x) / 2 + ',' + d.parent.y +
-                    ' ' + d.parent.x + ',' + d.parent.y;
-            });
+            .attr('d', diagonalLines);
 
+        // Transition links to their new position.
+        link.transition()
+            // .duration(duration)
+            .attr('d', diagonalLines);
+        // EXIT
+        link.exit()
+            .remove();
+
+
+        // DATA JOIN - nodes
         // adds each node as a group
         let node = zoomGroup
             .selectAll('.node')
-            .data(nodes.descendants())
-            .enter()
+            .data(nodes.descendants());
+
+        var nodeEnter = node.enter()
             .append('g')
             .attr('class', function(d) {
                 return 'node' +
@@ -107,9 +111,35 @@ export function draw_dendrogram() {
                 return 'translate(' + d.x + ',' + d.y + ')';
             });
 
-        // adds the circle to the node
-        node.append('circle')
-            .attr('r', 10);
+        // ENTER
+        nodeEnter.append('circle')
+            .attr('r', 20)
+            .on('click', click);
+
+        // UPDATE
+        //.transition()
+        // .duration(duration)
+        nodeEnter
+            .transition()
+            .attr('transform', function(d) {
+                return 'translate(' + d.x + ',' + d.y + ')';
+            });
+
+        // .transition()
+        // .duration(duration)
+        node
+            .transition()
+            .attr('transform', function(d) {
+                return 'translate(' + d.x + ',' + d.y + ')';
+            });
+        // .style('opacity', 1);
+
+        // .transition()
+        // .duration(duration)
+        // EXIT
+        node.exit()
+            .remove();
+
 
         // adds the text to the node
         // node.append('text')
@@ -125,11 +155,33 @@ export function draw_dendrogram() {
         //     });
 
 
-    } else {
-        $('#dendrogram-vis').hide();
-        if ($('#main-vis-div').attr('class') === 'col-md-8') {
-            $('#main-vis-div').removeClass('col-md-8');
-            $('#main-vis-div').addClass('col-md-12');
-        }
     }
+    // else {
+    // $('#dendrogram-vis').hide();
+    // if ($('#main-vis-div').attr('class') === 'col-md-8') {
+    //     $('#main-vis-div').removeClass('col-md-8');
+    //     $('#main-vis-div').addClass('col-md-12');
+    // }
+    // }
+}
+
+function diagonalLines(d) {
+    return 'M' + d.x + ',' + d.y +
+        'C' + (d.x + d.parent.x) / 2 + ',' + d.y +
+        ' ' + (d.x + d.parent.x) / 2 + ',' + d.parent.y +
+        ' ' + d.parent.x + ',' + d.parent.y;
+}
+
+// Toggle children on click.
+function click(d) {
+    console.log('Hey there');
+    console.log(d);
+    // if (d.children) {
+    //     d._children = d.children;
+    //     d.children = null;
+    // } else {
+    //     d.children = d._children;
+    //     d._children = null;
+    // }
+    // draw_dendrogram(d);
 }

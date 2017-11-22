@@ -15,6 +15,11 @@
     var parameters = {{ parameters | tojson}}
 
 
+
+
+
+
+
 </script>
 {{dataset}}
 </div>
@@ -230,24 +235,36 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div id="show-dendrogram-div" class="pull-right hidden">
+                            <button type="button" id="show-dendrogram" class="btn btn-default" data-toggle="button"
+                                    aria-pressed="false" autocomplete="off">
+                                <span class="btn-label" id="btn-left"><i
+                                        class="glyphicon glyphicon-chevron-left"></i></span></a>
+                                <span class="btn-label hidden" id="btn-right"><i
+                                        class="glyphicon glyphicon-chevron-right"></i></span></a>
+                            </button>
+                        </div>
 
-                    <div class="col-md-8" id="main-vis-div">
-                        <!-- loading gif -->
-                        <div id="loading">
-                            <img src="{{url_for('static', filename='loading.gif')}}"/>
-                        </div>
-                        <!-- The div for the svg  -->
 
-                        <div id="main-vis">
+                        <div class="col-md-12" id="main-vis-div">
+                            <!-- loading gif -->
+                            <div id="loading">
+                                <img src="{{url_for('static', filename='loading.gif')}}"/>
+                            </div>
+                            <!-- The div for the svg  -->
+
+                            <div id="main-vis">
+                            </div>
+                            <div id="main-vis-legend-div">
+                            </div>
                         </div>
-                        <div id="main-vis-legend-div">
+
+                        <div class="col-md-4" id="dendrogram-vis">
+
                         </div>
+
                     </div>
-
-                    <div class="col-md-4" id="dendrogram-vis">
-
-                    </div>
-
 
                     <div class="col-md-12">
                         <div id="swarm-vis">

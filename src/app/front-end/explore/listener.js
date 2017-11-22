@@ -60,6 +60,7 @@ export function initListeners() {
     af_listeners();
     md_listeners();
     n_listeners();
+    h_listeners();
 }
 
 /**
@@ -493,6 +494,8 @@ function n_listeners() {
         let network_id = $(this).attr('data');
 
         getNetworkData(network_id);
+        $('#network-div').modal('toggle');
+        $('#show-dendrogram-div').removeClass('hidden');
     });
 
     /**
@@ -501,6 +504,17 @@ function n_listeners() {
     $('#network-remove').click(function() {
         setNetworkData({});
         setNetworkHierarchy({});
+        // remove the dendrogram if it is visualized
+        $('#show-dendrogram-div').addClass('hidden');
+        $('#show-dendrogram').removeClass('active');
+        $('#btn-left').removeClass('hidden');
+        $('#btn-right').addClass('hidden');
+
+        $('#dendrogram-vis').hide();
+        if ($('#main-vis-div').attr('class') === 'col-md-8') {
+            $('#main-vis-div').removeClass('col-md-8');
+            $('#main-vis-div').addClass('col-md-12');
+        }
     });
 
     /**
@@ -634,6 +648,36 @@ function md_listeners() {
         resetIndividualMetadata();
     });
 
+}
+
+function h_listeners() {
+    $('#show-dendrogram').click(function() {
+        if ($('#show-dendrogram').hasClass('active') === true) {
+            // remove the dendrogram
+            $(this).find('#btn-left').removeClass('hidden');
+            $(this).find('#btn-right').addClass('hidden');
+            // TODO add here a resize of the main vis
+            $('#dendrogram-vis').hide();
+            if ($('#main-vis-div').attr('class') === 'col-md-8') {
+                $('#main-vis-div').removeClass('col-md-8');
+                $('#main-vis-div').addClass('col-md-12');
+
+            }
+
+        } else {
+            // add teh dendrogram
+            $(this).find('#btn-left').addClass('hidden');
+            $(this).find('#btn-right').removeClass('hidden');
+            // TODO add here a resize of the main vis 
+            $('#dendrogram-vis').show();
+            if ($('#main-vis-div').attr('class') === 'col-md-12') {
+                $('#main-vis-div').removeClass('col-md-12');
+                $('#main-vis-div').addClass('col-md-8');
+
+            }
+
+        }
+    });
 }
 /************************************************
     Getter and setter

@@ -130,6 +130,10 @@
     background: white;
 }
 
+#dendrogram-vis {
+    display: none
+}
+
 .axis path {
     display: none;
 }
@@ -516,6 +520,6 @@ div.tooltip table td:nth-child(2) {
 
 .link {
     fill: none;
-    stroke: #ccc;
-    stroke-width: 2px;
+    stroke: #636363;
+    stroke-width: 5px;
 }
