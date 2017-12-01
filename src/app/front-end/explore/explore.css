@@ -239,6 +239,14 @@
     stroke-opacity: 0.5;
 }
 
+.hierarchyHullPath {
+    fill: rgb(44, 160, 44);
+    stroke: rgb(44, 160, 44);
+    stroke-width: 40;
+    stroke-linejoin: round;
+    opacity: 0.2;
+}
+
 .delaunayTriangulation {
     fill-opacity: 0;
     stroke-width: 2;

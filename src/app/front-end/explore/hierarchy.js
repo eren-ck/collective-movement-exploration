@@ -7,11 +7,14 @@ import {
 } from './explore.js';
 
 import {
-    indexTime
+    indexTime,
+    arrayAnimals
 } from './spatial_view/spatial_view';
 
 let zoomGroup;
 let treemap;
+let spatialView;
+let hierarchy_level_1 = [];
 
 export function init_dendrogram() {
     let margin = 20,
@@ -49,6 +52,9 @@ export function init_dendrogram() {
 
     treemap = d3.tree() //d3.cluster()
         .size([(height - margin), (width - margin)]);
+
+    spatialView = d3.select('.tank');
+
 }
 
 
@@ -141,6 +147,31 @@ export function draw_dendrogram() {
         node.exit()
             .remove();
 
+        // draw the hierarchy
+        // transform the hiearhcy fisrt into an array of arrays
+        // TODO something with hierary level should be done here
+        for (let i = 0; i < hierarchy_level_1.length; i++) {
+            //TODO change the hierarchy function here this is still on click
+            let group = hierarchy_level_1[i];
+            // get the positions in the spatial view for the whole cluster
+            let vertices = [];
+            for (let j = 0; j < group.length; j++) {
+                let group_member = arrayAnimals.find(d => d['a'] === group[j]);
+                if (group_member) {
+                    vertices.push([group_member['p'][0], -group_member['p'][1]]);
+                }
+            }
+            let hull = spatialView.append('path')
+                .attr('class', 'hierarchyHullPath');
+            console.log(vertices);
+            hull
+                .datum(d3.polygonHull(vertices))
+                .attr('d', function(d) {
+                    console.log(d);
+                    return 'M' + d.join('L') + 'Z';
+                });
+        }
+
 
         // adds the text to the node
         // node.append('text')
@@ -179,8 +210,10 @@ function diagonalLines(d) {
 
 // Toggle children on click.
 function click(d) {
+    hierarchy_level_1.push(d['data']['name']);
+
     console.log('Hey there');
-    console.log(d);
+    console.log(hierarchy_level_1);
     // if (d.children) {
     //     d._children = d.children;
     //     d.children = null;
