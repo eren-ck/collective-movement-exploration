@@ -523,3 +523,7 @@ div.tooltip table td:nth-child(2) {
     stroke: #636363;
     stroke-width: 5px;
 }
+
+#show-dendrogram-div {
+    margin-right: -110px;
+}

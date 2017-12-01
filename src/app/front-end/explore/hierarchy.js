@@ -87,7 +87,8 @@ export function draw_dendrogram() {
             .attr('d', diagonalLines);
 
         // Transition links to their new position.
-        link.transition()
+        link
+            // .transition()
             // .duration(duration)
             .attr('d', diagonalLines);
         // EXIT
@@ -120,7 +121,7 @@ export function draw_dendrogram() {
         //.transition()
         // .duration(duration)
         nodeEnter
-            .transition()
+            // .transition()
             .attr('transform', function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')';
             });
@@ -128,7 +129,7 @@ export function draw_dendrogram() {
         // .transition()
         // .duration(duration)
         node
-            .transition()
+            // .transition()
             .attr('transform', function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')';
             });
@@ -167,9 +168,13 @@ export function draw_dendrogram() {
 
 function diagonalLines(d) {
     return 'M' + d.x + ',' + d.y +
-        'C' + (d.x + d.parent.x) / 2 + ',' + d.y +
-        ' ' + (d.x + d.parent.x) / 2 + ',' + d.parent.y +
-        ' ' + d.parent.x + ',' + d.parent.y;
+        'V' + d.parent.y + 'H' + d.parent.x;
+
+
+    // return 'M' + d.x + ',' + d.y +
+    //     'C' + (d.x + d.parent.x) / 2 + ',' + d.y +
+    //     ' ' + (d.x + d.parent.x) / 2 + ',' + d.parent.y +
+    //     ' ' + d.parent.x + ',' + d.parent.y;
 }
 
 // Toggle children on click.

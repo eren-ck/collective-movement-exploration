@@ -1,10 +1,9 @@
 /*eslint-disable no-unused-lets*/
-/*global window, d3, $, parameters, Set*/
+/*global window, d3, $, Set*/
 
 import * as SPV from './spatial_view/spatial_view.js';
 
 import {
-    enablePlayButton,
     disablePlayButton
 } from './helpers.js';
 
@@ -32,7 +31,6 @@ import {
 import {
     dataset,
     swarmData,
-    setSwarmData,
     datasetMetadata,
     setNetworkData,
     setNetworkHierarchy
@@ -40,14 +38,14 @@ import {
 
 import {
     getDatasetFeature,
-    getNetworkData
+    getNetworkData,
+    getSwarmDatasetFeature
 } from './ajax_queries.js';
 
 import {
     colorScale
 } from './spatial_view/color_picker';
 
-let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 let brush; // brushing variable
 export let playBoolean = true; // pause and play boolean
 
@@ -221,22 +219,7 @@ function sf_listeners() {
         if ($('#draw-medoid').is(':checked')) {
 
             if (!('medoid' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/medoid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < swarmData.length; i++) {
-                            swarmData[i]['medoid'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('medoid');
 
             }
             SPV.setMedoidAnimal(swarmData[SPV.indexTime]['medoid']);
@@ -257,22 +240,7 @@ function sf_listeners() {
     $('#draw-centroid').click(function() {
         if ($('#draw-centroid').is(':checked')) {
             if (!('centroid' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/centroid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < swarmData.length; i++) {
-                            swarmData[i]['centroid'] = [Math.round(data[i][0] * 100) / 100, Math.round(data[i][1] * 100) / 100];
-                        }
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('centroid');
 
             }
             // hide the centroid
@@ -292,20 +260,8 @@ function sf_listeners() {
     $('#draw-convex-hull').click(function() {
         if ($('#draw-convex-hull').is(':checked')) {
             if (!('hull' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/convex_hull',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        setSwarmData(data, 'hull');
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('convex_hull');
+
             }
         }
     });
@@ -317,20 +273,8 @@ function sf_listeners() {
     $('#draw-triangulation').click(function() {
         if ($('#draw-triangulation').is(':checked')) {
             if (!('triangulation' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/triangulation',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        setSwarmData(data, 'triangulation');
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('triangulation');
+
             }
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
@@ -348,22 +292,8 @@ function sf_listeners() {
     $('#draw-voronoi').click(function() {
         if ($('#draw-voronoi').is(':checked')) {
             if (!('voronoi' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/voronoi',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < swarmData.length; i++) {
-                            swarmData[i]['voronoi'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('voronoi');
+
             }
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
@@ -511,10 +441,6 @@ function n_listeners() {
         $('#btn-right').addClass('hidden');
 
         $('#dendrogram-vis').hide();
-        if ($('#main-vis-div').attr('class') === 'col-md-8') {
-            $('#main-vis-div').removeClass('col-md-8');
-            $('#main-vis-div').addClass('col-md-12');
-        }
     });
 
     /**
@@ -534,6 +460,16 @@ function n_listeners() {
             setNetworLimit(limit);
             $('#network-limit').val(limit);
         }
+    });
+
+    $('#show-dendrogram-div').hover(function() {
+        $(this).stop().animate({
+            'marginRight': '0px',
+        }, 500);
+    }, function() {
+        $(this).stop().animate({
+            'marginRight': '-110px',
+        }, 500);
     });
 
 }
@@ -668,7 +604,7 @@ function h_listeners() {
             // add teh dendrogram
             $(this).find('#btn-left').addClass('hidden');
             $(this).find('#btn-right').removeClass('hidden');
-            // TODO add here a resize of the main vis 
+            // TODO add here a resize of the main vis
             $('#dendrogram-vis').show();
             if ($('#main-vis-div').attr('class') === 'col-md-12') {
                 $('#main-vis-div').removeClass('col-md-12');

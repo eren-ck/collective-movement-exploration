@@ -569,7 +569,7 @@ export function draw() {
                 .is(':checked')) {
                 // DATA JOIN - paths
                 var hullPath = tank.selectAll('path.hullPath')
-                    .data([swarmData[indexTime]['hull']]);
+                    .data([swarmData[indexTime]['convex_hull']]);
 
                 // UPDATE - hull path
                 hullPath

@@ -20,6 +20,7 @@ import {
 
 import {
     enablePlayButton,
+    disablePlayButton
 } from './helpers.js';
 
 /**
@@ -137,7 +138,7 @@ export function getNetworkDataButton() {
 
 /**
  * Get the specifc feature
- * @param {String} feature - for instance speed, swarm_convex_hull_area etc.
+ * @param {String} feature - for instance speed, acceleration etc.
  */
 export function getDatasetFeature(feature) {
     $.ajax({
@@ -155,6 +156,29 @@ export function getDatasetFeature(feature) {
         }
     });
 }
+
+/**
+ * Get the specifc swarm feature
+ * @param {String} feature - for instance centroid, medoid etc.
+ */
+export function getSwarmDatasetFeature(feature) {
+    disablePlayButton();
+    $.ajax({
+        url: '/api/dataset/' + parameters['id'] + '/' + feature,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            // add the speed feature to the dataset
+            setSwarmData(data, feature);
+            enablePlayButton();
+        }
+    });
+}
+
 
 
 /**

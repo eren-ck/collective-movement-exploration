@@ -97,7 +97,6 @@ export function setMetaData(value) {
  */
 export function setSwarmData(data, feature) {
     for (let i = 0; i < data.length; i++) {
-
         // add the the object to the array if there is no element yet
         if (typeof swarmData[i] === 'undefined') {
             swarmData.push({});
