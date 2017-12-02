@@ -51,8 +51,8 @@ import {
 } from './legend.js';
 
 import {
-    init_dendrogram,
-    draw_dendrogram
+    initDendrogram,
+    drawDendrogram
 } from '../hierarchy.js';
 
 export let indexTime = 0; // actual time moment in the animation
@@ -271,7 +271,7 @@ export function spatialViewInit() {
     initColorPicker();
     lineChart();
     initListeners();
-    init_dendrogram();
+    initDendrogram();
     // start the animation
     draw();
 }
@@ -703,7 +703,7 @@ export function draw() {
             }
 
             // draw hierarchy
-            draw_dendrogram();
+            drawDendrogram();
 
             //next frame
             indexTime++;
