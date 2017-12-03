@@ -17,7 +17,7 @@ export let networkColorScale = d3.scaleThreshold()
 
 
 /**
- * Add the network  select buttons and hierarchy checkboxes to the webinterface
+ * Add the network  select buttons and hierarchy checkboxes to the network modal
  * @param {array} data - Array of network data
  */
 export function addNetworkButtons(data) {

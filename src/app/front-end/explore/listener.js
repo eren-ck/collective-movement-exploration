@@ -573,8 +573,13 @@ function md_listeners() {
     });
 
 }
-
+/**
+ * Initialize hierarchy/dendgrogram listeners
+ */
 function h_listeners() {
+    /**
+     * Show dendgrogram sliding button
+     */
     $('#show-dendrogram').click(function() {
         if ($('#show-dendrogram').hasClass('active') === true) {
             // remove the dendrogram
@@ -603,6 +608,10 @@ function h_listeners() {
         }
     });
 
+    /**
+     * Hierarchy button in network modal on change
+     * Load data or remove it
+     */
     $('.hiearchy-checkbox').on('change', function() {
         let checkbox = $(this).find('input:hidden');
 
@@ -625,7 +634,9 @@ function h_listeners() {
         }
     });
 
-
+    /**
+     * Sliding animation button with more information
+     */
     $('#show-dendrogram-div').hover(function() {
         $(this).stop().animate({
             'marginRight': '0px',
@@ -636,6 +647,9 @@ function h_listeners() {
         }, 500);
     });
 
+    /**
+     * Visualize the network only in the choosen hierarchy  
+     */
     $('.network-hierarchy-checkbox').on('change', function() {
         let checkbox = $(this).find('input:hidden');
         // TODO program onclick function to remove the other active windows

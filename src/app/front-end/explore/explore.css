@@ -593,3 +593,7 @@ div.tooltip table td:nth-child(2) {
     font-weight: bold;
     color: #296292;
 }
+
+.activeLevel {
+    fill: #386cb0;
+}
