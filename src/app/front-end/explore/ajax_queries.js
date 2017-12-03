@@ -182,12 +182,12 @@ export function getSwarmDatasetFeature(feature) {
 
 
 /**
- * Get the network and network hierarchy for the specific network_id
+ * Get the network for the specific network_id
  * @param {String} network_id - unique network id of a dataset.
  */
 export function getNetworkData(network_id) {
     $.ajax({
-        url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
+        url: '/api/dataset/network/' + parameters['id'] + '/' + network_id,
         dataType: 'json',
         type: 'GET',
         contentType: 'application/json; charset=utf-8',
@@ -197,6 +197,27 @@ export function getNetworkData(network_id) {
         success: function(data) {
             if (data.length) {
                 setNetworkData(JSON.parse(data[0]['data']));
+            }
+        }
+    });
+
+}
+
+/**
+ * Get the network hierarchy for the specific network_id
+ * @param {String} network_id - unique network id of a dataset.
+ */
+export function getNetworkHierarchyData(network_id) {
+    $.ajax({
+        url: '/api/dataset/network/hierarchy/' + parameters['id'] + '/' + network_id,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            if (data.length) {
                 setNetworkHierarchy(JSON.parse(data[0]['hierarchy']));
             }
         }

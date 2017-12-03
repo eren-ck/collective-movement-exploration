@@ -18,7 +18,7 @@ export let datasetMetadata = []; // metadataset for each individual fish
 export let swarmData = []; // swarmdata for linechart and also other swarm features
 export let dataSetPercentile = {}; // pecentiles needed for the color mapping
 export let networkData = {}; // network data
-export let networkHierarchy = {}; // network data
+export let networkHierarchy = {}; // network hierarchy data
 
 
 

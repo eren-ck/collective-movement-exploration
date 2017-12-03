@@ -14,7 +14,12 @@ import {
 let zoomGroup;
 let treemap;
 let spatialView;
-let hierarchyLevel = {};
+let hierarchyLevels = {
+    'h0': 2,
+    'h1': 2,
+    'h2': 2,
+    'h3': 2,
+}; // which level of the hierarchy is visualized
 
 export function initDendrogram() {
     let margin = 20,
@@ -58,19 +63,10 @@ export function initDendrogram() {
 
 
 export function drawDendrogram() {
-    // console.log(networkHierarchy);
+    // if data is avaiable draw hierarchy clusters
+    if (!$.isEmptyObject(networkHierarchy)) {
 
-    // console.log(networkHierarchy[indexTime]);
-    // hide if no network is choosen
-    if ($('#show-dendrogram').hasClass('active') === true && !$.isEmptyObject(networkHierarchy)) {
-        // console.log('hey');
-        // $('#dendrogram-vis').show();
-        // if ($('#main-vis-div').attr('class') === 'col-md-12') {
-        //     $('#main-vis-div').removeClass('col-md-12');
-        //     $('#main-vis-div').addClass('col-md-8');
-        // }
-
-
+        // get the data and transform it
         let treeData = networkHierarchy[indexTime];
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
@@ -78,78 +74,69 @@ export function drawDendrogram() {
 
         // maps the node data to the tree layout
         nodes = treemap(nodes);
+        // hide if no network is choosen
 
-        // DATA JOIN - links (edges)
-        let link = zoomGroup
-            .selectAll('path.link')
-            .data(nodes.descendants().slice(1));
+        if ($('#show-dendrogram').hasClass('active') === true) {
+            // DATA JOIN - links (edges)
+            let link = zoomGroup
+                .selectAll('path.link')
+                .data(nodes.descendants().slice(1));
 
-        // ENTER
-        link
-            .enter()
-            .append('path')
-            .attr('class', 'link')
-            .attr('d', diagonalLines);
+            // ENTER
+            link
+                .enter()
+                .append('path')
+                .attr('class', 'link')
+                .attr('d', diagonalLines);
 
-        // Transition links to their new position.
-        link
-            // .transition()
-            // .duration(duration)
-            .attr('d', diagonalLines);
-        // EXIT
-        link.exit()
-            .remove();
+            // Transition links to their new position.
+            link
+                .attr('d', diagonalLines);
+
+            // EXIT
+            link.exit()
+                .remove();
 
 
-        // DATA JOIN - nodes
-        // adds each node as a group
-        let node = zoomGroup
-            .selectAll('.node')
-            .data(nodes.descendants());
+            // DATA JOIN - nodes
+            // adds each node as a group
+            let node = zoomGroup
+                .selectAll('.node')
+                .data(nodes.descendants());
 
-        var nodeEnter = node.enter()
-            .append('g')
-            .attr('class', function(d) {
-                return 'node' +
-                    (d.children ? ' node--internal' : ' node--leaf');
-            })
-            .attr('transform', function(d) {
-                return 'translate(' + d.x + ',' + d.y + ')';
-            });
+            var nodeEnter = node.enter()
+                .append('g')
+                .attr('class', function(d) {
+                    return 'node' +
+                        (d.children ? ' node--internal' : ' node--leaf');
+                })
+                .attr('transform', function(d) {
+                    return 'translate(' + d.x + ',' + d.y + ')';
+                });
 
-        // ENTER
-        nodeEnter.append('circle')
-            .attr('r', 20)
-            .on('click', click);
+            // ENTER
+            nodeEnter.append('circle')
+                .attr('r', 20)
+                .on('click', click);
 
-        // UPDATE
-        //.transition()
-        // .duration(duration)
-        nodeEnter
-            // .transition()
-            .attr('transform', function(d) {
-                return 'translate(' + d.x + ',' + d.y + ')';
-            });
+            // UPDATE
+            nodeEnter
+                .attr('transform', function(d) {
+                    return 'translate(' + d.x + ',' + d.y + ')';
+                });
 
-        // .transition()
-        // .duration(duration)
-        node
-            // .transition()
-            .attr('transform', function(d) {
-                return 'translate(' + d.x + ',' + d.y + ')';
-            });
-        // .style('opacity', 1);
+            node
+                .attr('transform', function(d) {
+                    return 'translate(' + d.x + ',' + d.y + ')';
+                });
 
-        // .transition()
-        // .duration(duration)
-        // EXIT
-        node.exit()
-            .remove();
+            // EXIT
+            node.exit()
+                .remove();
 
+        }
         // draw the hierarchy in spatial view
         drawHierarchy(nodes);
-
-
     }
 }
 
@@ -158,7 +145,7 @@ function drawHierarchy(nodes) {
     let root = nodes['children'][0];
 
     // let clusters1 = getHierarchyLevel();
-    hierarchyLevel['hierarchy_0'] = getHierarchyLevel(root, 0, 5);
+    let tmp = getHierarchyLevel(root, 0, hierarchyLevels['h0']);
 
     // draw the hierarchy of hierarchy 0 first of all
     // TODO make modular so 4 hierarchies can be drawn for the first
@@ -167,7 +154,7 @@ function drawHierarchy(nodes) {
     // DATA JOIN - clusters for the convex hull
     let hieraryHulls = spatialView
         .selectAll('path.hierarchyHullPath')
-        .data(getHierarchyVertices(hierarchyLevel['hierarchy_0']));
+        .data(getHierarchyVertices(tmp));
 
     // ENTER
     hieraryHulls
@@ -178,39 +165,15 @@ function drawHierarchy(nodes) {
             return 'M' + d.join('L') + 'Z';
         });
 
-    //
-    // // Transition links to their new position.
+    // Transition links to their new position.
     hieraryHulls
         .attr('d', function(d) {
             return 'M' + d.join('L') + 'Z';
         });
-    // // EXIT
+    // EXIT
     hieraryHulls.exit()
         .remove();
 
-
-    // TODO something with hierary level should be done here
-    // for (let i = 0; i < hierarchyLevel_0.length; i++) {
-    //     //TODO change the hierarchy function here this is still on click
-    //     let group = hierarchyLevel_0[i];
-    //     // get the positions in the spatial view for the whole cluster
-    //     let vertices = [];
-    //     for (let j = 0; j < group.length; j++) {
-    //         let groupMember = arrayAnimals.find(d => d['a'] === group[j]);
-    //         if (groupMember) {
-    //             vertices.push([groupMember['p'][0], -groupMember['p'][1]]);
-    //         }
-    //     }
-    //     let hull = spatialView.append('path')
-    //         .attr('class', 'hierarchyHullPath');
-    //     console.log(vertices);
-    // hull
-    //     .datum(d3.polygonHull)
-    //     .attr('d', function(d) {
-    //         console.log(d);
-    //         return 'M' + d.join('L') + 'Z';
-    //     });
-    // }
 }
 
 
@@ -219,36 +182,14 @@ function diagonalLines(d) {
         'V' + d.parent.y + 'H' + d.parent.x;
 }
 
-// function hierarchyPath(d) {
-//     return 'M' + d.join('L') + 'Z';
-//     // return 'M' +
-//     //     d3.polygonHull(d.values.map(function(i) {
-//     //         return [i.x, -i.y];
-//     //     }))
-//     //     .join('L') +
-//     //     'Z';
-// }
 
-// Toggle children on click.
 function click(d) {
 
     console.log('Hey there');
     console.log(d['data']['name']);
-    // if (d.children) {
-    //     d._children = d.children;
-    //     d.children = null;
-    // } else {
-    //     d.children = d._children;
-    //     d._children = null;
-    // }
 }
 
 function getHierarchyLevel(root, hierarchy, level) {
-    // for debuging
-    // console.log(root);
-    // console.log(hierarchy);
-    // console.log(level);
-
     let result = [];
 
     // second level of the array
@@ -293,6 +234,10 @@ function getHierarchyVertices(hierarchies) {
             result.push(d3.polygonHull(vertices));
         }
     });
-    return result;
 
+    return result;
+}
+
+function setLevel() {
+    console.log('hey');
 }

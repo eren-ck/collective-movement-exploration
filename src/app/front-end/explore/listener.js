@@ -39,7 +39,8 @@ import {
 import {
     getDatasetFeature,
     getNetworkData,
-    getSwarmDatasetFeature
+    getSwarmDatasetFeature,
+    getNetworkHierarchyData
 } from './ajax_queries.js';
 
 import {
@@ -423,9 +424,11 @@ function n_listeners() {
     $('#networks-modal-body button').click(function() {
         let network_id = $(this).attr('data');
 
+        // add the name of the choosen network to the Network modal
+        $('#active-network-name').text($(this).attr('name'));
+
         getNetworkData(network_id);
         $('#network-div').modal('toggle');
-        $('#show-dendrogram-div').removeClass('hidden');
     });
 
     /**
@@ -433,14 +436,9 @@ function n_listeners() {
      */
     $('#network-remove').click(function() {
         setNetworkData({});
-        setNetworkHierarchy({});
-        // remove the dendrogram if it is visualized
-        $('#show-dendrogram-div').addClass('hidden');
-        $('#show-dendrogram').removeClass('active');
-        $('#btn-left').removeClass('hidden');
-        $('#btn-right').addClass('hidden');
 
-        $('#dendrogram-vis').hide();
+        $('#active-network-name').text('');
+        // setNetworkHierarchy({});
     });
 
     /**
@@ -460,16 +458,6 @@ function n_listeners() {
             setNetworLimit(limit);
             $('#network-limit').val(limit);
         }
-    });
-
-    $('#show-dendrogram-div').hover(function() {
-        $(this).stop().animate({
-            'marginRight': '0px',
-        }, 500);
-    }, function() {
-        $(this).stop().animate({
-            'marginRight': '-110px',
-        }, 500);
     });
 
 }
@@ -612,6 +600,53 @@ function h_listeners() {
 
             }
 
+        }
+    });
+
+    $('.hiearchy-checkbox').on('change', function() {
+        let checkbox = $(this).find('input:hidden');
+
+        let id = checkbox.attr('data');
+        let checked = checkbox.prop('checked');
+        if (checked) {
+            getNetworkHierarchyData(id);
+            $('#show-dendrogram-div').removeClass('hidden');
+        } else {
+            setNetworkHierarchy({});
+            d3.selectAll('path.hierarchyHullPath').remove();
+            // remove the dendrogram stuff TODO change this here in modular way
+            $('#show-dendrogram-div').addClass('hidden');
+            $('#show-dendrogram').removeClass('active');
+            $('#btn-left').removeClass('hidden');
+            $('#btn-right').addClass('hidden');
+
+            $('#dendrogram-vis').hide();
+
+        }
+    });
+
+
+    $('#show-dendrogram-div').hover(function() {
+        $(this).stop().animate({
+            'marginRight': '0px',
+        }, 500);
+    }, function() {
+        $(this).stop().animate({
+            'marginRight': '-110px',
+        }, 500);
+    });
+
+    $('.network-hierarchy-checkbox').on('change', function() {
+        let checkbox = $(this).find('input:hidden');
+        // TODO program onclick function to remove the other active windows
+        let id = checkbox.attr('data');
+        let checked = checkbox.prop('checked');
+        if (checked) {
+            console.log(id);
+            console.log(checked);
+        } else {
+            console.log(id);
+            console.log(checked);
         }
     });
 }

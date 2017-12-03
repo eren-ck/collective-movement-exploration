@@ -279,7 +279,7 @@ def api_get_dataset_networks(id=None):
 
 def api_get_network_data(dataset_id=None, network_id=None):
     """
-        Return a json of the network and hierarchy for a specific dataset
+        Return a json of the network for a specific dataset
 
         :param
             dataset_id: id of the specific dataset
@@ -291,5 +291,23 @@ def api_get_network_data(dataset_id=None, network_id=None):
     query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)
     result = []
     for elem in query:
-        result.append(elem.as_data_dict())
+        result.append(elem.network_as_data_dict())
     return jsonify(result)
+
+def api_get_network_hierarchy_data(dataset_id=None, network_id=None):
+    """
+        Return a json of the network hierarchy for a specific dataset
+
+        :param
+            dataset_id: id of the specific dataset
+            network_id: network id of the specific dataset
+    """
+    auth_func()
+    if dataset_id is None or network_id is None:
+        return jsonify({})
+    query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)
+    result = []
+    for elem in query:
+        result.append(elem.hierarchy_as_data_dict())
+    return jsonify(result)
+

@@ -92,10 +92,13 @@ def get_dataset_networks(id):
     return api_get_dataset_networks(id)
 
 
-@app.route('/api/dataset/networks/<int:dataset_id>/<int:network_id>', methods=['GET'])
+@app.route('/api/dataset/network/<int:dataset_id>/<int:network_id>', methods=['GET'])
 def get_dataset_network_data(dataset_id, network_id):
     return api_get_network_data(dataset_id, network_id)
 
+@app.route('/api/dataset/network/hierarchy/<int:dataset_id>/<int:network_id>', methods=['GET'])
+def get_dataset_network_hierarchy_data(dataset_id, network_id):
+    return api_get_network_hierarchy_data(dataset_id, network_id)
 
 # Create view
 admin = Admin(

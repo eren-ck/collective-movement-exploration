@@ -65,9 +65,14 @@ class Network(db.Model):
             'network_id': self.network_id
         }
 
-    def as_data_dict(self):
+    def network_as_data_dict(self):
         return {
             'name': self.name,
-            'data': self.network,
-            'hierarchy': self.hierarchy,
+            'data': self.network
+        }
+
+    def hierarchy_as_data_dict(self):
+        return {
+            'name': self.name,
+            'hierarchy': self.hierarchy
         }
