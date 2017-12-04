@@ -13,6 +13,8 @@
 {% block body %}
 <script>
     var parameters = {{ parameters | tojson}}
+
+
 </script>
 {{dataset}}
 </div>
@@ -253,9 +255,19 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4" id="dendrogram-vis">
-                             Cluster Level <span id="dendrogram-0-level-text">2</span>
-                            <div id="dendrogram-0-level-slider" name="0"></div>
+                        <div class="col-md-4">
+                            <div class="panel panel-default" id="dendrogram-0-panel">
+                                <div class="panel-heading">Hierarchy: <span id="dendrogram-0-name"> Name</span></div>
+                                <div class="panel-body" >
+                                    Cluster Level <span id="dendrogram-0-level-text">2</span>
+                                    <div id="dendrogram-0-level-slider" name="0"></div>
+                                    <br>
+                                    <div id="dendrogram-0">
+
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>

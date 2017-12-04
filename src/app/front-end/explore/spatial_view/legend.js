@@ -20,7 +20,7 @@ export function addSpatialViewGroup() {
     tankHeight = SPV.tankHeight;
 
     svgLegend = d3.select('#main-vis-legend-div')
-        .classed('svg-legendContainer', true)
+        .classed('svg-legend-container', true)
         // to make it responsive with css
         .append('svg')
         .attr('preserveAspectRatio', 'xMinYMin meet')
@@ -49,14 +49,14 @@ export function changeLegend() {
         // once the fill for the heads and the stroke for the path
         legend = svgLegend.selectAll('rect.legend')
             .data(tmpScale.range());
-        legendText = svgLegend.selectAll('text.legendText')
+        legendText = svgLegend.selectAll('text.legend-text')
             .data(tmpScale.domain());
         differentColors = tmpScale.range()
             .length;
     } else {
         legend = svgLegend.selectAll('rect.legend')
             .data([]);
-        legendText = svgLegend.selectAll('text.legendText')
+        legendText = svgLegend.selectAll('text.legend-text')
             .data([]);
     }
     // UPDATE - legend
@@ -89,7 +89,7 @@ export function changeLegend() {
     legendText
         .enter()
         .append('text')
-        .attr('class', 'legendText')
+        .attr('class', 'legend-text')
         .attr('y', 2 * legendHeight)
         .attr('x', function(d, i) {
             // plus 15 has to be changed

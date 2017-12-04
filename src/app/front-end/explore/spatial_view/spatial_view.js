@@ -240,9 +240,9 @@ export function spatialViewInit() {
     tank.append('g')
         .attr('id', 'networkGroup');
 
-    //append delaunayTriangulation group
+    //append delaunay-triangulation group
     tank.append('g')
-        .attr('id', 'delaunayTriangulationGroup');
+        .attr('id', 'delaunay-triangulation-group');
 
     //append voronoi group
     tank.append('g')
@@ -250,7 +250,7 @@ export function spatialViewInit() {
 
     //append the frame time text
     svgContainer.append('text')
-        .attr('class', 'frameText')
+        .attr('class', 'frame-text')
         .attr('x', 30)
         .attr('y', 30)
         .text('-- : -- : -- ');
@@ -297,7 +297,7 @@ export function draw() {
     //the timeout is set after one update 30 ms
     setTimeout(function() {
             //change the time frame text
-            svgContainer.select('.frameText')
+            svgContainer.select('.frame-text')
                 .text(Math.floor(indexTime / 1500) % 60 + ':' + Math.floor(indexTime / parameters['fps']) % 60 + '::' + indexTime % parameters['fps']);
             // if a second has changed move the slider
             if (indexTime % parameters['fps'] === 0) {
@@ -344,7 +344,7 @@ export function draw() {
                 });
                 // DATA JOIN
                 networkVis = tank.select('#networkGroup')
-                    .selectAll('line.networkEdges')
+                    .selectAll('line.network-edges')
                     .data(network);
                 // UPDATE
                 networkVis
@@ -370,7 +370,7 @@ export function draw() {
                 networkVis
                     .enter()
                     .append('line')
-                    .attr('class', 'networkEdges')
+                    .attr('class', 'network-edges')
                     .attr('x1', function(d) {
                         return d['start'][0];
                     })
@@ -391,7 +391,7 @@ export function draw() {
                     });
 
             } else {
-                networkVis = tank.selectAll('line.networkEdges')
+                networkVis = tank.selectAll('line.network-edges')
                     .data([]);
             }
             // EXIT - network
@@ -403,8 +403,8 @@ export function draw() {
             var triangulation;
             if ($('#draw-triangulation')
                 .is(':checked')) {
-                triangulation = tank.select('#delaunayTriangulationGroup')
-                    .selectAll('path.delaunayTriangulation')
+                triangulation = tank.select('#delaunay-triangulation-group')
+                    .selectAll('path.delaunay-triangulation')
                     .data([swarmData[indexTime]['triangulation']]);
 
                 // UPDATE - triangulation
@@ -415,12 +415,12 @@ export function draw() {
                 //ENTER - triangulation
                 triangulation.enter()
                     .append('path')
-                    .attr('class', 'delaunayTriangulation')
+                    .attr('class', 'delaunay-triangulation')
                     .attr('d', function(d) {
                         return d;
                     });
             } else {
-                triangulation = tank.selectAll('path.delaunayTriangulation')
+                triangulation = tank.selectAll('path.delaunay-triangulation')
                     .data([]);
             }
             // EXIT - triangulation
@@ -568,7 +568,7 @@ export function draw() {
             if ($('#draw-convex-hull')
                 .is(':checked')) {
                 // DATA JOIN - paths
-                var hullPath = tank.selectAll('path.hullPath')
+                var hullPath = tank.selectAll('path.hull-path')
                     .data([swarmData[indexTime]['convex_hull']]);
 
                 // UPDATE - hull path
@@ -580,14 +580,14 @@ export function draw() {
                 // ENTER - hull paths
                 hullPath.enter()
                     .append('path')
-                    .attr('class', 'hullPath')
+                    .attr('class', 'hull-path')
                     .attr('d', function(d) {
                         return d;
                     });
 
             } else {
                 // draw no hull
-                hullPath = tank.select('path.hullPath')
+                hullPath = tank.select('path.hull-path')
                     .data([]);
             }
             // EXIT - hull paths

@@ -93,7 +93,12 @@
     left: 10px;
 }
 
-.svg-legendContainer {
+.svg-content-dendrogram {
+    display: inline-block;
+    border: 1px solid #000;
+}
+
+.svg-legend-container {
     display: inline-block;
     position: relative;
     width: 100%;
@@ -105,7 +110,7 @@
     overflow: hidden;
 }
 
-.svg-LineChartContainer {
+.svg-line-chart-container {
     display: inline-block;
     position: relative;
     width: 100%;
@@ -117,21 +122,12 @@
     overflow: visible;
 }
 
-.svg-dendrogramContainer {
+.svg-dendrogram-container {
     display: inline-block;
     position: relative;
     height: auto;
     vertical-align: top;
     overflow: visible;
-}
-
-#dendrogram-vis>svg:nth-child(1) {
-    z-index: 1;
-    background: white;
-}
-
-#dendrogram-vis {
-    display: none
 }
 
 .axis path {
@@ -151,7 +147,7 @@
     font-size: 1em;
 }
 
-.axisLineChart path line {
+.axis-line-chart path line {
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
@@ -164,7 +160,7 @@
 
 /* Time  */
 
-.frameText {
+.frame-text {
     margin-top: 0;
     margin-bottom: 0;
     font-size: 2em;
@@ -198,21 +194,21 @@
     stroke: #000;
 }
 
-.legendText {
+.legend-text {
     font-size: 1.5em;
     color: inherit;
     font-family: inherit;
     line-height: 1.1;
 }
 
-.lineChartlegendText {
+.line-chart-legend-text {
     font-size: 2em;
     color: inherit;
     font-family: inherit;
     line-height: 1.1;
 }
 
-.timeLine {
+.time-line {
     fill: none;
     stroke-width: 5px;
     stroke: #000;
@@ -231,7 +227,7 @@
     stroke: #e7298a !important;
 }
 
-.hullPath {
+.hull-path {
     fill: #fff;
     fill-opacity: 0;
     stroke-width: 3;
@@ -239,7 +235,7 @@
     stroke-opacity: 0.5;
 }
 
-.hierarchyHullPath {
+.hierarchy-hull-path {
     fill: rgb(44, 160, 44);
     stroke: rgb(44, 160, 44);
     stroke-width: 40;
@@ -247,7 +243,7 @@
     opacity: 0.2;
 }
 
-.delaunayTriangulation {
+.delaunay-triangulation {
     fill-opacity: 0;
     stroke-width: 2;
     stroke: #000;
@@ -363,23 +359,23 @@ div.tooltip table td:nth-child(2) {
     font-weight: bold;
 }
 
-.lineChartCheckBox.disabled {
+.line-chart-check-box.disabled {
     color: #ccc;
 }
 
-.upperOuterArea, .lowerOuterArea {
+.upper-outer-area, .lower-outer-area {
     stroke-width: 1;
     fill: #74a9cf;
     stroke: #3690c0;
 }
 
-.upperInnerArea, .lowerInnerArea {
+.upper-inner-area, .lower-inner-area {
     stroke-width: 1;
     fill: #045a8d;
     stroke: #023858;
 }
 
-.medianLine {
+.median-line {
     fill: none;
     stroke: #525252;
     stroke-width: 5;
@@ -398,7 +394,7 @@ div.tooltip table td:nth-child(2) {
     pointer-events: all;
 }
 
-.x.axisLineChart>g>text {
+.x.axis-line-chart>g>text {
     font-size: 3em;
     color: inherit;
     font-family: inherit;
@@ -513,7 +509,7 @@ div.tooltip table td:nth-child(2) {
     background-color: #386cb0;
 }
 
-.networkEdges {
+.network-edges {
     fill-opacity: 0;
     stroke-width: 2;
 }
@@ -530,10 +526,6 @@ div.tooltip table td:nth-child(2) {
     fill: none;
     stroke: #636363;
     stroke-width: 5px;
-}
-
-#show-dendrogram-div {
-    margin-right: -110px;
 }
 
 .custom-checkbox {
@@ -594,6 +586,18 @@ div.tooltip table td:nth-child(2) {
     color: #296292;
 }
 
-.activeLevel {
+.active-level {
     fill: #386cb0;
+}
+
+#dendrogram-0 {
+    position: initial;
+}
+
+#dendrogram-0-panel {
+    display: none
+}
+
+#show-dendrogram-div {
+    margin-right: -110px;
 }

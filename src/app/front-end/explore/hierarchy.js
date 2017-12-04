@@ -47,14 +47,13 @@ export function initDendrogram() {
         });
 
     // svg container for the dendrogram
-    let svg = d3.select('#dendrogram-vis')
-        .classed('svg-dendrogramContainer', true)
+    let svg = d3.select('#dendrogram-0')
+        .classed('svg-dendrogram-container', true)
         .append('svg')
         .attr('preserveAspectRatio', 'xMinYMin meet')
         .attr('viewBox', '0 0 ' + width + ' ' + height)
         // add the class svg-content
-        .classed('svg-content', true)
-        .attr('id', 'main-vis-svg')
+        .classed('svg-content-dendrogram', true)
         .call(zoom);
 
     // append the zoom group to the svg
@@ -161,7 +160,7 @@ export function drawDendrogram() {
                 })
                 .attr('class', function(d) {
                     if (d['depth'] === hierarchyLevels['h0']) {
-                        return 'activeLevel';
+                        return 'active-level';
                     }
                 })
                 // TODO find a nice function for the on click method
@@ -174,7 +173,7 @@ export function drawDendrogram() {
                 });
 
             // updae the node and circles
-            // with activeLevel function to highlight which level is chosen
+            // with active-level function to highlight which level is chosen
             node
                 .attr('transform', function(d) {
                     return 'translate(' + d.x + ',' + d.y + ')';
@@ -189,7 +188,7 @@ export function drawDendrogram() {
                 })
                 .attr('class', function(d) {
                     if (d['depth'] === hierarchyLevels['h0']) {
-                        return 'activeLevel';
+                        return 'active-level';
                     } else {
                         return '';
                     }
@@ -222,14 +221,14 @@ function drawHierarchy(nodes) {
 
     // DATA JOIN - clusters for the convex hull
     let hieraryHulls = spatialView
-        .selectAll('path.hierarchyHullPath')
+        .selectAll('path.hierarchy-hull-path')
         .data(getHierarchyVertices(tmp));
 
     // ENTER
     hieraryHulls
         .enter()
         .append('path')
-        .attr('class', 'hierarchyHullPath')
+        .attr('class', 'hierarchy-hull-path')
         .attr('d', function(d) {
             return 'M' + d.join('L') + 'Z';
         });
@@ -328,7 +327,7 @@ function getHierarchyVertices(hierarchies) {
 /**
  * Set the active level for a specific dendrogram
  * @param {number} hierarchy - Hierarchy can be from [0-3]
- * @param {number} level - New active level 
+ * @param {number} level - New active level
  */
 function setHierarchyLevel(hierarchy, level) {
     // TODO catch cases < 0 and bigger than overall height

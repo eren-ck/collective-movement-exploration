@@ -163,9 +163,9 @@ function cp_listener() {
      */
     $('#draw-time').on('change', function() {
         if (this.checked) {
-            $('#main-vis .frameText').show();
+            $('#main-vis .frame-text').show();
         } else {
-            $('#main-vis .frameText').hide();
+            $('#main-vis .frame-text').hide();
         }
     });
 
@@ -586,7 +586,7 @@ function h_listeners() {
             $(this).find('#btn-left').removeClass('hidden');
             $(this).find('#btn-right').addClass('hidden');
             // TODO add here a resize of the main vis
-            $('#dendrogram-vis').hide();
+            $('#dendrogram-0-panel').hide();
             if ($('#main-vis-div').attr('class') === 'col-md-8') {
                 $('#main-vis-div').removeClass('col-md-8');
                 $('#main-vis-div').addClass('col-md-12');
@@ -598,7 +598,7 @@ function h_listeners() {
             $(this).find('#btn-left').addClass('hidden');
             $(this).find('#btn-right').removeClass('hidden');
             // TODO add here a resize of the main vis
-            $('#dendrogram-vis').show();
+            $('#dendrogram-0-panel').show();
             if ($('#main-vis-div').attr('class') === 'col-md-12') {
                 $('#main-vis-div').removeClass('col-md-12');
                 $('#main-vis-div').addClass('col-md-8');
@@ -622,14 +622,14 @@ function h_listeners() {
             $('#show-dendrogram-div').removeClass('hidden');
         } else {
             setNetworkHierarchy({});
-            d3.selectAll('path.hierarchyHullPath').remove();
+            d3.selectAll('path.hierarchy-hull-path').remove();
             // remove the dendrogram stuff TODO change this here in modular way
             $('#show-dendrogram-div').addClass('hidden');
             $('#show-dendrogram').removeClass('active');
             $('#btn-left').removeClass('hidden');
             $('#btn-right').addClass('hidden');
 
-            $('#dendrogram-vis').hide();
+            $('#dendrogram-0-panel').hide();
 
         }
     });
@@ -648,7 +648,7 @@ function h_listeners() {
     });
 
     /**
-     * Visualize the network only in the choosen hierarchy  
+     * Visualize the network only in the choosen hierarchy
      */
     $('.network-hierarchy-checkbox').on('change', function() {
         let checkbox = $(this).find('input:hidden');
