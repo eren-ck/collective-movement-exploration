@@ -6,14 +6,11 @@
 <link href="{{url_for('static', filename='jquery-ui.min.css')}}" rel="stylesheet">
 <link href="{{url_for('static', filename='theme.css')}}" rel="stylesheet">
 
-
 {% endblock %}
-
 
 {% block body %}
 <script>
     var parameters = {{ parameters | tojson}}
-
 
 </script>
 {{dataset}}
@@ -248,17 +245,18 @@
                                 <img src="{{url_for('static', filename='loading.gif')}}"/>
                             </div>
                             <!-- The div for the svg  -->
-
                             <div id="main-vis">
                             </div>
-                            <div id="main-vis-legend-div">
+
+                            <div id="main-vis-legend-div" class="pull-right">
                             </div>
+
                         </div>
 
                         <div class="col-md-4">
                             <div class="panel panel-default" id="dendrogram-0-panel">
                                 <div class="panel-heading">Hierarchy: <span id="dendrogram-0-name"> Name</span></div>
-                                <div class="panel-body" >
+                                <div class="panel-body">
                                     Cluster Level <span id="dendrogram-0-level-text">2</span>
                                     <div id="dendrogram-0-level-slider" name="0"></div>
                                     <br>
@@ -329,6 +327,14 @@
             </tbody>
         </table>
     </div>
+</div>
+
+
+<!-- Tooltip -->
+<div class="tooltip" id="dendrogram-tooltip">
+        <span class="tooltip-span">
+
+        </span>
 </div>
 
 

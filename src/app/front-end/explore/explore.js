@@ -2,9 +2,6 @@
 /*global window, $ */
 // import all js
 import * as queries from './ajax_queries.js';
-import {
-    spatialViewInit
-} from './spatial_view/spatial_view.js';
 
 import {
     initializeMetaddata
@@ -44,18 +41,6 @@ $(document).ready(function() {
 
     // get the information if there are already networks created for this dastaset
     queries.getNetworkDataButton();
-
-    // if all ajax queries are compelte initialize
-    (function() {
-        function checkPendingRequest() {
-            if ($.active > 0) {
-                window.setTimeout(checkPendingRequest, 100);
-            } else {
-                spatialViewInit();
-            }
-        }
-        window.setTimeout(checkPendingRequest, 100);
-    })();
 
 });
 

@@ -23,6 +23,11 @@ import {
     disablePlayButton
 } from './helpers.js';
 
+import {
+    spatialViewInit
+} from './spatial_view/spatial_view.js';
+
+
 /**
  * Stream the movement data from the API
  * Loads only the explicit movement data
@@ -33,6 +38,17 @@ export function streamMovementData() {
         source.onmessage = function(e) {
             if (e.data === 'close') {
                 source.close();
+                // if all ajax queries are compelte initialize
+                (function() {
+                    function checkPendingRequest() {
+                        if ($.active > 0) {
+                            window.setTimeout(checkPendingRequest, 100);
+                        } else {
+                            spatialViewInit();
+                        }
+                    }
+                    window.setTimeout(checkPendingRequest, 100);
+                })();
             } else {
                 addToDataset(JSON.parse(e.data));
             }

@@ -8,11 +8,15 @@ import {
 
 import {
     indexTime,
-    arrayAnimals
+    arrayAnimals,
+    setActiveAnimals,
+    decIndexTime,
+    draw
 } from './spatial_view/spatial_view';
 
 let zoomGroup; // zoom group for the specific dendrogram
 let treemap;
+let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
 let hierarchyLevels = {
     'h0': 2,
@@ -81,7 +85,21 @@ export function initDendrogram() {
                 setHierarchyLevel(0, ui.value);
                 $('#dendrogram-0-level-slider').val(ui.value);
                 $('#dendrogram-0-level-text').text(ui.value);
+                // if no animation is active draw the new clustering and dendrogram
+                if (!$('#play-button').hasClass('active')) {
+                    //this applys the changes
+                    drawDendrogram();
+                }
             }
+        });
+
+    // init the tooltip for the dendrogram
+    tooltipDiv = d3.select('#dendrogram-tooltip')
+        .style('left', 0 + 'px')
+        .style('top', 0 + 'px')
+        .on('mouseover', function() {
+            tooltipDiv
+                .style('opacity', 1);
         });
 
 }
@@ -164,7 +182,36 @@ export function drawDendrogram() {
                     }
                 })
                 // TODO find a nice function for the on click method
-                .on('click', click);
+                .on('click', click)
+                .on('mouseover', function(d) {
+                    // tooltip position and text
+                    tooltipDiv
+                        .style('left', (d3.event.pageX + 5) + 'px')
+                        .style('top', (d3.event.pageY + 5) + 'px')
+                        .style('opacity', 1);
+                    tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
+                    // highlight in the spatial view
+                    spatialView.select('#hp' + d['data']['name'].join(''))
+                        .classed('highlight-hierarchy', true);
+                    // highlight each animal in the cluster in the spatial view
+                    for (let i = 0; i < d['data']['name'].length; i++) {
+                        spatialView.select('#animal-' + d['data']['name'][i])
+                            .style('fill', '#c51b7d');
+                    }
+                })
+                .on('mouseout', function(d) {
+                    tooltipDiv.transition()
+                        .duration(500)
+                        .style('opacity', 0);
+                    // remove highlight in the spatial view
+                    spatialView.select('#hp' + d['data']['name'].join(''))
+                        .classed('highlight-hierarchy', false);
+                    // remove highlight each animal in the cluster in the spatial view
+                    for (let i = 0; i < d['data']['name'].length; i++) {
+                        spatialView.select('#animal-' + d['data']['name'][i])
+                            .style('fill', '#000');
+                    }
+                });
 
             // UPDATE -- update the groups
             nodeEnter
@@ -213,7 +260,7 @@ function drawHierarchy(nodes) {
     let root = nodes['children'][0];
 
     // let clusters1 = getHierarchyLevel();
-    let tmp = getHierarchyLevel(root, 0, hierarchyLevels['h0']);
+    let hierarchy_ids = getHierarchyLevel(root, 0, hierarchyLevels['h0']);
 
     // draw the hierarchy of hierarchy 0 first of all
     // TODO make modular so 4 hierarchies can be drawn for the first
@@ -222,19 +269,25 @@ function drawHierarchy(nodes) {
     // DATA JOIN - clusters for the convex hull
     let hieraryHulls = spatialView
         .selectAll('path.hierarchy-hull-path')
-        .data(getHierarchyVertices(tmp));
+        .data(getHierarchyVertices(hierarchy_ids));
 
     // ENTER
     hieraryHulls
         .enter()
         .append('path')
         .attr('class', 'hierarchy-hull-path')
+        .attr('id', function(d, i) {
+            return 'hp' + hierarchy_ids[i].join('');
+        })
         .attr('d', function(d) {
             return 'M' + d.join('L') + 'Z';
         });
 
     // Transition links to their new position.
     hieraryHulls
+        .attr('id', function(d, i) {
+            return 'hp' + hierarchy_ids[i].join('');
+        })
         .attr('d', function(d) {
             return 'M' + d.join('L') + 'Z';
         });
@@ -254,13 +307,16 @@ function diagonalLines(d) {
 }
 
 /**
- * On click function
- * TODO find a nice function for this
+ * On click function - highlight the elements in the spatial view
+ * @param {object} d - Treemap element
  */
 function click(d) {
-
-    console.log('Hey there');
-    console.log(d['data']['name']);
+    setActiveAnimals(d['data']['name']);
+    // if no animation is active draw the draw one step
+    if (!$('#play-button').hasClass('active')) {
+        decIndexTime();
+        draw();
+    }
 }
 
 /**

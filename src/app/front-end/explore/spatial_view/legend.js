@@ -1,34 +1,28 @@
 /*eslint-disable no-unused-lets*/
-/*global window, d3,*/
+/*global window, d3, $*/
 
-import * as SPV from './spatial_view.js';
+import {
+    activeScale
+} from './spatial_view.js';
 
 import {
     returnColorScale
 } from './color_picker.js';
 
 let svgLegend; // svg container for the legend
-let tankWidth; // spatial view width
-let tankHeight; // spatial view height
 
 /**
  * Add the group to the svg where the legend for the color legend is
- * TODO change this - so that the legend is also responsive
  */
 export function addSpatialViewGroup() {
-    tankWidth = SPV.tankWidth;
-    tankHeight = SPV.tankHeight;
+    let legendWidth = 500;
+    let legendHeight = 60;
 
     svgLegend = d3.select('#main-vis-legend-div')
-        .classed('svg-legend-container', true)
-        // to make it responsive with css
         .append('svg')
-        .attr('preserveAspectRatio', 'xMinYMin meet')
-        .attr('viewBox', '0 0 ' + tankWidth + ' ' + 100)
-        // add the class svg-content
-        .classed('svg-content-legend', true)
-        .append('svg:g')
-        .attr('class', 'colorLegend');
+        .attr('id', 'main-vis-legend')
+        .attr('width', legendWidth)
+        .attr('height', legendHeight);
 }
 
 /**
@@ -36,29 +30,37 @@ export function addSpatialViewGroup() {
  *
  */
 export function changeLegend() {
-    var legend; // the color legend
-    var legendText; // color legend text
+    let legend; // the color legend
+    let legendText; // color legend text
     // vars for the legend
-    var legendWidth = tankWidth * 0.08;
-    var legendHeight = tankHeight * 0.04;
-    var differentColors = 0;
+    let legendSwatchWidth = 50;
+    let legendSwatchHeight = 20;
+    // let differentColors = 0;
+
+    // Show the svg first of all
+    $('#main-vis-legend-div').show();
 
     //change the colors of the animals
-    if (SPV.activeScale !== 'black') {
+    if (activeScale !== 'black') {
         var tmpScale = returnColorScale();
         // once the fill for the heads and the stroke for the path
         legend = svgLegend.selectAll('rect.legend')
             .data(tmpScale.range());
+
         legendText = svgLegend.selectAll('text.legend-text')
             .data(tmpScale.domain());
-        differentColors = tmpScale.range()
-            .length;
+        // differentColors = tmpScale.range()
+        // .length;
     } else {
         legend = svgLegend.selectAll('rect.legend')
             .data([]);
         legendText = svgLegend.selectAll('text.legend-text')
             .data([]);
+        // hide the div again
+        $('#main-vis-legend-div').hide();
     }
+
+    // --------------- Legend swatches  -------------------
     // UPDATE - legend
     legend.style('fill', function(d) {
         return d;
@@ -68,11 +70,11 @@ export function changeLegend() {
         .enter()
         .append('rect')
         .attr('class', 'legend')
-        .attr('width', legendWidth)
-        .attr('height', legendHeight)
+        .attr('width', legendSwatchWidth)
+        .attr('height', legendSwatchHeight)
         .attr('y', 0)
         .attr('x', function(d, i) {
-            return ((tankWidth - differentColors * legendWidth) + i * legendWidth - 30) + 'px';
+            return (legendSwatchWidth + i * legendSwatchWidth) + 'px';
         })
         .style('fill', function(d) {
             return d;
@@ -81,19 +83,20 @@ export function changeLegend() {
     legend.exit()
         .remove();
 
+    // --------------- Text  -------------------
     // UPDATE - legend text
     legendText.text(function(d) {
-        return d;
+        return Math.ceil(d * 2) / 2;
     });
     // ENTER - legend text
     legendText
         .enter()
         .append('text')
         .attr('class', 'legend-text')
-        .attr('y', 2 * legendHeight)
+        .attr('y', 2 * legendSwatchHeight)
         .attr('x', function(d, i) {
-            // plus 15 has to be changed
-            return ((tankWidth - differentColors * legendWidth) + i * legendWidth - 10) + 'px';
+            // plus 5 has to be changed
+            return (legendSwatchWidth + i * legendSwatchWidth + 5) + 'px';
         })
         .text(function(d) {
             return Math.ceil(d * 2) / 2;

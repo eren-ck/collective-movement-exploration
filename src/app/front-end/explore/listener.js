@@ -193,7 +193,6 @@ function sf_listeners() {
      */
     $('#draw-direction').click(function() {
         if ($('#draw-direction').is(':checked')) {
-            // load absolute feature speed data once
             if (!('direction' in dataset[0])) {
                 disablePlayButton();
                 // ajax query to get direction data

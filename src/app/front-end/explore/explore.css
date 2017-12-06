@@ -71,6 +71,10 @@
 
 /* SVG elements and text */
 
+#main-vis {
+    margin-bottom: 10px;
+}
+
 .svg-container {
     display: inline-block;
     position: relative;
@@ -86,9 +90,15 @@
     border: 1px solid #000;
 }
 
-.svg-content-legend {
+#main-vis-legend-div {
+    display: none;
+}
+
+#main-vis-legend {
+    float: right;
     display: inline-block;
-    position: absolute;
+    position: relative;
+    overflow: visible;
     top: 10px;
     left: 10px;
 }
@@ -96,18 +106,6 @@
 .svg-content-dendrogram {
     display: inline-block;
     border: 1px solid #000;
-}
-
-.svg-legend-container {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    height: auto;
-    /* depends on svg ratio */
-    padding-bottom: 10%;
-    /* aspect ratio */
-    vertical-align: top;
-    overflow: hidden;
 }
 
 .svg-line-chart-container {
@@ -195,7 +193,7 @@
 }
 
 .legend-text {
-    font-size: 1.5em;
+    font-size: 1.2em;
     color: inherit;
     font-family: inherit;
     line-height: 1.1;
@@ -357,6 +355,13 @@ div.tooltip {
 div.tooltip table td:nth-child(2) {
     text-align: center;
     font-weight: bold;
+}
+
+.tooltip-span {
+    display: block;
+    width: 150px;
+    word-wrap: break-word;
+    font-size: 1.5em;
 }
 
 .line-chart-check-box.disabled {
@@ -600,4 +605,12 @@ div.tooltip table td:nth-child(2) {
 
 #show-dendrogram-div {
     margin-right: -110px;
+}
+
+.highlight-hierarchy {
+    fill: #252525;
+    stroke: #252525;
+    stroke-width: 40;
+    stroke-linejoin: round;
+    opacity: 0.3;
 }
