@@ -18,12 +18,15 @@ let zoomGroup; // zoom group for the specific dendrogram
 let treemap;
 let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
-let hierarchyLevels = {
-    'h0': 2,
-    'h1': 2,
-    'h2': 2,
-    'h3': 2,
-}; // which level of the hierarchy is visualized
+
+export const maxNumberHierarchies = 4;
+
+let hierarchyLevels = {};
+let hierarchyColors = {};
+
+let colors = ['#3366cc', '#dc3912', '#ff9900', '#990099', '#0099c6', '#22aa99'];
+
+// which level of the hierarchy is visualized
 
 /**
  * Initialize the dendrogram
@@ -34,6 +37,11 @@ export function initDendrogram() {
     let margin = 20,
         width = 5000,
         height = 5000;
+    // initialize the max Level variable needed for the slider
+    for (let i = 0; i < maxNumberHierarchies; i++) {
+        hierarchyLevels['h' + i] = 2;
+        hierarchyColors['h' + i] = colors[i];
+    }
 
     // zoom function for the dendrogram
     let zoom = d3.zoom()
@@ -51,7 +59,7 @@ export function initDendrogram() {
         });
 
     // svg container for the dendrogram
-    let svg = d3.select('#dendrogram-0')
+    let svg = d3.select('#dendrogram-panel')
         .classed('svg-dendrogram-container', true)
         .append('svg')
         .attr('preserveAspectRatio', 'xMinYMin meet')
@@ -74,7 +82,7 @@ export function initDendrogram() {
 
     // init dendrogram slider
     // initialize the Network slider
-    $('#dendrogram-0-level-slider')
+    $('#dendrogram-panel-level-slider')
         .slider({
             range: 'max',
             min: 1,
@@ -83,8 +91,8 @@ export function initDendrogram() {
             value: hierarchyLevels['h0'],
             slide: function(event, ui) {
                 setHierarchyLevel(0, ui.value);
-                $('#dendrogram-0-level-slider').val(ui.value);
-                $('#dendrogram-0-level-text').text(ui.value);
+                $('#dendrogram-panel-level-slider').val(ui.value);
+                $('#dendrogram-panel-level-text').text(ui.value);
                 // if no animation is active draw the new clustering and dendrogram
                 if (!$('#play-button').hasClass('active')) {
                     //this applys the changes
@@ -125,7 +133,7 @@ export function drawDendrogram() {
         // hide if no network is choosen
         if ($('#show-dendrogram').hasClass('active') === true) {
             // set the new slider max
-            $('#dendrogram-0-level-slider')
+            $('#dendrogram-panel-level-slider')
                 .slider('option', 'max', (nodes['height'] - 1));
 
             // DATA JOIN - links (edges)
@@ -388,4 +396,29 @@ function getHierarchyVertices(hierarchies) {
 function setHierarchyLevel(hierarchy, level) {
     // TODO catch cases < 0 and bigger than overall height
     hierarchyLevels['h' + hierarchy] = level;
+}
+
+/**
+ * Add the hierarchy button to the div
+ * @param {number} id - Hierarchy of the id
+ * @param {String} name - New active level
+ */
+export function addHierarchyButton(id, name) {
+    if ($('.show-dendrogram').length < maxNumberHierarchies) {
+        $('#dendrogram-buttons-div').append('<button type="button" id="show-dendrogram-' + id +
+            '" class="show-dendrogram btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            ' <span class="btn-label" id="btn-left"> <i class="glyphicon glyphicon-chevron-left"></i>&nbsp&nbsp Show ' + name + '</span>' +
+            '<span class="btn-label hidden" id="btn-right"> <i class="glyphicon glyphicon-chevron-right"></i>&nbsp&nbsp Hide ' + name + ' </span></button> <br>'
+        );
+    }
+}
+
+/**
+ * Remove a specific hierarchy button to the div
+ * @param {number} id - Hierarchy of the id
+ */
+export function removeHierarchyButton(id) {
+    // remove the following line break and element
+    $('#show-dendrogram-' + id).next().remove();
+    $('#show-dendrogram-' + id).remove();
 }

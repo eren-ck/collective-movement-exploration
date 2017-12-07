@@ -15,7 +15,7 @@ let svgLegend; // svg container for the legend
  * Add the group to the svg where the legend for the color legend is
  */
 export function addSpatialViewGroup() {
-    let legendWidth = 500;
+    let legendWidth = 550;
     let legendHeight = 60;
 
     svgLegend = d3.select('#main-vis-legend-div')

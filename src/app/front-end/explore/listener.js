@@ -47,6 +47,11 @@ import {
     colorScale
 } from './spatial_view/color_picker';
 
+import {
+    addHierarchyButton,
+    removeHierarchyButton
+} from './hierarchy.js';
+
 let brush; // brushing variable
 export let playBoolean = true; // pause and play boolean
 
@@ -426,6 +431,7 @@ function n_listeners() {
         // add the name of the choosen network to the Network modal
         $('#active-network-name').text($(this).attr('name'));
 
+        disablePlayButton();
         getNetworkData(network_id);
         $('#network-div').modal('toggle');
     });
@@ -437,7 +443,6 @@ function n_listeners() {
         setNetworkData({});
 
         $('#active-network-name').text('');
-        // setNetworkHierarchy({});
     });
 
     /**
@@ -579,33 +584,40 @@ function h_listeners() {
     /**
      * Show dendgrogram sliding button
      */
-    $('#show-dendrogram').click(function() {
-        if ($('#show-dendrogram').hasClass('active') === true) {
-            // remove the dendrogram
-            $(this).find('#btn-left').removeClass('hidden');
-            $(this).find('#btn-right').addClass('hidden');
-            // TODO add here a resize of the main vis
-            $('#dendrogram-0-panel').hide();
-            if ($('#main-vis-div').attr('class') === 'col-md-8') {
-                $('#main-vis-div').removeClass('col-md-8');
-                $('#main-vis-div').addClass('col-md-12');
+    function initShowDendrogramListener(id) {
+
+        $('#show-dendrogram-' + id).click(function() {
+            $('.show-dendrogram').removeClass('active');
+            console.log($(this));
+            if ($(this).hasClass('active') === true) {
+                // remove the dendrogram
+                $(this).find('#btn-left').removeClass('hidden');
+                $(this).find('#btn-right').addClass('hidden');
+                // TODO add here a resize of the main vis
+                $('#dendrogram-panel').hide();
+                if ($('#main-vis-div').attr('class') === 'col-md-8') {
+                    $('#main-vis-div').removeClass('col-md-8');
+                    $('#main-vis-div').addClass('col-md-12');
+
+                }
+
+            } else {
+                // add teh dendrogram
+                $(this).find('#btn-left').addClass('hidden');
+                $(this).find('#btn-right').removeClass('hidden');
+                // TODO add here a resize of the main vis
+                // $('#dendrogram-panel').insertAfter($(this));
+                $('#dendrogram-panel').show();
+                if ($('#main-vis-div').attr('class') === 'col-md-12') {
+                    $('#main-vis-div').removeClass('col-md-12');
+                    $('#main-vis-div').addClass('col-md-8');
+
+                }
 
             }
+        });
 
-        } else {
-            // add teh dendrogram
-            $(this).find('#btn-left').addClass('hidden');
-            $(this).find('#btn-right').removeClass('hidden');
-            // TODO add here a resize of the main vis
-            $('#dendrogram-0-panel').show();
-            if ($('#main-vis-div').attr('class') === 'col-md-12') {
-                $('#main-vis-div').removeClass('col-md-12');
-                $('#main-vis-div').addClass('col-md-8');
-
-            }
-
-        }
-    });
+    }
 
     /**
      * Hierarchy button in network modal on change
@@ -615,35 +627,30 @@ function h_listeners() {
         let checkbox = $(this).find('input:hidden');
 
         let id = checkbox.attr('data');
+        let name = checkbox.attr('name');
         let checked = checkbox.prop('checked');
+
+
         if (checked) {
+            disablePlayButton();
             getNetworkHierarchyData(id);
-            $('#show-dendrogram-div').removeClass('hidden');
+
+            addHierarchyButton(id, name);
+            initShowDendrogramListener(id);
+            $('#dendrogram-buttons-div').removeClass('hidden');
         } else {
-            setNetworkHierarchy({});
+            setNetworkHierarchy({}, id);
+
+            removeHierarchyButton(id);
+            // TODO find better way here
             d3.selectAll('path.hierarchy-hull-path').remove();
             // remove the dendrogram stuff TODO change this here in modular way
-            $('#show-dendrogram-div').addClass('hidden');
-            $('#show-dendrogram').removeClass('active');
-            $('#btn-left').removeClass('hidden');
-            $('#btn-right').addClass('hidden');
-
-            $('#dendrogram-0-panel').hide();
+            if ($('.show-dendrogram').length === 0) {
+                $('#dendrogram-buttons-div').addClass('hidden');
+                $('#dendrogram-panel').hide();
+            }
 
         }
-    });
-
-    /**
-     * Sliding animation button with more information
-     */
-    $('#show-dendrogram-div').hover(function() {
-        $(this).stop().animate({
-            'marginRight': '0px',
-        }, 500);
-    }, function() {
-        $(this).stop().animate({
-            'marginRight': '-110px',
-        }, 500);
     });
 
     /**

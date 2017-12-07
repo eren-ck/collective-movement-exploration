@@ -595,16 +595,28 @@ div.tooltip table td:nth-child(2) {
     fill: #386cb0;
 }
 
-#dendrogram-0 {
+#dendrogram-panel {
     position: initial;
 }
 
-#dendrogram-0-panel {
+#dendrogram-panel {
     display: none
 }
 
-#show-dendrogram-div {
+.show-dendrogram {
     margin-right: -110px;
+    -webkit-transition: margin-right 1s ease-out;
+    -moz-transition: margin-right 1s ease-out;
+    -o-transition: margin-right 1s ease-out;
+    transition: margin-right 1s ease-out;
+}
+
+.show-dendrogram:hover {
+    margin-right: 0px;
+    -webkit-transition: margin-right 1s ease-out;
+    -moz-transition: margin-right 1s ease-out;
+    -o-transition: margin-right 1s ease-out;
+    transition: margin-right 1s ease-out;
 }
 
 .highlight-hierarchy {

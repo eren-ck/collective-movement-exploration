@@ -12,6 +12,8 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
+
+
 </script>
 {{dataset}}
 </div>
@@ -228,14 +230,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div id="show-dendrogram-div" class="pull-right hidden">
-                            <button type="button" id="show-dendrogram" class="btn btn-default" data-toggle="button"
-                                    aria-pressed="false" autocomplete="off">
-                                <span class="btn-label" id="btn-left"><i
-                                        class="glyphicon glyphicon-chevron-left"></i>&nbsp&nbsp Show Hierarchy</span>
-                                <span class="btn-label hidden" id="btn-right"><i
-                                        class="glyphicon glyphicon-chevron-right"></i>&nbsp&nbsp Hide Hierarchy</span>
-                            </button>
+                        <div id="dendrogram-buttons-div" class="pull-right hidden">
                         </div>
 
 
@@ -245,22 +240,27 @@
                                 <img src="{{url_for('static', filename='loading.gif')}}"/>
                             </div>
                             <!-- The div for the svg  -->
-                            <div id="main-vis">
+                            <div class="row">
+                                <div id="main-vis">
+                                </div>
                             </div>
 
-                            <div id="main-vis-legend-div" class="pull-right">
+                            <div class="row">
+
+                                <div id="main-vis-legend-div" class="pull-right">
+                                </div>
                             </div>
 
                         </div>
 
                         <div class="col-md-4">
-                            <div class="panel panel-default" id="dendrogram-0-panel">
-                                <div class="panel-heading">Hierarchy: <span id="dendrogram-0-name"> Name</span></div>
+                            <div class="panel panel-default" id="dendrogram-panel">
+                                <div class="panel-heading">Hierarchy: <span id="dendrogram-panel-name"> Name</span></div>
                                 <div class="panel-body">
-                                    Cluster Level <span id="dendrogram-0-level-text">2</span>
-                                    <div id="dendrogram-0-level-slider" name="0"></div>
+                                    Cluster Level <span id="dendrogram-panel-level-text">2</span>
+                                    <div id="dendrogram-panel-level-slider" name="0"></div>
                                     <br>
-                                    <div id="dendrogram-0">
+                                    <div id="dendrogram-panel">
 
                                     </div>
                                 </div>

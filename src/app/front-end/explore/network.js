@@ -28,8 +28,8 @@ export function addNetworkButtons(data) {
                     .append('<tr><td>' + data[i]['name'] + '</td> ' +
                         '<td> <button type="button" class="btn btn-default btn-block" data=' + data[i]['network_id'] + ' name=' + data[i]['name'] +
                         '><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button></td> ' +
-                        ' <td><label class="custom-control custom-checkbox hiearchy-checkbox"><input class="custom-control-input hidden" type="checkbox" data="' +
-                        data[i]['network_id'] + '"><span class="custom-control-indicator"></span></label></td>' +
+                        ' <td><label class="custom-control custom-checkbox hiearchy-checkbox"><input class="custom-control-input hidden" type="checkbox" data=' +
+                        data[i]['network_id'] + ' name=' + data[i]['name'] + '><span class="custom-control-indicator"></span></label></td>' +
                         '<td><label class="custom-control custom-checkbox network-hierarchy-checkbox"><input class="custom-control-input hidden" type="checkbox" data="' +
                         data[i]['network_id'] + '"><span class="custom-control-indicator"></span></label></td>');
             }

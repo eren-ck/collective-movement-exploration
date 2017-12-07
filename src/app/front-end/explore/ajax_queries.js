@@ -214,6 +214,7 @@ export function getNetworkData(network_id) {
             if (data.length) {
                 setNetworkData(JSON.parse(data[0]['data']));
             }
+            enablePlayButton();
         }
     });
 
@@ -234,8 +235,9 @@ export function getNetworkHierarchyData(network_id) {
         },
         success: function(data) {
             if (data.length) {
-                setNetworkHierarchy(JSON.parse(data[0]['hierarchy']));
+                setNetworkHierarchy(JSON.parse(data[0]['hierarchy']), network_id);
             }
+            enablePlayButton();
         }
     });
 
