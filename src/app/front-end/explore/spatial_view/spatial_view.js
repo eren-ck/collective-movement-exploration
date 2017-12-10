@@ -703,7 +703,7 @@ export function draw() {
             }
 
             // draw hierarchy
-            // drawDendrogram();
+            drawDendrogram();
 
             //next frame
             indexTime++;

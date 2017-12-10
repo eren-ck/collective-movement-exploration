@@ -8,7 +8,12 @@ import {
 } from './metadata.js';
 
 import {
-    maxNumberHierarchies
+    maxNumberHierarchies,
+    setHierarchyLevel,
+    removeHierarchyLevel,
+    setHierarchyColor,
+    removeHierarchyColor,
+    changeHierarchyLegend
 } from './hierarchy.js';
 
 // import css
@@ -136,9 +141,13 @@ export function setNetworkHierarchy(value, network_id) {
     // if the element is empty remove the element from the netwrokHierarchy object
     if (Object.keys(value).length === 0 && value.constructor === Object) {
         delete networkHierarchy['h' + network_id];
+        removeHierarchyLevel(network_id);
+        removeHierarchyColor(network_id);
     } // add it to the network hierarchy
     else if (Object.keys(networkHierarchy).length <= maxNumberHierarchies) {
         networkHierarchy['h' + network_id] = value;
+        setHierarchyLevel(network_id, 2);
+        setHierarchyColor(network_id);
     } // too many elements cant be added
     else {
         // notice user that it is not possible to show more than n hierarchies
@@ -146,5 +155,5 @@ export function setNetworkHierarchy(value, network_id) {
         //   <strong>Info!</strong> Attention user .
         // </div>
     }
-    console.log(networkHierarchy);
+    changeHierarchyLegend();
 }

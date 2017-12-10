@@ -49,7 +49,9 @@ import {
 
 import {
     addHierarchyButton,
-    removeHierarchyButton
+    removeHierarchyButton,
+    drawDendrogram,
+    updateDendrogram
 } from './hierarchy.js';
 
 let brush; // brushing variable
@@ -587,36 +589,41 @@ function h_listeners() {
     function initShowDendrogramListener(id) {
 
         $('#show-dendrogram-' + id).click(function() {
-            $('.show-dendrogram').removeClass('active');
-            console.log($(this));
-            if ($(this).hasClass('active') === true) {
-                // remove the dendrogram
-                $(this).find('#btn-left').removeClass('hidden');
-                $(this).find('#btn-right').addClass('hidden');
-                // TODO add here a resize of the main vis
-                $('#dendrogram-panel').hide();
-                if ($('#main-vis-div').attr('class') === 'col-md-8') {
-                    $('#main-vis-div').removeClass('col-md-8');
-                    $('#main-vis-div').addClass('col-md-12');
-
+            let clickedButtonID = $(this).attr('id');
+            // iterate over all buttons and custom highlight just one or none
+            $('.show-dendrogram').each(function(i, button) {
+                // active found button
+                if ($(button).attr('id') === clickedButtonID && $(button).hasClass('btn-primary') === false) {
+                    $(button).addClass('btn-primary');
+                    $(button).find('#btn-left').addClass('hidden');
+                    $(button).find('#btn-right').removeClass('hidden');
+                    // TODO add here a resize of the main vis
+                    // $('#dendrogram-panel').insertAfter($(this));
+                } // remove highlight
+                else {
+                    $(button).removeClass('btn-primary');
+                    $(button).find('#btn-left').removeClass('hidden');
+                    $(button).find('#btn-right').addClass('hidden');
                 }
+            });
 
-            } else {
-                // add teh dendrogram
-                $(this).find('#btn-left').addClass('hidden');
-                $(this).find('#btn-right').removeClass('hidden');
-                // TODO add here a resize of the main vis
-                // $('#dendrogram-panel').insertAfter($(this));
-                $('#dendrogram-panel').show();
+            // show dendrogram
+            if ($('.show-dendrogram.btn-primary').length) {
+                // resize the main svg if there is an active choosen button
                 if ($('#main-vis-div').attr('class') === 'col-md-12') {
                     $('#main-vis-div').removeClass('col-md-12');
                     $('#main-vis-div').addClass('col-md-8');
-
                 }
-
+                $('#dendrogram-panel').show();
+            } // change main svg size and remove dendrogram
+            else if ($('#main-vis-div').attr('class') === 'col-md-8') {
+                $('#main-vis-div').removeClass('col-md-8');
+                $('#main-vis-div').addClass('col-md-12');
+                $('#dendrogram-panel').hide();
             }
+            updateDendrogram();
+            drawDendrogram();
         });
-
     }
 
     /**
@@ -643,7 +650,7 @@ function h_listeners() {
 
             removeHierarchyButton(id);
             // TODO find better way here
-            d3.selectAll('path.hierarchy-hull-path').remove();
+            d3.selectAll('g.hierarchy-group').remove();
             // remove the dendrogram stuff TODO change this here in modular way
             if ($('.show-dendrogram').length === 0) {
                 $('#dendrogram-buttons-div').addClass('hidden');

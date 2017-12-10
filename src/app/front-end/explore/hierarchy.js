@@ -18,13 +18,15 @@ let zoomGroup; // zoom group for the specific dendrogram
 let treemap;
 let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
+let svgLegend;
 
 export const maxNumberHierarchies = 4;
 
 let hierarchyLevels = {};
 let hierarchyColors = {};
 
-let colors = ['#3366cc', '#dc3912', '#ff9900', '#990099', '#0099c6', '#22aa99'];
+// TODO add more colors
+let colors = ['#3366cc', '#dc3912', '#ff9900', '#990099'];
 
 // which level of the hierarchy is visualized
 
@@ -37,11 +39,6 @@ export function initDendrogram() {
     let margin = 20,
         width = 5000,
         height = 5000;
-    // initialize the max Level variable needed for the slider
-    for (let i = 0; i < maxNumberHierarchies; i++) {
-        hierarchyLevels['h' + i] = 2;
-        hierarchyColors['h' + i] = colors[i];
-    }
 
     // zoom function for the dendrogram
     let zoom = d3.zoom()
@@ -90,10 +87,11 @@ export function initDendrogram() {
             step: 1,
             value: hierarchyLevels['h0'],
             slide: function(event, ui) {
-                setHierarchyLevel(0, ui.value);
-                $('#dendrogram-panel-level-slider').val(ui.value);
-                $('#dendrogram-panel-level-text').text(ui.value);
+                let id = $('.show-dendrogram.btn-primary').attr('data');
+                setHierarchyLevel(id, ui.value);
+                updateDendrogram();
                 // if no animation is active draw the new clustering and dendrogram
+                // drawDendrogram();
                 if (!$('#play-button').hasClass('active')) {
                     //this applys the changes
                     drawDendrogram();
@@ -109,7 +107,15 @@ export function initDendrogram() {
             tooltipDiv
                 .style('opacity', 1);
         });
+    // init the hierarchy legend
+    let legendWidth = maxNumberHierarchies * 100;
+    let legendHeight = 60;
 
+    svgLegend = d3.select('#hierarchy-legend-div')
+        .append('svg')
+        .attr('id', 'hierarchy-legend')
+        .attr('width', legendWidth)
+        .attr('height', legendHeight);
 }
 
 /**
@@ -117,12 +123,14 @@ export function initDendrogram() {
  * Further calls the drawHierarchy function
  */
 export function drawDendrogram() {
+    // get the active dendrogram
+    let id = $('.show-dendrogram.btn-primary').attr('data');
 
-    // if data is avaiable draw hierarchy clusters
-    if (!$.isEmptyObject(networkHierarchy)) {
+    // if data is avaiable draw hierarchy clusters and a button is active selcted
+    if (!$.isEmptyObject(networkHierarchy) && id) {
 
         // get the data and transform it
-        let treeData = networkHierarchy[indexTime];
+        let treeData = networkHierarchy['h' + id][indexTime];
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
         });
@@ -131,10 +139,12 @@ export function drawDendrogram() {
         nodes = treemap(nodes);
 
         // hide if no network is choosen
-        if ($('#show-dendrogram').hasClass('active') === true) {
+        if ($('.show-dendrogram.btn-primary').length) {
+
             // set the new slider max
             $('#dendrogram-panel-level-slider')
-                .slider('option', 'max', (nodes['height'] - 1));
+                .slider('option', 'max', (nodes['height'] - 1))
+                .slider('value', hierarchyLevels['h' + id]);
 
             // DATA JOIN - links (edges)
             let link = zoomGroup
@@ -155,7 +165,6 @@ export function drawDendrogram() {
             // EXIT
             link.exit()
                 .remove();
-
 
             // DATA JOIN - nodes
             // adds each node as a group
@@ -178,14 +187,14 @@ export function drawDendrogram() {
             // with highlighting for the active choosen level
             nodeEnter.append('circle')
                 .attr('r', function(d) {
-                    if (d['depth'] === hierarchyLevels['h0']) {
+                    if (d['depth'] === hierarchyLevels['h' + id]) {
                         return 40;
                     } else {
                         return 20;
                     }
                 })
                 .attr('class', function(d) {
-                    if (d['depth'] === hierarchyLevels['h0']) {
+                    if (d['depth'] === hierarchyLevels['h' + id]) {
                         return 'active-level';
                     }
                 })
@@ -235,14 +244,14 @@ export function drawDendrogram() {
                 })
                 .select('circle')
                 .attr('r', function(d) {
-                    if (d['depth'] === hierarchyLevels['h0']) {
+                    if (d['depth'] === hierarchyLevels['h' + id]) {
                         return 40;
                     } else {
                         return 20;
                     }
                 })
                 .attr('class', function(d) {
-                    if (d['depth'] === hierarchyLevels['h0']) {
+                    if (d['depth'] === hierarchyLevels['h' + id]) {
                         return 'active-level';
                     } else {
                         return '';
@@ -252,50 +261,87 @@ export function drawDendrogram() {
             // EXIT
             node.exit()
                 .remove();
-
         }
+    }
+    if (!$.isEmptyObject(networkHierarchy)) {
         // draw the hierarchy in spatial view
-        drawHierarchy(nodes);
+        drawHierarchy();
     }
 }
 
 /**
- * Draw the hierarchical in the spatial view
- * @param {object} nodes - Tree of the clustering - also used to create the dendrogram
+ * Draw the all hierarchies in the spatial view
+ * add a group with the ids of the animals in it to the view
+ * with path child elements
  */
-function drawHierarchy(nodes) {
-    // transform the hiearhcy fisrt into an array of arrays
-    let root = nodes['children'][0];
+function drawHierarchy() {
+    // id of the hierarchy e.g. [1,5,3]
+    let hierarchyIds = Object.keys(networkHierarchy).map(function(x) {
+        return x.replace('h', '');
+    });
+    //  The clustering in an 2D array with which animal id belongs to which group
+    let hierarchyAnimalIDs = [];
 
-    // let clusters1 = getHierarchyLevel();
-    let hierarchy_ids = getHierarchyLevel(root, 0, hierarchyLevels['h0']);
+    // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
+    for (let i = 0; i < hierarchyIds.length; i++) {
+        let treeData = networkHierarchy['h' + hierarchyIds[i]][indexTime];
+        let nodes = d3.hierarchy(treeData, function(d) {
+            return d.children;
+        });
 
-    // draw the hierarchy of hierarchy 0 first of all
-    // TODO make modular so 4 hierarchies can be drawn for the first
-    // afterwards n hierarchies
+        nodes = treemap(nodes);
+        let root = nodes['children'][0];
+        hierarchyAnimalIDs.push(getHierarchyLevel(root, hierarchyIds[i]));
+    }
 
-    // DATA JOIN - clusters for the convex hull
-    let hieraryHulls = spatialView
-        .selectAll('path.hierarchy-hull-path')
-        .data(getHierarchyVertices(hierarchy_ids));
+    // DATA Join
+    let hierarchies = spatialView
+        .selectAll('g.hierarchy-group')
+        .data(hierarchyAnimalIDs);
 
-    // ENTER
+    // ENTER the groups - adds a specific id and color
+    hierarchies
+        .enter()
+        .append('g')
+        .attr('class', 'hierarchy-group')
+        .attr('id', function(d) {
+            return 'hp' + d.join('');
+        })
+        .style('fill', function(d, i) {
+            return hierarchyColors['h' + hierarchyIds[i]];
+        })
+        .attr('stroke', function(d, i) {
+            return hierarchyColors['h' + hierarchyIds[i]];
+        });
+
+    // UPDATE
+    hierarchies
+        .attr('id', function(d) {
+            return 'hp' + d.join('');
+        });
+
+    // EXIT
+    hierarchies.exit()
+        .remove();
+
+    // Hierachy hulls added to the spatial view - get the points for each animal in the
+    // spatial view so that a convex hull can be calculated
+    let hieraryHulls = hierarchies.selectAll('path.hierarchy-hull-path')
+        .data(function(d) {
+            return getHierarchyVertices(d);
+        });
+
+    // ENTER and calculate the convex hull
     hieraryHulls
         .enter()
         .append('path')
         .attr('class', 'hierarchy-hull-path')
-        .attr('id', function(d, i) {
-            return 'hp' + hierarchy_ids[i].join('');
-        })
         .attr('d', function(d) {
             return 'M' + d.join('L') + 'Z';
         });
 
-    // Transition links to their new position.
+    // UPDATE the convex hull
     hieraryHulls
-        .attr('id', function(d, i) {
-            return 'hp' + hierarchy_ids[i].join('');
-        })
         .attr('d', function(d) {
             return 'M' + d.join('L') + 'Z';
         });
@@ -332,10 +378,10 @@ function click(d) {
  * For instance all clusters from level 5
  * @param {object} root - Root of the treemap
  * @param {number} hiearchy - Number of hierarchy from [0-3]
- * @param {number} level - Which level to return
  */
-function getHierarchyLevel(root, hierarchy, level) {
+function getHierarchyLevel(root, hierarchy) {
     let result = [];
+    let level = hierarchyLevels['h' + hierarchy];
 
     // second level of the array
     let tmp_nodes = root['children'];
@@ -393,9 +439,46 @@ function getHierarchyVertices(hierarchies) {
  * @param {number} hierarchy - Hierarchy can be from [0-3]
  * @param {number} level - New active level
  */
-function setHierarchyLevel(hierarchy, level) {
+export function setHierarchyLevel(hierarchy, level) {
     // TODO catch cases < 0 and bigger than overall height
     hierarchyLevels['h' + hierarchy] = level;
+}
+
+/**
+ * Remove the entry for the hierarch level
+ * @param {number} hierarchy - Hierarchy
+ */
+export function removeHierarchyLevel(hierarchy) {
+    // TODO catch cases < 0 and bigger than overall height
+    delete hierarchyLevels['h' + hierarchy];
+}
+
+/**
+ * Set the active color for a specific dendrogram
+ * @param {number} hierarchy - Hierarchy can be from [0-3]
+ */
+export function setHierarchyColor(hierarchy) {
+    for (let i = 0; i < colors.length; i++) {
+        let tmp_boolean = true;
+        for (var key in hierarchyColors) {
+            if (hierarchyColors.hasOwnProperty(key)) {
+                if (hierarchyColors[key] === colors[i]) {
+                    tmp_boolean = false;
+                }
+            }
+        }
+        if (tmp_boolean) {
+            hierarchyColors['h' + hierarchy] = colors[i];
+        }
+    }
+}
+
+/**
+ * Remove the color for the hierarch level
+ * @param {number} hierarchy - Hierarchy
+ */
+export function removeHierarchyColor(hierarchy) {
+    delete hierarchyColors['h' + hierarchy];
 }
 
 /**
@@ -405,8 +488,8 @@ function setHierarchyLevel(hierarchy, level) {
  */
 export function addHierarchyButton(id, name) {
     if ($('.show-dendrogram').length < maxNumberHierarchies) {
-        $('#dendrogram-buttons-div').append('<button type="button" id="show-dendrogram-' + id +
-            '" class="show-dendrogram btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+        $('#dendrogram-buttons-div').append('<button type="button" id="show-dendrogram-' + id + '" data=' + id + ' name=' + name +
+            ' class="show-dendrogram btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">' +
             ' <span class="btn-label" id="btn-left"> <i class="glyphicon glyphicon-chevron-left"></i>&nbsp&nbsp Show ' + name + '</span>' +
             '<span class="btn-label hidden" id="btn-right"> <i class="glyphicon glyphicon-chevron-right"></i>&nbsp&nbsp Hide ' + name + ' </span></button> <br>'
         );
@@ -421,4 +504,101 @@ export function removeHierarchyButton(id) {
     // remove the following line break and element
     $('#show-dendrogram-' + id).next().remove();
     $('#show-dendrogram-' + id).remove();
+}
+
+/**
+ * Update slider and text in the dendrogram panel
+ */
+export function updateDendrogram() {
+    // get the important info
+    let id = $('.show-dendrogram.btn-primary').attr('data');
+    let name = $('.show-dendrogram.btn-primary').attr('name');
+    // set the name of the displayed hierarchy
+    $('#dendrogram-panel-name').text(name);
+
+    // set slider and  text value
+    $('#dendrogram-panel-level-slider').val(hierarchyLevels['h' + id]);
+    $('#dendrogram-panel-level-text').text(hierarchyLevels['h' + id]);
+
+}
+
+/**
+ * Update hierarchy legend
+ */
+export function changeHierarchyLegend() {
+    let legend; // the color legend
+    let legendText; // color legend text
+    // vars for the legend
+    let legendSwatchWidth = 50;
+    let legendSwatchHeight = 20;
+
+    // Show or hide the svg element
+    if (Object.keys(hierarchyColors).length !== 0) {
+        $('#hierarchy-legend-div').show();
+    } else {
+        $('#hierarchy-legend-div').hide();
+    }
+
+    let legendData = [];
+    let legendTextData = [];
+    // get the required data
+    $('.show-dendrogram').each(function(i, obj) {
+        // check if data is not undefined
+        if (hierarchyColors['h' + $(obj).attr('data')] != null && $(obj).attr('name') != null) {
+            legendData.push(hierarchyColors['h' + $(obj).attr('data')]);
+            legendTextData.push($(obj).attr('name'));
+        }
+    });
+
+    // DATA JOIN
+    legend = svgLegend.selectAll('rect.legend')
+        .data(legendData);
+    legendText = svgLegend.selectAll('text.legend-text')
+        .data(legendTextData);
+
+    // --------------- Legend swatches  -------------------
+    // UPDATE - legend
+    legend.style('fill', function(d) {
+        return d;
+    });
+    // ENTER - legend
+    legend
+        .enter()
+        .append('rect')
+        .attr('class', 'legend')
+        .attr('width', legendSwatchWidth)
+        .attr('height', legendSwatchHeight)
+        .attr('y', 0)
+        .attr('x', function(d, i) {
+            return (legendSwatchWidth + 2 * i * legendSwatchWidth) + 'px';
+        })
+        .style('fill', function(d) {
+            return d;
+        });
+    // EXIT - legend
+    legend.exit()
+        .remove();
+
+    // --------------- Text  -------------------
+    // UPDATE - legend text
+    legendText.text(function(d) {
+        return d;
+    });
+    // ENTER - legend text
+    legendText
+        .enter()
+        .append('text')
+        .attr('class', 'legend-text')
+        .attr('y', 2 * legendSwatchHeight)
+        .attr('x', function(d, i) {
+            return (legendSwatchWidth + 2 * i * legendSwatchWidth) + 'px';
+        })
+        .text(function(d) {
+            return d;
+        });
+
+    // EXIT - legend text
+    legendText.exit()
+        .remove();
+
 }
