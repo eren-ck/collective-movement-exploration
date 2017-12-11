@@ -11,7 +11,7 @@ import {
     setMetaData,
     setDatasetFeature,
     setNetworkData,
-    setNetworkHierarchy
+    setHierarchyData
 } from './explore.js';
 
 import {
@@ -235,7 +235,7 @@ export function getNetworkHierarchyData(network_id) {
         },
         success: function(data) {
             if (data.length) {
-                setNetworkHierarchy(JSON.parse(data[0]['hierarchy']), network_id);
+                setHierarchyData(JSON.parse(data[0]['hierarchy']), network_id);
             }
             enablePlayButton();
         }

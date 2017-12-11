@@ -11,7 +11,8 @@ import {
     networkColorScale,
     networkAuto,
     setNetworLimit,
-    networkLimit
+    networkLimit,
+    showNetworkHierarchy
 } from '../network.js';
 
 import {
@@ -52,7 +53,8 @@ import {
 
 import {
     initDendrogram,
-    drawDendrogram
+    drawDendrogram,
+    networkHierarchyIds
 } from '../hierarchy.js';
 
 export let indexTime = 0; // actual time moment in the animation
@@ -296,6 +298,8 @@ export function draw() {
 
     //the timeout is set after one update 30 ms
     setTimeout(function() {
+            // draw hierarchy
+            drawDendrogram();
             //change the time frame text
             svgContainer.select('.frame-text')
                 .text(Math.floor(indexTime / 1500) % 60 + ':' + Math.floor(indexTime / parameters['fps']) % 60 + '::' + indexTime % parameters['fps']);
@@ -314,18 +318,40 @@ export function draw() {
                 let tmp = networkData[indexTime];
 
                 let tmp_index = 0;
-                for (let i = 0; i < arrayAnimals.length; i++) {
-                    for (let j = i + 1; j < arrayAnimals.length; j++) {
-                        network.push({
-                            'node1': arrayAnimals[i]['a'],
-                            'node2': arrayAnimals[j]['a'],
-                            'start': arrayAnimals[i]['p'],
-                            'end': arrayAnimals[j]['p'],
-                            'val': tmp[tmp_index]
-                        });
-                        tmp_index = tmp_index + 1;
+                // display the whole network
+                if (showNetworkHierarchy == null) {
+                    for (let i = 0; i < arrayAnimals.length; i++) {
+                        for (let j = i + 1; j < arrayAnimals.length; j++) {
+                            network.push({
+                                'node1': arrayAnimals[i]['a'],
+                                'node2': arrayAnimals[j]['a'],
+                                'start': arrayAnimals[i]['p'],
+                                'end': arrayAnimals[j]['p'],
+                                'val': tmp[tmp_index]
+                            });
+                            tmp_index = tmp_index + 1;
+                        }
+                    }
+                } // display the network only in the clustering
+                else {
+                    for (let i = 0; i < arrayAnimals.length; i++) {
+                        for (let j = i + 1; j < arrayAnimals.length; j++) {
+                            for (let k = 0; k < networkHierarchyIds.length; k++) {
+                                if (networkHierarchyIds[k].includes(arrayAnimals[i]['a']) && networkHierarchyIds[k].includes(arrayAnimals[j]['a'])) {
+                                    network.push({
+                                        'node1': arrayAnimals[i]['a'],
+                                        'node2': arrayAnimals[j]['a'],
+                                        'start': arrayAnimals[i]['p'],
+                                        'end': arrayAnimals[j]['p'],
+                                        'val': tmp[tmp_index]
+                                    });
+                                }
+                            }
+                            tmp_index = tmp_index + 1;
+                        }
                     }
                 }
+
                 network.forEach(function(d) {
                     $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
                     $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
@@ -701,9 +727,6 @@ export function draw() {
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', true);
             }
-
-            // draw hierarchy
-            drawDendrogram();
 
             //next frame
             indexTime++;

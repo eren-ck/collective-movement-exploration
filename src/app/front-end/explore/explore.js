@@ -137,7 +137,7 @@ export function setNetworkData(value) {
  * @param {array} value - Array of of arrays with all values
  *                           with hierarchy
  */
-export function setNetworkHierarchy(value, network_id) {
+export function setHierarchyData(value, network_id) {
     // if the element is empty remove the element from the netwrokHierarchy object
     if (Object.keys(value).length === 0 && value.constructor === Object) {
         delete networkHierarchy['h' + network_id];

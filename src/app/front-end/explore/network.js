@@ -3,6 +3,7 @@
 
 export let networkAuto = false; // if true the network edge limit is automatically suggested
 export let networkLimit = 0;
+export let showNetworkHierarchy;
 // fixed color scale for the network
 
 /**
@@ -58,4 +59,12 @@ export function setNetworkAuto(value) {
  */
 export function setNetworLimit(value) {
     networkLimit = value;
+}
+
+/**
+ * Set the network in hierarchy (e.g. h0) filter
+ * @param {Number} hierarchy - e.g. 0-n
+ */
+export function setNetworkHierarchy(value) {
+    showNetworkHierarchy = value;
 }

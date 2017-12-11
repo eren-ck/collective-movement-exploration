@@ -25,7 +25,8 @@ import {
 
 import {
     setNetworkAuto,
-    setNetworLimit
+    setNetworLimit,
+    setNetworkHierarchy
 } from './network.js';
 
 import {
@@ -33,7 +34,7 @@ import {
     swarmData,
     datasetMetadata,
     setNetworkData,
-    setNetworkHierarchy
+    setHierarchyData
 } from './explore.js';
 
 import {
@@ -609,18 +610,11 @@ function h_listeners() {
 
             // show dendrogram
             if ($('.show-dendrogram.btn-primary').length) {
-                // resize the main svg if there is an active choosen button
-                if ($('#main-vis-div').attr('class') === 'col-md-12') {
-                    $('#main-vis-div').removeClass('col-md-12');
-                    $('#main-vis-div').addClass('col-md-8');
-                }
                 $('#dendrogram-panel').show();
-            } // change main svg size and remove dendrogram
-            else if ($('#main-vis-div').attr('class') === 'col-md-8') {
-                $('#main-vis-div').removeClass('col-md-8');
-                $('#main-vis-div').addClass('col-md-12');
+            } else {
                 $('#dendrogram-panel').hide();
             }
+
             updateDendrogram();
             drawDendrogram();
         });
@@ -646,17 +640,30 @@ function h_listeners() {
             initShowDendrogramListener(id);
             $('#dendrogram-buttons-div').removeClass('hidden');
         } else {
-            setNetworkHierarchy({}, id);
+            // tmp variable to save if the button which is going to be removed
+            // was active
+            let tmpActive = $('#show-dendrogram-' + id).hasClass('btn-primary');
+            setHierarchyData({}, id);
 
             removeHierarchyButton(id);
             // TODO find better way here
-            d3.selectAll('g.hierarchy-group').remove();
-            // remove the dendrogram stuff TODO change this here in modular way
-            if ($('.show-dendrogram').length === 0) {
-                $('#dendrogram-buttons-div').addClass('hidden');
+            d3.select('g.h' + id).remove();
+            // remove the dendrogram and the panel if the removed element was checked
+            if (tmpActive === true) {
                 $('#dendrogram-panel').hide();
             }
+            if ($('.show-dendrogram').length === 0) {
+                $('#dendrogram-buttons-div').addClass('hidden');
+            }
 
+        }
+        // resize the main svg
+        if ($('.show-dendrogram').length) {
+            $('#main-vis-div').removeClass('col-md-12');
+            $('#main-vis-div').addClass('col-md-8');
+        } else {
+            $('#main-vis-div').removeClass('col-md-8');
+            $('#main-vis-div').addClass('col-md-12');
         }
     });
 
@@ -664,16 +671,22 @@ function h_listeners() {
      * Visualize the network only in the choosen hierarchy
      */
     $('.network-hierarchy-checkbox').on('change', function() {
+        // get the info for the clicked button
         let checkbox = $(this).find('input:hidden');
-        // TODO program onclick function to remove the other active windows
         let id = checkbox.attr('data');
         let checked = checkbox.prop('checked');
+
+        // reset all the other active checkboxes
+        $('.network-hierarchy-checkbox').each(function(i, button) {
+            if ($(this).find('input:hidden').prop('checked') && $(this).find('input:hidden').prop('data') !== id) {
+                $(button).trigger('click');
+            }
+        });
         if (checked) {
-            console.log(id);
-            console.log(checked);
+            // set the network id
+            setNetworkHierarchy(id);
         } else {
-            console.log(id);
-            console.log(checked);
+            setNetworkHierarchy(undefined);
         }
     });
 }

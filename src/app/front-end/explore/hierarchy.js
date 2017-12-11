@@ -14,6 +14,10 @@ import {
     draw
 } from './spatial_view/spatial_view';
 
+import {
+    showNetworkHierarchy
+} from './network.js';
+
 let zoomGroup; // zoom group for the specific dendrogram
 let treemap;
 let tooltipDiv;
@@ -21,12 +25,13 @@ let spatialView; // get the spatial view svg from the main vis
 let svgLegend;
 
 export const maxNumberHierarchies = 4;
+export let networkHierarchyIds = [];
 
 let hierarchyLevels = {};
 let hierarchyColors = {};
 
 // TODO add more colors
-let colors = ['#3366cc', '#dc3912', '#ff9900', '#990099'];
+let colors = ['#7fc97f', '#e7298a', '#ff9900', '#386cb0'];
 
 // which level of the hierarchy is visualized
 
@@ -291,6 +296,9 @@ function drawHierarchy() {
 
         nodes = treemap(nodes);
         let root = nodes['children'][0];
+        if (showNetworkHierarchy === hierarchyIds[i]) {
+            networkHierarchyIds = getHierarchyLevel(root, hierarchyIds[i]);
+        }
         hierarchyAnimalIDs.push(getHierarchyLevel(root, hierarchyIds[i]));
     }
 
@@ -303,7 +311,9 @@ function drawHierarchy() {
     hierarchies
         .enter()
         .append('g')
-        .attr('class', 'hierarchy-group')
+        .attr('class', function(d, i) {
+            return 'hierarchy-group h' + hierarchyIds[i];
+        })
         .attr('id', function(d) {
             return 'hp' + d.join('');
         })
@@ -489,7 +499,7 @@ export function removeHierarchyColor(hierarchy) {
 export function addHierarchyButton(id, name) {
     if ($('.show-dendrogram').length < maxNumberHierarchies) {
         $('#dendrogram-buttons-div').append('<button type="button" id="show-dendrogram-' + id + '" data=' + id + ' name=' + name +
-            ' class="show-dendrogram btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            ' class="show-dendrogram btn btn-block" data-toggle="button" aria-pressed="false" autocomplete="off">' +
             ' <span class="btn-label" id="btn-left"> <i class="glyphicon glyphicon-chevron-left"></i>&nbsp&nbsp Show ' + name + '</span>' +
             '<span class="btn-label hidden" id="btn-right"> <i class="glyphicon glyphicon-chevron-right"></i>&nbsp&nbsp Hide ' + name + ' </span></button> <br>'
         );
