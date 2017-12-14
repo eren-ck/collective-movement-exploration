@@ -247,7 +247,7 @@
 }
 
 .hierarchy-group {
-    stroke-width: 40;
+    stroke-width: 10;
     stroke-linejoin: round;
     opacity: 0.2;
 }
@@ -628,7 +628,30 @@ div.tooltip table td:nth-child(2) {
 .highlight-hierarchy {
     fill: #252525;
     stroke: #252525;
-    stroke-width: 40;
+    stroke-width: 10;
     stroke-linejoin: round;
     opacity: 0.3;
+}
+
+#dendrogram-buttons-div .btn span.glyphicon {
+    opacity: 0;
+}
+
+#dendrogram-buttons-div .btn.active span.glyphicon {
+    opacity: 1;
+}
+
+#dendrogram-buttons-div {
+    border: 2px solid #D1D3D4;
+    border-radius: 5px;
+}
+
+.intersection {
+    fill: red !important;
+    stroke: red;
+}
+
+.sym-difference {
+    fill: red !important;
+    stroke: red;
 }

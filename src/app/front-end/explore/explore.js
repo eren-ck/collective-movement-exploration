@@ -8,7 +8,6 @@ import {
 } from './metadata.js';
 
 import {
-    maxNumberHierarchies,
     setHierarchyLevel,
     removeHierarchyLevel,
     setHierarchyColor,
@@ -144,16 +143,11 @@ export function setHierarchyData(value, network_id) {
         removeHierarchyLevel(network_id);
         removeHierarchyColor(network_id);
     } // add it to the network hierarchy
-    else if (Object.keys(networkHierarchy).length <= maxNumberHierarchies) {
+    else {
         networkHierarchy['h' + network_id] = value;
         setHierarchyLevel(network_id, 2);
         setHierarchyColor(network_id);
     } // too many elements cant be added
-    else {
-        // notice user that it is not possible to show more than n hierarchies
-        //          <div class="alert alert-warning">
-        //   <strong>Info!</strong> Attention user .
-        // </div>
-    }
+
     changeHierarchyLegend();
 }

@@ -17,6 +17,9 @@
 
 
 
+
+
+
 </script>
 {{dataset}}
 </div>
@@ -257,6 +260,30 @@
 
                         <div class="col-md-4">
                             <div id="dendrogram-buttons-div" class="pull-right hidden">
+
+                                <div class="btn-group" data-toggle="buttons">
+
+                                    <label class="btn btn-default active set-button">
+                                        <input type="radio" name="options" data="union" autocomplete="off">
+                                        Union
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                    <label class="btn btn-default set-button">
+                                        <input type="radio" name="options" data="intersection" autocomplete="off">
+                                        Intersection
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                    <label class="btn btn-default set-button">
+                                        <input type="radio" name="options" data="sym-difference" autocomplete="off">
+                                        Sym. Difference
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                </div>
+                                <br>
+
                             </div>
                         </div>
 
@@ -702,8 +729,10 @@
 {{ super() }}
 <!-- D3, jQuery ui libs loaded -->
 <script src="{{url_for('static', filename='d3.min.js')}}"></script>
+<script src="{{url_for('static', filename='d3-concaveHull.js')}}"></script>
 <script src="{{url_for('static', filename='jquery-ui.min.js')}}"></script>
 <script src="{{url_for('static', filename='colorbrewer.min.js')}}"></script>
+<script src="{{url_for('static', filename='polybool.min.js')}}"></script>
 
 <!-- Own js scripts -->
 <script src="{{url_for('static', filename='explore.js')}}"></script>

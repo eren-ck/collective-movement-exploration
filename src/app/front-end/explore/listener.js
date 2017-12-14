@@ -52,7 +52,8 @@ import {
     addHierarchyButton,
     removeHierarchyButton,
     drawDendrogram,
-    updateDendrogram
+    maxNumberHierarchies,
+    setSetOperation
 } from './hierarchy.js';
 
 let brush; // brushing variable
@@ -614,9 +615,13 @@ function h_listeners() {
             } else {
                 $('#dendrogram-panel').hide();
             }
-
-            updateDendrogram();
-            drawDendrogram();
+            if (!$('#play-button').hasClass('active')) {
+                //go back one second and draw the next frame
+                //this applys the changes
+                SPV.decIndexTime();
+                SPV.draw();
+                drawDendrogram();
+            }
         });
     }
 
@@ -632,14 +637,23 @@ function h_listeners() {
         let checked = checkbox.prop('checked');
 
 
-        if (checked) {
+        if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
             disablePlayButton();
             getNetworkHierarchyData(id);
 
             addHierarchyButton(id, name);
             initShowDendrogramListener(id);
             $('#dendrogram-buttons-div').removeClass('hidden');
-        } else {
+        }
+        // else if ($('.show-dendrogram').length === maxNumberHierarchies) {
+        // console.log('Max number of hierarchies is: ' + maxNumberHierarchies);
+        //TODO implement this here
+        // notice user that it is not possible to show more than n hierarchies
+        //          <div class="alert alert-warning">
+        //   <strong>Info!</strong> Attention user .
+        // </div>
+        // }
+        else {
             // tmp variable to save if the button which is going to be removed
             // was active
             let tmpActive = $('#show-dendrogram-' + id).hasClass('btn-primary');
@@ -689,6 +703,24 @@ function h_listeners() {
             setNetworkHierarchy(undefined);
         }
     });
+
+    /**
+     * Hierarchy set theory buttons - union, intersection, symmetric difference
+     */
+    $('.set-button').click(function() {
+        let data = $(this).find('input').attr('data');
+        setSetOperation(data);
+
+        if (!$('#play-button').hasClass('active')) {
+            //go back one second and draw the next frame
+            //this applys the changes
+            SPV.decIndexTime();
+            SPV.draw();
+            drawDendrogram();
+        }
+    });
+    // = ;
+
 }
 /************************************************
     Getter and setter
