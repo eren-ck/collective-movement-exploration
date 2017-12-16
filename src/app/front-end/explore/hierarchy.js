@@ -127,6 +127,21 @@ export function initDendrogram() {
         .attr('id', 'hierarchy-legend')
         .attr('width', legendWidth)
         .attr('height', legendHeight);
+
+    // add pattern for striped background of intersections etc.
+    spatialView.append('defs')
+        .append('svg:pattern')
+        .attr('id', 'striped')
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('width', '20')
+        .attr('height', '5')
+        .attr('patternTransform', 'rotate(60)')
+        .append('rect')
+        .attr('width', 5)
+        .attr('height', 10)
+        .attr('transform', 'translate(0,0)')
+        .style('fill', '#67000d');
+
 }
 
 /**

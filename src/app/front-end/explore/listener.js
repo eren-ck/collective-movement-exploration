@@ -56,6 +56,11 @@ import {
     setSetOperation
 } from './hierarchy.js';
 
+import {
+    setTrackingBoolean,
+    resetTrackedData
+} from './visual_parameter.js';
+
 let brush; // brushing variable
 export let playBoolean = true; // pause and play boolean
 
@@ -135,6 +140,10 @@ function cp_listener() {
         if (!$('#remove-active-selected-button').is(':disabled')) {
             $('#remove-active-selected-button').prop('disabled', true);
             SPV.setActiveAnimals([]);
+            // tracking of data for visual parameter suggestion
+            resetTrackedData();
+            $('#visual-parameter-button').prop('disabled', true).removeClass('active');
+
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
@@ -142,6 +151,17 @@ function cp_listener() {
                 SPV.decIndexTime();
                 SPV.draw();
             }
+        }
+    });
+
+    /**
+     * Track visual parameter button
+     */
+    $('#visual-parameter-button').click(function() {
+        if ($('#visual-parameter-button').hasClass('active') === true) {
+            setTrackingBoolean(false);
+        } else {
+            setTrackingBoolean(true);
         }
     });
 

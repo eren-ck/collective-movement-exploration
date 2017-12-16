@@ -12,14 +12,6 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
-
-
-
-
-
-
-
-
 </script>
 {{dataset}}
 </div>
@@ -153,7 +145,7 @@
                                     <!-- Play button and next frame button -->
                                     <div class="row">
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <button type="button" id="play-button" class="btn btn-default active"
                                                     data-toggle="button" aria-pressed="true" autocomplete="off">
                                                 <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
@@ -165,7 +157,7 @@
                                         </div>
 
                                         <!-- Animation speed buttons -->
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <fieldset id="group1">
                                                 <div class="btn-group" data-toggle="buttons">
                                                     <label class="btn btn-default">
@@ -190,16 +182,26 @@
                                             </fieldset>
                                         </div>
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-5">
                                             <button type="button" id="brushing-button" class="btn btn-default "
                                                     data-toggle="button" autocomplete="off">
                                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Brush
+                                            </button>
+                                            <button type="button" id="visual-parameter-button" class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled>
+                                                <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
+                                                Track
+                                            </button>
+                                            <button type="button" id="calculate-parameter-button" class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled>
+                                                <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+                                                Calculate
                                             </button>
                                             <button type="button" id="remove-active-selected-button"
                                                     class="btn btn-default" data-toggle="button" autocomplete="off"
                                                     disabled>
                                                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                                Unselect All
+                                                Unselect
                                             </button>
                                         </div>
 

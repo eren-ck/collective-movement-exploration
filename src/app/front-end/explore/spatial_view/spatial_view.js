@@ -57,6 +57,12 @@ import {
     networkHierarchyIds
 } from '../hierarchy.js';
 
+import {
+    trackingBoolean,
+    addTrackedData
+} from '../visual_parameter.js';
+
+
 export let indexTime = 0; // actual time moment in the animation
 export let tankWidth;
 export let tankHeight;
@@ -68,7 +74,6 @@ export let animal_ids; // array of unique animal ids
 
 let svgContainer; // svg container for the spatial view
 let tank; // svg group for the spatial view tank
-
 
 /**
  * Initialize the spatial view with all the important factors
@@ -663,11 +668,19 @@ export function draw() {
                     .is(':disabled')) {
                     $('#remove-active-selected-button')
                         .prop('disabled', false);
+                    $('#visual-parameter-button')
+                        .prop('disabled', false);
+                }
+                // if tracking is on
+                if (trackingBoolean) {
+                    addTrackedData(indexTime, activeAnimals);
                 }
             } else {
                 if (!$('#remove-active-selected-button')
                     .is(':disabled')) {
                     $('#remove-active-selected-button')
+                        .prop('disabled', true);
+                    $('#visual-parameter-button')
                         .prop('disabled', true);
                 }
                 // normal opacity

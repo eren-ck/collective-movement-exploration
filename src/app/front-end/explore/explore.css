@@ -647,11 +647,11 @@ div.tooltip table td:nth-child(2) {
 }
 
 .intersection {
-    fill: red !important;
-    stroke: red;
+    fill: url(#striped) !important;
+    stroke: #67000d;
 }
 
 .sym-difference {
-    fill: red !important;
-    stroke: red;
+    fill: url(#striped) !important;
+    stroke: #67000d;
 }
