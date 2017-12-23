@@ -162,9 +162,9 @@ class MyFileAdminView(fileadmin.FileAdmin):
                 return self.render(self.upload_template, form=form, header_text=gettext('Upload File'))
 
             # check if background image has the right extension
-            print('Hello world!', file=sys.stderr)
-            print(form.background_image, file=sys.stderr)
-            print(form.background_image.data, file=sys.stderr)
+            # print('Hello world!', file=sys.stderr)
+            # print(form.background_image, file=sys.stderr)
+            # print(form.background_image.data, file=sys.stderr)
 
             if form.background_image.data:
                 image_name = form.background_image.data.filename.lower()

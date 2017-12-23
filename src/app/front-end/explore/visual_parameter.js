@@ -1,6 +1,11 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $ */
 
+import {
+    getSuggestedParameters
+} from './ajax_queries.js';
+
+
 export let trackingBoolean = false; // boolean for active tracking
 let trackedData = [];
 
@@ -36,4 +41,15 @@ export function addTrackedData(time, ids) {
     if ($('#calculate-parameter-button').is(':disabled')) {
         $('#calculate-parameter-button').prop('disabled', false);
     }
+}
+
+
+/**
+ * Send data with a ajax query to the server and wait for the answer
+ */
+export function sendTrackedData() {
+    getSuggestedParameters(JSON.stringify(trackedData));
+    console.log('Here ajax query');
+
+    resetTrackedData();
 }

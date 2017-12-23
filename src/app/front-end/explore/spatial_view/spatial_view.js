@@ -673,7 +673,7 @@ export function draw() {
                 }
                 // if tracking is on
                 if (trackingBoolean) {
-                    addTrackedData(indexTime, activeAnimals);
+                    addTrackedData(arrayAnimals[0]['t'], activeAnimals);
                 }
             } else {
                 if (!$('#remove-active-selected-button')

@@ -2,6 +2,7 @@ from model.dataset_model import Dataset
 from model.percentile_model import Percentile
 from model.metadata_model import Metadata
 from model.network_model import Network
+from feature_extraction.bayesian_optimization import calculate_parameters
 import sys
 import decimal
 
@@ -173,7 +174,8 @@ def api_get_feature(id=None, feature=None):
         return jsonify(result)
 
     # return one of the aggregated and averaged swarm features
-    if feature in ['swarm_time','swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area', 'swarm_distance_centroid',
+    if feature in ['swarm_time', 'swarm_speed', 'swarm_acceleration', 'swarm_convex_hull_area',
+                   'swarm_distance_centroid',
                    'swarm_direction', 'swarm_polarisation']:
         feature = feature.replace('swarm_', '')
         stmt = '''SELECT array(
@@ -294,6 +296,7 @@ def api_get_network_data(dataset_id=None, network_id=None):
         result.append(elem.network_as_data_dict())
     return jsonify(result)
 
+
 def api_get_network_hierarchy_data(dataset_id=None, network_id=None):
     """
         Return a json of the network hierarchy for a specific dataset
@@ -311,3 +314,13 @@ def api_get_network_hierarchy_data(dataset_id=None, network_id=None):
         result.append(elem.hierarchy_as_data_dict())
     return jsonify(result)
 
+
+def api_get_dataset_suggested_parameters(dataset_id=None, tracked_data=None):
+    """
+        Calculate the suggested parameters via a optimization method
+
+        :param
+            dataset_id: id of the specific dataset
+            tracked_data: JSON String of the tracked data
+    """
+    return jsonify(data=calculate_parameters(dataset_id,tracked_data))

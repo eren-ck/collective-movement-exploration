@@ -36,7 +36,7 @@ let setOperation = 'union';
 let colors = ['#7fc97f', '#e7298a', '#ff9900', '#386cb0'];
 
 // for the concave hull
-let concaveHull = d3.concaveHull();
+// let concaveHull = d3.concaveHull().distance(10000);
 // which level of the hierarchy is visualized
 
 /**
@@ -525,9 +525,10 @@ function getHierarchyVertices(hierarchies) {
         // console.log(vertices);
         if (vertices.length >= 3) {
             // result.push(d3.polygonHull(vertices));
-            concaveHull(vertices).forEach(function(hull) {
-                result.push(hull);
-            });
+            result.push(d3.polygonHull(vertices));
+            // concaveHull(vertices).forEach(function(hull) {
+            //     result.push(hull);
+            // });
         }
     });
     // console.log(result);

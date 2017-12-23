@@ -242,3 +242,26 @@ export function getNetworkHierarchyData(network_id) {
     });
 
 }
+
+
+/**
+ * Visual parameter suggestion ajax query
+ * @param {Array} trackedData - tracked data with .
+ */
+export function getSuggestedParameters(trackedData) {
+    $.ajax({
+        url: '/api/dataset/visual_parameter/' + parameters['id'],
+        dataType: 'json',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            console.log('Hey');
+            console.log(data);
+        },
+        data: trackedData
+    });
+
+}

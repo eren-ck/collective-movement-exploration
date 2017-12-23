@@ -51,3 +51,14 @@ class Movement_data(db.Model):
             't': self.time,
             'p': self.get_position()
         }
+
+    def get_data_vector(self):
+        return [
+            self.get_x(),
+            self.get_y(),
+            self.metric_distance,
+            self.speed,
+            self.acceleration,
+            self.distance_centroid,
+            self.direction
+        ]

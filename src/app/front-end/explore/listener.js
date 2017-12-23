@@ -58,7 +58,8 @@ import {
 
 import {
     setTrackingBoolean,
-    resetTrackedData
+    resetTrackedData,
+    sendTrackedData
 } from './visual_parameter.js';
 
 let brush; // brushing variable
@@ -105,7 +106,6 @@ function cp_listener() {
         $('#play-button').removeClass('active');
         SPV.draw();
     });
-
 
     /**
      * Brushing button
@@ -162,6 +162,21 @@ function cp_listener() {
             setTrackingBoolean(false);
         } else {
             setTrackingBoolean(true);
+        }
+    });
+
+    /**
+     * Send the tracked via a ajax query to the server to calculate the parameters
+     */
+    $('#calculate-parameter-button').click(function() {
+        if (!$('#calculate-parameter-button').hasClass('active')) {
+            setTrackingBoolean(false);
+            sendTrackedData();
+
+            // disable both buttons and remove the active one
+            $('#calculate-parameter-button').prop('disabled', true);
+            $('#calculate-parameter-button').removeClass('active');
+            $('#visual-parameter-button').removeClass('active');
         }
     });
 
