@@ -371,7 +371,7 @@ export function draw() {
                 }
 
                 network = network.filter(function(d) {
-                    return d['val'] >= networkLimit;
+                    return d['val'] <= networkLimit;
                 });
                 // DATA JOIN
                 networkVis = tank.select('#networkGroup')
@@ -395,7 +395,7 @@ export function draw() {
                         return networkColorScale(d['val']);
                     })
                     .attr('stroke-opacity', function(d) {
-                        return d['val'];
+                        return 1 - d['val'];
                     });
                 //ENTER
                 networkVis

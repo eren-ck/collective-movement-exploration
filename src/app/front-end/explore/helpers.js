@@ -33,10 +33,10 @@ export function enablePlayButton() {
 
 
 /**
- * Return  .95 percentiles of the array
+ * Return  .05 percentiles of the array
  */
 export function percentiles(arr) {
-    let p = 0.95;
+    let p = 0.05;
     if (arr.length === 0) {
         return 0;
     }
@@ -48,9 +48,9 @@ export function percentiles(arr) {
     let upper = lower + 1;
     let weight = index % 1;
     if (upper >= arr.length) {
-        return arr[lower];
+        return 1 - arr[lower];
     } else {
-        return arr[lower] * (1 - weight) + arr[upper] * weight;
+        return 1 - (arr[lower] * (1 - weight) + arr[upper] * weight);
     }
 }
 

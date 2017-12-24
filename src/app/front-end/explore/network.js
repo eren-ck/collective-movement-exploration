@@ -2,7 +2,7 @@
 /*global window, $, d3 */
 
 export let networkAuto = false; // if true the network edge limit is automatically suggested
-export let networkLimit = 0;
+export let networkLimit = 0.5;
 export let showNetworkHierarchy;
 // fixed color scale for the network
 
@@ -14,7 +14,7 @@ export let networkColorScale = d3.scaleThreshold()
     .domain(
         [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
     )
-    .range(['#ffffff', '#dfdfdf', '#c0c0c0', '#a3a3a3', '#858585', '#696969', '#4e4e4e', '#353535', '#1d1d1d', '#000000']);
+    .range(['#000000', '#1d1d1d', '#353535', '#4e4e4e', '#696969', '#858585', '#a3a3a3', '#c0c0c0', '#dfdfdf', '#ffffff']);
 
 
 /**
@@ -55,10 +55,11 @@ export function setNetworkAuto(value) {
 
 /**
  * Set the network limit with the specific network slider - custom
+ * 0 = similar and 1 unsimilar for the specific time moment
  * @param {Number} value - between 0 and 1
  */
 export function setNetworLimit(value) {
-    networkLimit = value;
+    networkLimit = 1 - value;
 }
 
 /**

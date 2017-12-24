@@ -95,8 +95,6 @@ def calculate_network(dataset_id, network_id):
         pool.close()
         # wait until all processes are finished
         pool.join()
-        #
-
         # convert the results in a format which can be converted to json
         tmp = {}
         for res in results:
@@ -109,6 +107,7 @@ def calculate_network(dataset_id, network_id):
         for data in result_hclust:
             for key, value in data.items():
                 tmp[key] = value;
+
 
         result_hclust = tmp;
 
