@@ -12,6 +12,7 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
+
 </script>
 {{dataset}}
 </div>
@@ -192,8 +193,9 @@
                                                 <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
                                                 Track
                                             </button>
-                                            <button type="button" id="calculate-parameter-button" class="btn btn-default "
-                                                    data-toggle="button" autocomplete="off" disabled>
+                                            <button type="button" id="calculate-parameter-button"
+                                                    class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled data="0">
                                                 <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
                                                 Calculate
                                             </button>

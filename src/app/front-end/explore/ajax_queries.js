@@ -27,6 +27,10 @@ import {
     spatialViewInit
 } from './spatial_view/spatial_view.js';
 
+import {
+    responseParameters
+} from './visual_parameter.js';
+
 
 /**
  * Stream the movement data from the API
@@ -258,8 +262,7 @@ export function getSuggestedParameters(trackedData) {
             'Accept': JSONAPI_MIMETYPE
         },
         success: function(data) {
-            console.log('Hey');
-            console.log(data);
+            responseParameters(data);
         },
         data: trackedData
     });
