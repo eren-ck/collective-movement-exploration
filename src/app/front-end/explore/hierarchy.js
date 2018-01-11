@@ -329,6 +329,10 @@ function drawHierarchy() {
 
     // if more than 2 hierarchies are drawn
     if (hierarchyVertices.length > 0) {
+        // union the list of polygons to one polygon
+        for (let i = 0; i < hierarchyIds.length; i++) {
+            hierarchyVertices[i] = unionPolygons(hierarchyVertices[i]);
+        }
         // console.log(hierarchyVertices);
         // transform and calculate the intersection polygons of the n hierarchies
         if (setOperation === 'intersection') {
@@ -446,6 +450,27 @@ function drawHierarchy() {
     hieraryHulls.exit()
         .remove();
 
+}
+
+/**
+ * Union multiple polygons together - needed or else there will be holes in the intersections
+ * @param {array} polygons - array of array of points
+ */
+function unionPolygons(polygons) {
+    for (let i = 0; i < polygons.length; i++) {
+        polygons[i] = {
+            regions: [polygons[i]],
+            inverted: false // is this polygon inverted?
+        };
+    }
+    // union a list of polygons together
+    let segments = PolyBool.segments(polygons[0]);
+    for (let i = 1; i < polygons.length; i++) {
+        let seg2 = PolyBool.segments(polygons[i]);
+        let comb = PolyBool.combine(segments, seg2);
+        segments = PolyBool.selectUnion(comb);
+    }
+    return PolyBool.polygon(segments)['regions'];
 }
 
 /**
