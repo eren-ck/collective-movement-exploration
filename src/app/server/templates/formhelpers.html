@@ -1,0 +1,86 @@
+{% macro render_field(field) -%}
+
+{% set with_label = kwargs.pop('with_label', False) %}
+{% set class_ = kwargs.pop('class_', '') %}
+{% set placeholder = kwargs.pop('placeholder', field.placeholder) %}
+{% set spinner = kwargs.pop('spinner', field.spinner) %}
+
+
+{% if field.flags.required %}
+{% set class_ = class_ + ' required' %}
+{% endif %}
+
+<div class="form-group {% if field.errors %}error{% endif %}">
+
+    {% if field.type == 'BooleanField' %}
+    {% set value = kwargs.pop('value', field.data) %}
+    {{field.label}}
+    <input class="checkbox"
+           {% if value %}checked="checked" {% endif %}
+           type="checkbox"
+           id="{{ field.name }}"
+           name="{{ field.name }}"
+           value="{{ value }}">
+
+    {% else %}
+
+    <label class="control-label{% if field.flags.required %} required{% endif %}">
+        {{ field.label.text }}
+    </label>
+
+    {% if field.type in ('TextField', 'TextAreaField', 'PasswordField',
+    'IntegerField') %}
+
+    {% set class_ = class_ + ' input-xlarge form-control' %}
+
+    {% elif field.type == 'FileField' %}
+
+    {% set class_ = class_ + ' input-file form-control' %}
+
+    {% endif %}
+
+    {% if field.type == 'SelectField' %}
+
+    {{ field(class_=class_, **kwargs) }}
+
+    {% else %}
+
+    {% if spinner %}
+
+    <div class="input-group number-spinner">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" data-dir="dwn">
+                    <span class="glyphicon glyphicon-minus"></span>
+                </button>
+            </span>
+
+        {% set class_ = class_ + 'input-xlarge form-control text-center' %}
+        {{ field(class_=class_, placeholder=placeholder, **kwargs) }}
+
+        <span class="input-group-btn">
+                <button class="btn btn-default" type="button" data-dir="up">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+            </span>
+    </div>
+
+    {% else %}
+    {{ field(class_=class_, placeholder=placeholder, **kwargs) }}
+
+    {% endif %}
+
+
+    {% endif %}
+
+    {% endif %}
+
+    {% if field.errors %}
+    <span class="error help-inline">{{ field.errors|join(', ') }}</span>
+    {% endif %}
+
+    {% if field.description %}
+    <p class="help-block">{{ field.description|safe }}</p>
+    {% endif %}
+
+</div>
+{%- endmacro %}

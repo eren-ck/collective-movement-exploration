@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block head_css %}
+{{ super() }}
+<link href="{{url_for('static', filename='index.css')}}" rel="stylesheet">
+{% endblock %}
+
+
+{% block body %}
+
+<div class="container">
+    <div class="row">
+        <h1>Contact</h1>
+        <hr>
+        <div class="span4">
+            <h3>Team</h3>
+            <address>
+                <strong>
+                    <a target="_blank" href="https://www.vis.uni-konstanz.de/mitglieder/cakmak/">
+                        Eren Cakmak
+                    </a>
+                </strong>
+                <small> - Development</small>
+                <br>
+
+                <strong>
+                    <a target="_blank" href="https://www.vis.uni-konstanz.de/mitglieder/buchmueller/">
+                        Juri Buchmüller
+                    </a>
+                </strong>
+                <br>
+
+                <strong>
+                    <a target="_blank" href="http://collectivebehaviour.com/people/jolle-jolles/">
+                        Jolle Jolles
+                    </a>
+                </strong>
+                <br>
+
+                <strong>
+                    <a target="_blank" href="http://collectivebehaviour.com/couzin-bio/">
+                        Prof. Dr. Iain Couzin
+                    </a>
+                </strong>
+                <br>
+
+                <strong>
+                    <a target="_blank" href="https://www.vis.uni-konstanz.de/mitglieder/keim/">
+                        Prof. Dr. Daniel Keim
+                    </a>
+                </strong>
+                <br>
+
+                <br>
+                <strong>University of Konstanz</strong><br>
+                Data Analysis and Visualization Group<br>
+                Department of Computer and Information Science<br>
+                Universitätsstr. 10<br>
+                78457 Konstanz, Germany<br>
+
+            </address>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

@@ -1,0 +1,742 @@
+{% extends 'admin/master.html' %}
+{% import 'admin/lib.html' as lib with context %}
+
+{% block head_css %}
+{{ super() }}
+<link href="{{url_for('static', filename='jquery-ui.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='theme.css')}}" rel="stylesheet">
+
+{% endblock %}
+
+{% block body %}
+<script>
+    var parameters = {{ parameters | tojson}}
+
+
+</script>
+{{dataset}}
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Features
+                    </h3>
+                </div>
+
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="feature-check-box">
+                                <!-- Draw swarm features -->
+                                <strong>Swarm Features</strong>
+                                <br>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-centroid"/>
+                                    <label for="draw-centroid">Centroid</label>
+                                </div>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-medoid"/>
+                                    <label for="draw-medoid">Medoid</label>
+                                </div>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-convex-hull"/>
+                                    <label for="draw-convex-hull">Convex Hull</label>
+                                </div>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-triangulation"/>
+                                    <label for="draw-triangulation">Triangulation</label>
+                                </div>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-voronoi"/>
+                                    <label for="draw-voronoi">Voronoi Diagram</label>
+                                </div>
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" id="draw-direction"/>
+                                    <label for="draw-direction">Direction</label>
+                                </div>
+
+                                <br>
+                                <strong>Absolute Features</strong>
+                                <br>
+
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" name="checkbox" id="draw-speed"/>
+                                    <label for="draw-speed">
+                                        Speed
+                                        <button type="button" id="draw-speed-details"
+                                                class="btn btn-default pull-right hidden draw-details"
+                                                data-toggle="button"
+                                                aria-pressed="false" autocomplete="off">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </label>
+                                </div>
+
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" name="checkbox" id="draw-acceleration"/>
+                                    <label for="draw-acceleration">
+                                        Acceleration
+                                        <button type="button" id="draw-acceleration-details"
+                                                class="btn btn-default pull-right hidden draw-details"
+                                                data-toggle="button"
+                                                aria-pressed="false" autocomplete="off">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </label>
+                                </div>
+
+                                <div class="feature-check-box-default">
+                                    <input type="checkbox" name="checkbox" id="draw-distance-centroid"/>
+                                    <label for="draw-distance-centroid">
+                                        Distance to Centroid
+                                        <button type="button" id="draw-distance-centroid-details"
+                                                class="btn btn-default pull-right hidden draw-details"
+                                                data-toggle="button"
+                                                aria-pressed="false" autocomplete="off">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </label>
+                                </div>
+
+                                <!-- Draw swarm features -->
+                                <br>
+                                <strong>Line Chart AVG </strong>
+                                <br>
+
+                            </div>
+                            <hr>
+                            <button type="button" id="network-button"
+                                    class="btn btn-default" data-toggle="modal"
+                                    data-target="#network-div">
+                                <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
+                                Networks&Hierarchies
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-10">
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Control Panel -->
+                    <div class="col-md-12">
+                        <div class="panel panel-primary">
+
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" href="#collapse1">
+                                    <button type="button" class="close">
+                                        <span class="glyphicon glyphicon-resize-vertical" aria-hidden="true"></span>
+                                    </button>
+                                </a>
+                                <h3 class="panel-title">
+                                    Control Panel
+                                </h3>
+                            </div>
+
+                            <div class="panel-body">
+                                <div id="collapse1" class="panel-collapse collapse in">
+                                    <!-- Play button and next frame button -->
+                                    <div class="row">
+
+                                        <div class="col-md-2">
+                                            <button type="button" id="play-button" class="btn btn-default active"
+                                                    data-toggle="button" aria-pressed="true" autocomplete="off">
+                                                <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
+                                            </button>
+                                            <button type="button" id="next-frame-button" class="btn btn-default">
+                                                <span class="glyphicon glyphicon-step-forward"
+                                                      aria-hidden="true"></span> Frame
+                                            </button>
+                                        </div>
+
+                                        <!-- Animation speed buttons -->
+                                        <div class="col-md-3">
+                                            <fieldset id="group1">
+                                                <div class="btn-group" data-toggle="buttons">
+                                                    <label class="btn btn-default">
+                                                        <input type="radio" id="slow-speed" value="385" name="group1"
+                                                               autocomplete="off">
+                                                        <span class="glyphicon glyphicon-play"
+                                                              aria-hidden="true"></span> Slow
+                                                    </label>
+                                                    <label class="btn btn-default active">
+                                                        <input type="radio" id="normal-speed" value="25" name="group1"
+                                                               autocomplete="off" checked>
+                                                        <span class="glyphicon glyphicon-forward"
+                                                              aria-hidden="true"></span>Normal
+                                                    </label>
+                                                    <label class="btn btn-default">
+                                                        <input type="radio" id="fast-speed" value="4" name="group1"
+                                                               autocomplete="off">
+                                                        <span class="glyphicon glyphicon-fast-forward"
+                                                              aria-hidden="true"></span> Fast
+                                                    </label>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+
+                                        <div class="col-md-5">
+                                            <button type="button" id="brushing-button" class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off">
+                                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Brush
+                                            </button>
+                                            <button type="button" id="visual-parameter-button" class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled>
+                                                <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
+                                                Track
+                                            </button>
+                                            <button type="button" id="calculate-parameter-button"
+                                                    class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled data="0">
+                                                <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+                                                Calculate
+                                            </button>
+                                            <button type="button" id="remove-active-selected-button"
+                                                    class="btn btn-default" data-toggle="button" autocomplete="off"
+                                                    disabled>
+                                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                                Unselect
+                                            </button>
+                                        </div>
+
+                                        <div class="col-md-1">
+                                            <button type="button" id="metadata-button"
+                                                    class="btn btn-default pull-right" data-toggle="modal"
+                                                    data-target="#metadata-div">
+                                                <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                                Metadata
+                                            </button>
+                                        </div>
+
+                                        <!-- Button trigger settings -->
+                                        <div class="col-md-1">
+                                            <button type="button" id="settings-button"
+                                                    class="btn btn-default pull-right" data-toggle="modal"
+                                                    data-target="#settings-div">
+                                                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                                                Settings
+                                            </button>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- The time slider -->
+                                    <div class="row" style="padding: 1rem;">
+                                        <div class="col-sm-12">
+                                            <div id="slider"></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+
+                        <div class="col-md-12" id="main-vis-div">
+                            <!-- loading gif -->
+                            <div id="loading">
+                                <img src="{{url_for('static', filename='loading.gif')}}"/>
+                            </div>
+                            <!-- The div for the svg  -->
+                            <div class="row">
+                                <div id="main-vis">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div id="hierarchy-legend-div" class="pull-left">
+                                </div>
+                                <div id="main-vis-legend-div" class="pull-right">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4">
+                            <div id="dendrogram-buttons-div" class="pull-right hidden">
+
+                                <div class="btn-group" data-toggle="buttons">
+
+                                    <label class="btn btn-default active set-button">
+                                        <input type="radio" name="options" data="union" autocomplete="off">
+                                        Union
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                    <label class="btn btn-default set-button">
+                                        <input type="radio" name="options" data="intersection" autocomplete="off">
+                                        Intersection
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                    <label class="btn btn-default set-button">
+                                        <input type="radio" name="options" data="sym-difference" autocomplete="off">
+                                        Sym. Difference
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                </div>
+                                <br>
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="panel panel-default" id="dendrogram-panel">
+                                <div class="panel-heading">Hierarchy: <span id="dendrogram-panel-name"> Name</span>
+                                </div>
+                                <div class="panel-body">
+                                    Cluster Level <span id="dendrogram-panel-level-text">2</span>
+                                    <div id="dendrogram-panel-level-slider" name="0"></div>
+                                    <br>
+                                    <!--<div id="dendrogram-panel">-->
+
+                                    <!--</div>-->
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-12">
+                        <div id="swarm-vis">
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Tooltip -->
+<div class="tooltip">
+    <div class="container-small">
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th><em>Feature</em></th>
+                <th lass="info">Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>
+                    Animal ID
+                </td>
+                <td id="tooltip-animal-id" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Species
+                </td>
+                <td id="tooltip-species" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Sex
+                </td>
+                <td id="tooltip-sex" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Size
+                </td>
+                <td id="tooltip-size" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Weight
+                </td>
+                <td id="tooltip-weight" class="info"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Tooltip -->
+<div class="tooltip" id="dendrogram-tooltip">
+        <span class="tooltip-span">
+
+        </span>
+</div>
+
+
+<!--Modal for settings -->
+
+<div class="modal fade" id="settings-div" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div class="mod-list">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <div class="t2">
+                        <div class="mod-head text-center">
+                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                            <h2>Settings</h2>
+                        </div>
+                    </div>
+                </div>
+
+                </h4>
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Size of entities</strong>
+                        <br>
+                        <br>
+
+                        <div data-toggle="buttons">
+                            <label class="btn btn-default btn-circle btn-lg">
+                                <input id="group-size-s" type="radio" class="group-size" name="group-size" value="3">
+                                &#8226;
+                            </label>
+                            <label class="btn btn-default btn-circle btn-lg active" style="padding: 0px 13px;" checked>
+                                <input id="group-size-m" type="radio" class="group-size" name="group-size" value="6">
+                                <p style="font-size:2em;">&#8226;</p>
+                            </label>
+                            <label class="btn btn-default btn-circle btn-lg" style="line-height: 0.3;">
+                                <input id="group-size-l" type="radio" class="group-size" name="group-size" value="10">
+                                <p style="font-size:4em;">&#8226;</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>Background color of spatial view</strong>
+                        <br>
+                        <br>
+
+                        <div class="btn-group" id="background-color" data-toggle="buttons">
+
+                            <label class="btn active" id="btn- white">
+                                <input type="radio" id="background-white" class="group-background"
+                                       name="group-background" autocomplete="off" value="#fff"
+                                       checked>
+                                <span class="glyphicon glyphicon-ok"></span>
+                            </label>
+
+                            <label class="btn" id="btn-grey1">
+                                <input type="radio" class="group-background" name="group-background" autocomplete="off"
+                                       value="#d9d9d9">
+                                <span class="glyphicon glyphicon-ok"></span>
+                            </label>
+
+                            <label class="btn" id="btn-grey2">
+                                <input type="radio" class="group-background" name="group-background" autocomplete="off"
+                                       value="#969696">
+                                <span class="glyphicon glyphicon-ok"></span>
+                            </label>
+
+                            <label class="btn" id="btn-dark">
+                                <input type="radio" class="group-background" name="group-background" autocomplete="off"
+                                       value="#4d4d4d">
+                                <span class="glyphicon glyphicon-ok"></span>
+                            </label>
+
+
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                A color scheme picker based on colors from <a href="http://colorbrewer2.org/">ColorBrewer</a>.
+
+                <table class="table">
+                    <tr>
+                        <td>
+                            &nbsp&nbsp<span class="glyphicon glyphicon-hand-down" aria-hidden="true"></span> Click
+                            <div class="colors-body">
+                            </div>
+                        </td>
+                        <td>
+                            <strong>Scaling Function</strong>
+                            <form id="color-scale-radio-form">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="color-scale-radio" id="color-scale-linear"
+                                               value="Linear"
+                                               checked> Linear Scale
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="color-scale-radio" id="color-scale-threshold"
+                                               value="Threshold"> Threshold Scale
+                                    </label>
+                                </div>
+                            </form>
+
+                            <strong>Spatial View</strong>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="draw-axis"/> Show Axis
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="draw-time"/> Show Time
+                                </label>
+                            </div>
+
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--Modal for Meta data  -->
+<div class="modal fade" id="metadata-div" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div class="mod-list">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <div class="t2">
+                        <div class="mod-head text-center">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h2>Metadata</h2>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="pull-right">
+                            <div class="btn-group">
+                                <fieldset id="group-metadata">
+                                    <div class="btn-group" data-toggle="buttons">
+                                        <label class="btn btn-default">
+                                            <input type="radio" id="metadata-sex" name="group-metadata" value="sex">
+                                            Sex
+                                        </label>
+                                        <label class="btn btn-default">
+                                            <input type="radio" id="metadata-size" name="group-metadata" value="size">
+                                            Size
+                                        </label>
+                                        <label class="btn btn-default">
+                                            <input type="radio" id="metadata-weight" name="group-metadata"
+                                                   value="weight">
+                                            Weight
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="col-md-12 hidden" id="metadata-input">
+                            <div class="col-xs-4 col-xs-offset-2">
+                                Below Average
+                                <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn"><span
+                                                class="glyphicon glyphicon-minus"></span></button>
+                                    </span>
+
+                                    <input type="text" class="form-control text-center" id="bl-avg" value="1" min="0">
+
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up"><span
+                                                class="glyphicon glyphicon-plus"></span></button>
+                                     </span>
+                                </div>
+
+                            </div>
+
+                            <div class="col-xs-4">
+                                Above Average
+                                <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn"><span
+                                                class="glyphicon glyphicon-minus"></span></button>
+                                    </span>
+
+                                    <input type="text" class="form-control text-center" id="ab-avg" value="1" min="0">
+
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up"><span
+                                                class="glyphicon glyphicon-plus"></span></button>
+                                     </span>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="col-md-12">
+                                <div class="pull-right">
+                                    <ul class="metadata-legend">
+                                        <li><span class="bl-avg"></span>
+                                            <br> &nbsp&nbsp <
+                                        </li>
+                                        <li><span class="avg"></span>
+                                            <br> AVG
+                                        </li>
+                                        <li><span class="ab-avg"></span>
+                                            <br> &nbsp&nbsp <
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <div class="table-container">
+                            <table class="table table-striped table-condensed" id="metadata-table">
+                                <thead>
+                                <tr>
+                                    <th>Animal ID</th>
+                                    <th>Species</th>
+                                    <th>Sex</th>
+                                    <th>Size</th>
+                                    <th>Weight</th>
+                                    <th>Color</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pull-right">
+                            <button type="button" class="btn btn-default" id="metadata-reset">
+                                Reset all
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!--Modal for Network data  -->
+<div class="modal fade" id="network-div" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div class="mod-list">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <div class="t2">
+                        <div class="mod-head text-center">
+                            <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
+                            <h2>Networks & Hierarchies</h2>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="networks-modal-body">
+                            <div class="table-container">
+                                <table class="table table-condensed" id="networks-hierarchies-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Networks ID</th>
+                                        <th>Hierarchies</th>
+                                        <th>Network in Hierarchy</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+
+
+                        </div>
+                        <hr>
+
+                        <strong>Active Network: </strong>
+                        <span id="active-network-name"></span>
+
+                        <button type="button" id="network-auto-suggest" class="btn btn-default pull-right"
+                                data-toggle="button" aria-pressed="false" autocomplete="off">
+                            <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
+                            Auto parameter
+                        </button>
+
+                        <p id="network-limit-p">
+                            <label for="network-limit">Limit value for network edges</label>
+                            <input id="network-limit" readonly="" style="border:0; color:#f6931f; font-weight:bold;"
+                                   type="text">
+                        </p>
+                        <div id="network-slider"></div>
+
+                        <hr>
+                        <button type="button" id="network-remove" class="btn btn-default btn-lg btn-block">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                            Remove network
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block tail_js %}
+{{ super() }}
+<!-- D3, jQuery ui libs loaded -->
+<script src="{{url_for('static', filename='d3.min.js')}}"></script>
+<script src="{{url_for('static', filename='jquery-ui.min.js')}}"></script>
+<script src="{{url_for('static', filename='colorbrewer.min.js')}}"></script>
+<script src="{{url_for('static', filename='polybool.min.js')}}"></script>
+
+<!-- Own js scripts -->
+<script src="{{url_for('static', filename='explore.js')}}"></script>
+{% endblock %}
