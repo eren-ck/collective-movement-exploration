@@ -21,8 +21,10 @@
     * Speed, acceleration, distance to centroid
     * Centroid, medoid, convex hull, delaunay triangulation, voronoi diagram
     * Convex hull area, swarm speed, swarm acceleration
-* Spatiial view
-* Line Chart
+* Network generation based on similarity
+* Hierarchical clustering exploration
+* Spatial view
+* Line Chart, trend chart
 * Zoom, pan & drag, brushing, tooltip
 * REST API
 * Streaming
@@ -48,6 +50,8 @@ You can test a fully working live demo [here](https://animals.dbvis.de/)
 * [jQuery UI](http://jqueryui.com/)
 * [Bootstrap 4](http://getbootstrap.com/)
 * [Papaparse](http://papaparse.com/)
+* [Webpack](https://github.com/webpack/webpack)
+* [Python libraries](https://github.com/dbvis-eren-ck/collective-movement-exploration/blob/master/src/requirements.txt)
 
 ## Authors
 
@@ -61,4 +65,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-Thanks to Juri Buchmüller, Prof. Daniel Keim, Jolle Jolles and Prof. Dr. Iain Couzin for their direct support of this project
+Thanks to Juri Buchmüller, Prof. Daniel Keim, Jolle Jolles, Prof. Dr. Alex Jordan and Prof. Dr. Iain Couzin for their direct support of this project
