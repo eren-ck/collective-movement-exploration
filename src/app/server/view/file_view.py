@@ -1,6 +1,7 @@
 import os
 import os.path as op
 import time
+import sys
 
 from feature_extraction.calculate_features import calculate_features
 from multiprocessing import Process
@@ -161,7 +162,11 @@ class MyFileAdminView(fileadmin.FileAdmin):
                 return self.render(self.upload_template, form=form, header_text=gettext('Upload File'))
 
             # check if background image has the right extension
-            if form.background_image.data.filename:
+            # print('Hello world!', file=sys.stderr)
+            # print(form.background_image, file=sys.stderr)
+            # print(form.background_image.data, file=sys.stderr)
+
+            if form.background_image.data:
                 image_name = form.background_image.data.filename.lower()
                 ALLOWED_IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
                 if not ('.' in image_name and image_name.rsplit('.', 1)[-1] in ALLOWED_IMAGE_EXTENSIONS):
@@ -186,7 +191,7 @@ class MyFileAdminView(fileadmin.FileAdmin):
                 return self.render(self.upload_template, form=form, header_text=gettext('Upload File'))
 
             # Check if the metadata file is csv
-            if form.metadata.data.filename and not self.check_csv_file(form.metadata.data.filename):
+            if form.metadata.data and not self.check_csv_file(form.metadata.data):
                 flash(gettext('Metadata file  Movement file is not CSV !'), 'error')
                 return self.render(self.upload_template, form=form, header_text=gettext('Upload File'))
 
@@ -207,7 +212,7 @@ class MyFileAdminView(fileadmin.FileAdmin):
                     flash(gettext('Failed to save file: %(error)s', error=ex), 'error')
 
             # get the request metadata file
-            if form.metadata.data.filename:
+            if form.metadata.data:
                 # rename the metadata file
                 form.metadata.data.filename = form.name.data + '_metadata.csv'
 

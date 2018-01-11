@@ -30,10 +30,13 @@ class Network(db.Model):
     finished = db.Column(db.Boolean, default=False)
     error = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(255))
+    metric = db.Column(db.String(255), nullable=False, default='euclidean')
+    hierarchy = deferred(db.Column(JSONB))
 
     def __init__(self, network_id, **kwargs):
         self.network_id = network_id
         self.network = {}
+        self.hierarchy = {}
         self.__dict__.update(kwargs)
 
     def __repr__(self):
@@ -51,7 +54,8 @@ class Network(db.Model):
             'acceleration': self.acceleration,
             'distance_centroid': self.distance_centroid,
             'direction': self.direction,
-            'euclidean_distance': self.euclidean_distance
+            'euclidean_distance': self.euclidean_distance,
+            'metric': self.metric
         }
 
     def as_info_dict(self):
@@ -61,8 +65,14 @@ class Network(db.Model):
             'network_id': self.network_id
         }
 
-    def as_data_dict(self):
+    def network_as_data_dict(self):
         return {
             'name': self.name,
-            'data': self.network,
+            'data': self.network
+        }
+
+    def hierarchy_as_data_dict(self):
+        return {
+            'name': self.name,
+            'hierarchy': self.hierarchy
         }

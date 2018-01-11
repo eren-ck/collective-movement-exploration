@@ -2,13 +2,18 @@
 /*global window, $ */
 // import all js
 import * as queries from './ajax_queries.js';
-import {
-    spatialViewInit
-} from './spatial_view/spatial_view.js';
 
 import {
     initializeMetaddata
 } from './metadata.js';
+
+import {
+    setHierarchyLevel,
+    removeHierarchyLevel,
+    setHierarchyColor,
+    removeHierarchyColor,
+    changeHierarchyLegend
+} from './hierarchy.js';
 
 // import css
 import './explore.css';
@@ -18,6 +23,8 @@ export let datasetMetadata = []; // metadataset for each individual fish
 export let swarmData = []; // swarmdata for linechart and also other swarm features
 export let dataSetPercentile = {}; // pecentiles needed for the color mapping
 export let networkData = {}; // network data
+export let networkHierarchy = {}; // network hierarchy data
+
 
 
 /**
@@ -41,19 +48,7 @@ $(document).ready(function() {
     queries.getMetaData();
 
     // get the information if there are already networks created for this dastaset
-    queries.getNetworkData();
-
-    // if all ajax queries are compelte initialize
-    (function() {
-        function checkPendingRequest() {
-            if ($.active > 0) {
-                window.setTimeout(checkPendingRequest, 100);
-            } else {
-                spatialViewInit();
-            }
-        }
-        window.setTimeout(checkPendingRequest, 100);
-    })();
+    queries.getNetworkDataButton();
 
 });
 
@@ -95,7 +90,6 @@ export function setMetaData(value) {
  */
 export function setSwarmData(data, feature) {
     for (let i = 0; i < data.length; i++) {
-
         // add the the object to the array if there is no element yet
         if (typeof swarmData[i] === 'undefined') {
             swarmData.push({});
@@ -135,4 +129,25 @@ export function setDatasetFeature(data, feature) {
  */
 export function setNetworkData(value) {
     networkData = value;
+}
+
+/**
+ * Set the network hiearhcy value
+ * @param {array} value - Array of of arrays with all values
+ *                           with hierarchy
+ */
+export function setHierarchyData(value, network_id) {
+    // if the element is empty remove the element from the netwrokHierarchy object
+    if (Object.keys(value).length === 0 && value.constructor === Object) {
+        delete networkHierarchy['h' + network_id];
+        removeHierarchyLevel(network_id);
+        removeHierarchyColor(network_id);
+    } // add it to the network hierarchy
+    else {
+        networkHierarchy['h' + network_id] = value;
+        setHierarchyLevel(network_id, 2);
+        setHierarchyColor(network_id);
+    } // too many elements cant be added
+
+    changeHierarchyLegend();
 }

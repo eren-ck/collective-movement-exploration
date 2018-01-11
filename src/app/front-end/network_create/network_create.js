@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window, $*/
+/*global window, $,parameters*/
 import './network_create.css';
 
 let JSONAPI_MIMETYPE = 'application/vnd.api+json';
@@ -90,4 +90,32 @@ $('#suggest').click(function() {
         }
     });
 
+});
+
+/**
+ * If there are parameters - than configure input form with the parameters
+ */
+$(document).ready(function() {
+    let parameters = (function(a) {
+        if (a == '') return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i) {
+            var p = a[i].split('=', 2);
+            if (p.length == 1)
+                b[p[0]] = '';
+            else
+                b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, ' '));
+        }
+        return b;
+    })(window.location.search.substr(1).split('&'));
+    if (Object.keys(parameters).length > 1) {
+        // set the select box
+        $('#dataset_id').val(parseFloat(parameters['dataset_id']));
+        $('#metric_distance').val(parseFloat(parameters['metric_distance']));
+        $('#speed').val(parseFloat(parameters['speed']));
+        $('#acceleration').val(parseFloat(parameters['acceleration']));
+        $('#distance_centroid').val(parseFloat(parameters['distance_centroid']));
+        $('#direction').val(parseFloat(parameters['direction']));
+        $('#euclidean_distance').val((parseFloat(parameters['x']) + parseFloat(parameters['y'])) / 2);
+    }
 });

@@ -1,10 +1,9 @@
 /*eslint-disable no-unused-lets*/
-/*global window, d3, $, parameters, Set*/
+/*global window, d3, $, Set*/
 
 import * as SPV from './spatial_view/spatial_view.js';
 
 import {
-    enablePlayButton,
     disablePlayButton
 } from './helpers.js';
 
@@ -26,26 +25,43 @@ import {
 
 import {
     setNetworkAuto,
-    setNetworLimit
+    setNetworLimit,
+    setNetworkHierarchy
 } from './network.js';
 
 import {
     dataset,
     swarmData,
-    setSwarmData,
     datasetMetadata,
-    setNetworkData
+    setNetworkData,
+    setHierarchyData
 } from './explore.js';
 
 import {
-    getDatasetFeature
+    getDatasetFeature,
+    getNetworkData,
+    getSwarmDatasetFeature,
+    getNetworkHierarchyData
 } from './ajax_queries.js';
 
 import {
     colorScale
 } from './spatial_view/color_picker';
 
-let JSONAPI_MIMETYPE = 'application/vnd.api+json';
+import {
+    addHierarchyButton,
+    removeHierarchyButton,
+    drawDendrogram,
+    maxNumberHierarchies,
+    setSetOperation
+} from './hierarchy.js';
+
+import {
+    setTrackingBoolean,
+    resetTrackedData,
+    sendTrackedData
+} from './visual_parameter.js';
+
 let brush; // brushing variable
 export let playBoolean = true; // pause and play boolean
 
@@ -58,6 +74,7 @@ export function initListeners() {
     af_listeners();
     md_listeners();
     n_listeners();
+    h_listeners();
 }
 
 /**
@@ -89,7 +106,6 @@ function cp_listener() {
         $('#play-button').removeClass('active');
         SPV.draw();
     });
-
 
     /**
      * Brushing button
@@ -124,6 +140,10 @@ function cp_listener() {
         if (!$('#remove-active-selected-button').is(':disabled')) {
             $('#remove-active-selected-button').prop('disabled', true);
             SPV.setActiveAnimals([]);
+            // tracking of data for visual parameter suggestion
+            resetTrackedData();
+            $('#visual-parameter-button').prop('disabled', true).removeClass('active');
+
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
                 //this applys the changes
@@ -131,6 +151,32 @@ function cp_listener() {
                 SPV.decIndexTime();
                 SPV.draw();
             }
+        }
+    });
+
+    /**
+     * Track visual parameter button
+     */
+    $('#visual-parameter-button').click(function() {
+        if ($('#visual-parameter-button').hasClass('active') === true) {
+            setTrackingBoolean(false);
+        } else {
+            setTrackingBoolean(true);
+        }
+    });
+
+    /**
+     * Send the tracked via a ajax query to the server to calculate the parameters
+     */
+    $('#calculate-parameter-button').click(function() {
+        if (!$('#calculate-parameter-button').hasClass('active')) {
+            setTrackingBoolean(false);
+            sendTrackedData();
+
+            // disable both buttons and remove the active one
+            $('#calculate-parameter-button').prop('disabled', true);
+            $('#calculate-parameter-button').removeClass('active');
+            $('#visual-parameter-button').removeClass('active');
         }
     });
 
@@ -161,9 +207,9 @@ function cp_listener() {
      */
     $('#draw-time').on('change', function() {
         if (this.checked) {
-            $('#main-vis .frameText').show();
+            $('#main-vis .frame-text').show();
         } else {
-            $('#main-vis .frameText').hide();
+            $('#main-vis .frame-text').hide();
         }
     });
 
@@ -191,7 +237,6 @@ function sf_listeners() {
      */
     $('#draw-direction').click(function() {
         if ($('#draw-direction').is(':checked')) {
-            // load absolute feature speed data once
             if (!('direction' in dataset[0])) {
                 disablePlayButton();
                 // ajax query to get direction data
@@ -218,22 +263,7 @@ function sf_listeners() {
         if ($('#draw-medoid').is(':checked')) {
 
             if (!('medoid' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/medoid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < swarmData.length; i++) {
-                            swarmData[i]['medoid'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('medoid');
 
             }
             SPV.setMedoidAnimal(swarmData[SPV.indexTime]['medoid']);
@@ -254,22 +284,7 @@ function sf_listeners() {
     $('#draw-centroid').click(function() {
         if ($('#draw-centroid').is(':checked')) {
             if (!('centroid' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/centroid',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < swarmData.length; i++) {
-                            swarmData[i]['centroid'] = [Math.round(data[i][0] * 100) / 100, Math.round(data[i][1] * 100) / 100];
-                        }
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('centroid');
 
             }
             // hide the centroid
@@ -289,20 +304,8 @@ function sf_listeners() {
     $('#draw-convex-hull').click(function() {
         if ($('#draw-convex-hull').is(':checked')) {
             if (!('hull' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/convex_hull',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        setSwarmData(data, 'hull');
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('convex_hull');
+
             }
         }
     });
@@ -314,20 +317,8 @@ function sf_listeners() {
     $('#draw-triangulation').click(function() {
         if ($('#draw-triangulation').is(':checked')) {
             if (!('triangulation' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/triangulation',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        setSwarmData(data, 'triangulation');
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('triangulation');
+
             }
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
@@ -345,22 +336,8 @@ function sf_listeners() {
     $('#draw-voronoi').click(function() {
         if ($('#draw-voronoi').is(':checked')) {
             if (!('voronoi' in swarmData[0])) {
-                disablePlayButton();
-                $.ajax({
-                    url: '/api/dataset/' + parameters['id'] + '/voronoi',
-                    dataType: 'json',
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: {
-                        'Accept': JSONAPI_MIMETYPE
-                    },
-                    success: function(data) {
-                        for (let i = 0; i < swarmData.length; i++) {
-                            swarmData[i]['voronoi'] = data[i];
-                        }
-                        enablePlayButton();
-                    }
-                });
+                getSwarmDatasetFeature('voronoi');
+
             }
             if (!$('#play-button').hasClass('active')) {
                 //go back one second and draw the next frame
@@ -489,23 +466,13 @@ function n_listeners() {
      */
     $('#networks-modal-body button').click(function() {
         let network_id = $(this).attr('data');
-        // get the data
-        $.ajax({
-            url: '/api/dataset/networks/' + parameters['id'] + '/' + network_id,
-            dataType: 'json',
-            type: 'GET',
-            contentType: 'application/json; charset=utf-8',
-            headers: {
-                'Accept': JSONAPI_MIMETYPE
-            },
-            success: function(data) {
-                if (data.length) {
 
-                    setNetworkData(JSON.parse(data[0]['data']));
-                }
-            }
-        });
+        // add the name of the choosen network to the Network modal
+        $('#active-network-name').text($(this).attr('name'));
 
+        disablePlayButton();
+        getNetworkData(network_id);
+        $('#network-div').modal('toggle');
     });
 
     /**
@@ -513,6 +480,8 @@ function n_listeners() {
      */
     $('#network-remove').click(function() {
         setNetworkData({});
+
+        $('#active-network-name').text('');
     });
 
     /**
@@ -645,6 +614,147 @@ function md_listeners() {
         $('#metadata-input').addClass('hidden');
         resetIndividualMetadata();
     });
+
+}
+/**
+ * Initialize hierarchy/dendgrogram listeners
+ */
+function h_listeners() {
+    /**
+     * Show dendgrogram sliding button
+     */
+    function initShowDendrogramListener(id) {
+
+        $('#show-dendrogram-' + id).click(function() {
+            let clickedButtonID = $(this).attr('id');
+            // iterate over all buttons and custom highlight just one or none
+            $('.show-dendrogram').each(function(i, button) {
+                // active found button
+                if ($(button).attr('id') === clickedButtonID && $(button).hasClass('btn-primary') === false) {
+                    $(button).addClass('btn-primary');
+                    $(button).find('#btn-left').addClass('hidden');
+                    $(button).find('#btn-right').removeClass('hidden');
+                    // TODO add here a resize of the main vis
+                    // $('#dendrogram-panel').insertAfter($(this));
+                } // remove highlight
+                else {
+                    $(button).removeClass('btn-primary');
+                    $(button).find('#btn-left').removeClass('hidden');
+                    $(button).find('#btn-right').addClass('hidden');
+                }
+            });
+
+            // show dendrogram
+            if ($('.show-dendrogram.btn-primary').length) {
+                $('#dendrogram-panel').show();
+            } else {
+                $('#dendrogram-panel').hide();
+            }
+            if (!$('#play-button').hasClass('active')) {
+                //go back one second and draw the next frame
+                //this applys the changes
+                SPV.decIndexTime();
+                SPV.draw();
+                drawDendrogram();
+            }
+        });
+    }
+
+    /**
+     * Hierarchy button in network modal on change
+     * Load data or remove it
+     */
+    $('.hiearchy-checkbox').on('change', function() {
+        let checkbox = $(this).find('input:hidden');
+
+        let id = checkbox.attr('data');
+        let name = checkbox.attr('name');
+        let checked = checkbox.prop('checked');
+
+
+        if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
+            disablePlayButton();
+            getNetworkHierarchyData(id);
+
+            addHierarchyButton(id, name);
+            initShowDendrogramListener(id);
+            $('#dendrogram-buttons-div').removeClass('hidden');
+        }
+        // else if ($('.show-dendrogram').length === maxNumberHierarchies) {
+        // console.log('Max number of hierarchies is: ' + maxNumberHierarchies);
+        //TODO implement this here
+        // notice user that it is not possible to show more than n hierarchies
+        //          <div class="alert alert-warning">
+        //   <strong>Info!</strong> Attention user .
+        // </div>
+        // }
+        else {
+            // tmp variable to save if the button which is going to be removed
+            // was active
+            let tmpActive = $('#show-dendrogram-' + id).hasClass('btn-primary');
+            setHierarchyData({}, id);
+
+            removeHierarchyButton(id);
+            // TODO find better way here
+            d3.select('g.h' + id).remove();
+            // remove the dendrogram and the panel if the removed element was checked
+            if (tmpActive === true) {
+                $('#dendrogram-panel').hide();
+            }
+            if ($('.show-dendrogram').length === 0) {
+                $('#dendrogram-buttons-div').addClass('hidden');
+            }
+
+        }
+        // resize the main svg
+        if ($('.show-dendrogram').length) {
+            $('#main-vis-div').removeClass('col-md-12');
+            $('#main-vis-div').addClass('col-md-8');
+        } else {
+            $('#main-vis-div').removeClass('col-md-8');
+            $('#main-vis-div').addClass('col-md-12');
+        }
+    });
+
+    /**
+     * Visualize the network only in the choosen hierarchy
+     */
+    $('.network-hierarchy-checkbox').on('change', function() {
+        // get the info for the clicked button
+        let checkbox = $(this).find('input:hidden');
+        let id = checkbox.attr('data');
+        let checked = checkbox.prop('checked');
+
+        // reset all the other active checkboxes
+        $('.network-hierarchy-checkbox').each(function(i, button) {
+            if ($(this).find('input:hidden').prop('checked') && $(this).find('input:hidden').prop('data') !== id) {
+                $(button).trigger('click');
+            }
+        });
+        if (checked) {
+            // set the network id
+            setNetworkHierarchy(id);
+        } else {
+            setNetworkHierarchy(undefined);
+        }
+    });
+
+    /**
+     * Hierarchy set theory buttons - union, intersection, symmetric difference
+     */
+    $('.set-button').click(function() {
+        let data = $(this).find('input').attr('data');
+        setSetOperation(data);
+
+        if (!$('#play-button').hasClass('active')) {
+            //go back one second and draw the next frame
+            //this applys the changes
+            SPV.decIndexTime();
+            SPV.draw();
+            drawDendrogram();
+        }
+    });
+    // = ;
 
 }
 /************************************************

@@ -11,14 +11,14 @@ import {
 } from './explore.js';
 
 import {
-    percentiles
+    percentilesLineChart
 } from './helpers.js';
 
 export let zoomFunction;
 export let lineChartRatio = 0;
 
 let trendChartsZoom = {};
-let trendChartsElem = ['lowerOuterArea', 'lowerInnerArea', 'medianLine', 'upperInnerArea', 'upperOuterArea'];
+let trendChartsElem = ['lower-outer-area', 'lower-inner-area', 'median-line', 'upper-inner-area', 'upper-outer-area'];
 let lineChartWidth = 5000;
 let ratio = 1;
 let zoomGroup;
@@ -56,7 +56,7 @@ export function lineChart() {
         let capitalized_feature_string = swarm_features[i].split('_').join(' ');
         capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
 
-        $('.feature-check-box').append(`<div class="feature-check-box-default lineChartCheckBox">
+        $('.feature-check-box').append(`<div class="feature-check-box-default line-chart-check-box">
                                        <input id="drawSwarm` + swarm_features[i] + `" class="lineChartButton" type="checkbox">
                                        <label for="drawSwarm` + swarm_features[i] + '">' + capitalized_feature_string + `</label>
                      </div>`);
@@ -174,7 +174,7 @@ export function lineChart() {
 
     // make the svg resizable
     let swarmLineChart = d3.select('#swarm-vis')
-        .classed('svg-LineChartContainer', true)
+        .classed('svg-line-chart-container', true)
         // to make it responsive with css
         .append('svg')
         .attr('preserveAspectRatio', 'xMinYMin meet')
@@ -191,19 +191,19 @@ export function lineChart() {
     // append a group for the x axis
     // add the axis
     let gXaxis = zoomGroup.append('g')
-        .attr('class', 'x axisLineChart')
+        .attr('class', 'x axis-line-chart')
         .attr('transform', 'translate(0,' + lineChartHeight + ')')
         .call(xAxis);
 
     // append a group for the y axis
     zoomGroup.append('g')
-        .attr('class', 'y axisLineChart')
+        .attr('class', 'y axis-line-chart')
         .call(yAxis);
 
 
     // the time line append the line
     zoomGroup.append('line')
-        .attr('class', 'timeLine')
+        .attr('class', 'time-line')
         .attr('id', 'lineChartTimeLine')
         .attr('x1', 0)
         .attr('y1', 0)
@@ -285,7 +285,7 @@ export function lineChart() {
             // append the text for the legend
             d3.select(this).append('text')
                 .attr('id', d.attributes.id.value + 'LegendTitle')
-                .attr('class', 'lineChartlegendText')
+                .attr('class', 'line-chart-legend-text')
                 .attr('y', textSpace)
                 .attr('x', (spacing * i + legendWidth + 10) + 'px')
                 .text(d.attributes.name.value + ': ');
@@ -293,7 +293,7 @@ export function lineChart() {
             //append the text for the value of the line
             d3.select(this).append('text')
                 .attr('id', d.attributes.id.value + 'Value')
-                .attr('class', 'lineChartlegendText')
+                .attr('class', 'line-chart-legend-text')
                 .attr('y', textSpace)
                 .attr('x', (spacing * i + legendWidth +
                     //the next expression gets the text length
@@ -332,7 +332,7 @@ export function lineChart() {
 
             // append the text for the legend
             d3.select(this).append('text')
-                .attr('class', 'lineChartlegendText')
+                .attr('class', 'line-chart-legend-text')
                 .attr('y', textSpace)
                 .attr('x', (spacing * i + legendWidth + 10) + 'px')
                 .text(d);
@@ -375,7 +375,7 @@ $('.draw-details').click(function() {
  */
 function disableLineChart() {
     $('.lineChartButton').prop('checked', false).prop('disabled', true);
-    $('.lineChartCheckBox').addClass('disabled');
+    $('.line-chart-check-box').addClass('disabled');
     $('.lineChartLine').attr('visibility', 'hidden');
 }
 
@@ -384,7 +384,7 @@ function disableLineChart() {
  */
 function enableLineChart() {
     $('.lineChartButton').prop('checked', true).prop('disabled', false);
-    $('.lineChartCheckBox').removeClass('disabled');
+    $('.line-chart-check-box').removeClass('disabled');
     $('.lineChartLine').attr('visibility', 'visible');
 }
 
@@ -399,7 +399,7 @@ function removeTrendChart() {
 
 /**
  * Add a trend chart showing median and percentiles
- * @param {String} elem - which feature  
+ * @param {String} elem - which feature
  */
 function addTrendChart(elem) {
     // check which feature to display in the trend chart
@@ -433,7 +433,7 @@ function addTrendChart(elem) {
                     tmp.push(dataset[i * num_animals + j][feature]);
                 }
             }
-            trendChartData.push(percentiles(tmp));
+            trendChartData.push(percentilesLineChart(tmp));
         }
         //aggregate and average the trendChartData to lineChartWidth data points
         if (trendChartData.length > lineChartWidth) {

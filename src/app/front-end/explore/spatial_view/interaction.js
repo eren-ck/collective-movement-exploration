@@ -107,18 +107,20 @@ export function initSliders() {
             }
         });
     // initialize the Network slider
-    $('#Network-slider')
+    $('#network-slider')
         .slider({
             range: 'max',
             min: 0,
             max: 1,
             step: 0.01,
-            value: 0,
+            value: 0.5,
             slide: function(event, ui) {
                 Network.setNetworLimit(ui.value);
-                $('#Network-limit').val(ui.value);
+                $('#network-limit').val(ui.value);
             }
         });
+    // set text for the first initialization 
+    $('#network-limit').val(0.5);
 
     // get the max from the slider this is needed to calculate the ticks
     let max = slider.slider('option', 'max');

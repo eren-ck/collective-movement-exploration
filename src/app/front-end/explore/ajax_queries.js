@@ -9,7 +9,9 @@ import {
     setDataSetPercentile,
     setSwarmData,
     setMetaData,
-    setDatasetFeature
+    setDatasetFeature,
+    setNetworkData,
+    setHierarchyData
 } from './explore.js';
 
 import {
@@ -18,7 +20,17 @@ import {
 
 import {
     enablePlayButton,
+    disablePlayButton
 } from './helpers.js';
+
+import {
+    spatialViewInit
+} from './spatial_view/spatial_view.js';
+
+import {
+    responseParameters
+} from './visual_parameter.js';
+
 
 /**
  * Stream the movement data from the API
@@ -30,6 +42,17 @@ export function streamMovementData() {
         source.onmessage = function(e) {
             if (e.data === 'close') {
                 source.close();
+                // if all ajax queries are compelte initialize
+                (function() {
+                    function checkPendingRequest() {
+                        if ($.active > 0) {
+                            window.setTimeout(checkPendingRequest, 100);
+                        } else {
+                            spatialViewInit();
+                        }
+                    }
+                    window.setTimeout(checkPendingRequest, 100);
+                })();
             } else {
                 addToDataset(JSON.parse(e.data));
             }
@@ -116,9 +139,9 @@ export function getMetaData() {
 }
 
 /**
- * Get the network data
+ * Get the network datasets for the buttons
  */
-export function getNetworkData() {
+export function getNetworkDataButton() {
     $.ajax({
         url: '/api/dataset/networks/' + parameters['id'],
         dataType: 'json',
@@ -135,7 +158,7 @@ export function getNetworkData() {
 
 /**
  * Get the specifc feature
- * @param {String} feature - for instance speed, swarm_convex_hull_area etc.
+ * @param {String} feature - for instance speed, acceleration etc.
  */
 export function getDatasetFeature(feature) {
     $.ajax({
@@ -152,4 +175,96 @@ export function getDatasetFeature(feature) {
             enablePlayButton();
         }
     });
+}
+
+/**
+ * Get the specifc swarm feature
+ * @param {String} feature - for instance centroid, medoid etc.
+ */
+export function getSwarmDatasetFeature(feature) {
+    disablePlayButton();
+    $.ajax({
+        url: '/api/dataset/' + parameters['id'] + '/' + feature,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            // add the speed feature to the dataset
+            setSwarmData(data, feature);
+            enablePlayButton();
+        }
+    });
+}
+
+
+
+/**
+ * Get the network for the specific network_id
+ * @param {String} network_id - unique network id of a dataset.
+ */
+export function getNetworkData(network_id) {
+    $.ajax({
+        url: '/api/dataset/network/' + parameters['id'] + '/' + network_id,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            if (data.length) {
+                setNetworkData(JSON.parse(data[0]['data']));
+            }
+            enablePlayButton();
+        }
+    });
+
+}
+
+/**
+ * Get the network hierarchy for the specific network_id
+ * @param {String} network_id - unique network id of a dataset.
+ */
+export function getNetworkHierarchyData(network_id) {
+    $.ajax({
+        url: '/api/dataset/network/hierarchy/' + parameters['id'] + '/' + network_id,
+        dataType: 'json',
+        type: 'GET',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            if (data.length) {
+                setHierarchyData(JSON.parse(data[0]['hierarchy']), network_id);
+            }
+            enablePlayButton();
+        }
+    });
+
+}
+
+
+/**
+ * Visual parameter suggestion ajax query
+ * @param {Array} trackedData - tracked data with .
+ */
+export function getSuggestedParameters(trackedData) {
+    $.ajax({
+        url: '/api/dataset/visual_parameter/' + parameters['id'],
+        dataType: 'json',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        headers: {
+            'Accept': JSONAPI_MIMETYPE
+        },
+        success: function(data) {
+            responseParameters(data);
+        },
+        data: trackedData
+    });
+
 }

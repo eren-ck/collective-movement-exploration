@@ -6,9 +6,7 @@
 <link href="{{url_for('static', filename='jquery-ui.min.css')}}" rel="stylesheet">
 <link href="{{url_for('static', filename='theme.css')}}" rel="stylesheet">
 
-
 {% endblock %}
-
 
 {% block body %}
 <script>
@@ -112,10 +110,10 @@
                             </div>
                             <hr>
                             <button type="button" id="network-button"
-                                    class="btn btn-default btn-lg" data-toggle="modal"
+                                    class="btn btn-default" data-toggle="modal"
                                     data-target="#network-div">
                                 <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
-                                Networks
+                                Networks&Hierarchies
                             </button>
 
                         </div>
@@ -148,7 +146,7 @@
                                     <!-- Play button and next frame button -->
                                     <div class="row">
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <button type="button" id="play-button" class="btn btn-default active"
                                                     data-toggle="button" aria-pressed="true" autocomplete="off">
                                                 <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
@@ -160,7 +158,7 @@
                                         </div>
 
                                         <!-- Animation speed buttons -->
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <fieldset id="group1">
                                                 <div class="btn-group" data-toggle="buttons">
                                                     <label class="btn btn-default">
@@ -185,16 +183,27 @@
                                             </fieldset>
                                         </div>
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-5">
                                             <button type="button" id="brushing-button" class="btn btn-default "
                                                     data-toggle="button" autocomplete="off">
                                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Brush
+                                            </button>
+                                            <button type="button" id="visual-parameter-button" class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled>
+                                                <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
+                                                Track
+                                            </button>
+                                            <button type="button" id="calculate-parameter-button"
+                                                    class="btn btn-default "
+                                                    data-toggle="button" autocomplete="off" disabled data="0">
+                                                <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+                                                Calculate
                                             </button>
                                             <button type="button" id="remove-active-selected-button"
                                                     class="btn btn-default" data-toggle="button" autocomplete="off"
                                                     disabled>
                                                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                                Unselect All
+                                                Unselect
                                             </button>
                                         </div>
 
@@ -230,20 +239,75 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
 
-                    <div class="col-md-12" id="main-vis-div">
-                        <!-- loading gif -->
-                        <div id="loading">
-                            <img src="{{url_for('static', filename='loading.gif')}}"/>
-                        </div>
-                        <!-- The div for the svg  -->
 
-                        <div id="main-vis">
+                        <div class="col-md-12" id="main-vis-div">
+                            <!-- loading gif -->
+                            <div id="loading">
+                                <img src="{{url_for('static', filename='loading.gif')}}"/>
+                            </div>
+                            <!-- The div for the svg  -->
+                            <div class="row">
+                                <div id="main-vis">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div id="hierarchy-legend-div" class="pull-left">
+                                </div>
+                                <div id="main-vis-legend-div" class="pull-right">
+                                </div>
+                            </div>
+
                         </div>
-                        <div id="main-vis-legend-div">
+
+                        <div class="col-md-4">
+                            <div id="dendrogram-buttons-div" class="pull-right hidden">
+
+                                <div class="btn-group" data-toggle="buttons">
+
+                                    <label class="btn btn-default active set-button">
+                                        <input type="radio" name="options" data="union" autocomplete="off">
+                                        Union
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                    <label class="btn btn-default set-button">
+                                        <input type="radio" name="options" data="intersection" autocomplete="off">
+                                        Intersection
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                    <label class="btn btn-default set-button">
+                                        <input type="radio" name="options" data="sym-difference" autocomplete="off">
+                                        Sym. Difference
+                                        <span class="glyphicon glyphicon-ok"></span>
+                                    </label>
+
+                                </div>
+                                <br>
+
+                            </div>
                         </div>
+
+                        <div class="col-md-4">
+                            <div class="panel panel-default" id="dendrogram-panel">
+                                <div class="panel-heading">Hierarchy: <span id="dendrogram-panel-name"> Name</span>
+                                </div>
+                                <div class="panel-body">
+                                    Cluster Level <span id="dendrogram-panel-level-text">2</span>
+                                    <div id="dendrogram-panel-level-slider" name="0"></div>
+                                    <br>
+                                    <!--<div id="dendrogram-panel">-->
+
+                                    <!--</div>-->
+                                </div>
+                            </div>
+
+                        </div>
+
                     </div>
-
 
                     <div class="col-md-12">
                         <div id="swarm-vis">
@@ -302,6 +366,14 @@
             </tbody>
         </table>
     </div>
+</div>
+
+
+<!-- Tooltip -->
+<div class="tooltip" id="dendrogram-tooltip">
+        <span class="tooltip-span">
+
+        </span>
 </div>
 
 
@@ -592,7 +664,7 @@
                     <div class="t2">
                         <div class="mod-head text-center">
                             <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
-                            <h2>Networks</h2>
+                            <h2>Networks & Hierarchies</h2>
                         </div>
                     </div>
                 </div>
@@ -605,10 +677,29 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div id="networks-modal-body">
+                            <div class="table-container">
+                                <table class="table table-condensed" id="networks-hierarchies-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Networks ID</th>
+                                        <th>Hierarchies</th>
+                                        <th>Network in Hierarchy</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+
 
                         </div>
                         <hr>
-                        <button type="button" id="network-auto-suggest" class="btn btn-default btn-lg"
+
+                        <strong>Active Network: </strong>
+                        <span id="active-network-name"></span>
+
+                        <button type="button" id="network-auto-suggest" class="btn btn-default pull-right"
                                 data-toggle="button" aria-pressed="false" autocomplete="off">
                             <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
                             Auto parameter
@@ -644,6 +735,7 @@
 <script src="{{url_for('static', filename='d3.min.js')}}"></script>
 <script src="{{url_for('static', filename='jquery-ui.min.js')}}"></script>
 <script src="{{url_for('static', filename='colorbrewer.min.js')}}"></script>
+<script src="{{url_for('static', filename='polybool.min.js')}}"></script>
 
 <!-- Own js scripts -->
 <script src="{{url_for('static', filename='explore.js')}}"></script>

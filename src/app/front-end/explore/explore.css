@@ -71,6 +71,10 @@
 
 /* SVG elements and text */
 
+#main-vis {
+    margin-bottom: 10px;
+}
+
 .svg-container {
     display: inline-block;
     position: relative;
@@ -86,26 +90,38 @@
     border: 1px solid #000;
 }
 
-.svg-content-legend {
+#main-vis-legend-div {
+    display: none;
+}
+
+#hierarchy-legend-div {
+    display: none;
+}
+
+#main-vis-legend {
+    float: right;
     display: inline-block;
-    position: absolute;
+    position: relative;
+    overflow: visible;
     top: 10px;
     left: 10px;
 }
 
-.svg-legendContainer {
+#hierarchy-legend {
+    float: left;
     display: inline-block;
     position: relative;
-    width: 100%;
-    height: auto;
-    /* depends on svg ratio */
-    padding-bottom: 10%;
-    /* aspect ratio */
-    vertical-align: top;
-    overflow: hidden;
+    overflow: visible;
+    top: 10px;
+    left: 10px;
 }
 
-.svg-LineChartContainer {
+.svg-content-dendrogram {
+    display: inline-block;
+    border: 1px solid #000;
+}
+
+.svg-line-chart-container {
     display: inline-block;
     position: relative;
     width: 100%;
@@ -113,6 +129,14 @@
     /* depends on svg ratio */
     padding-bottom: 17%;
     /* aspect ratio */
+    vertical-align: top;
+    overflow: visible;
+}
+
+.svg-dendrogram-container {
+    display: inline-block;
+    position: relative;
+    height: auto;
     vertical-align: top;
     overflow: visible;
 }
@@ -134,7 +158,7 @@
     font-size: 1em;
 }
 
-.axisLineChart path line {
+.axis-line-chart path line {
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
@@ -147,7 +171,7 @@
 
 /* Time  */
 
-.frameText {
+.frame-text {
     margin-top: 0;
     margin-bottom: 0;
     font-size: 2em;
@@ -181,21 +205,21 @@
     stroke: #000;
 }
 
-.legendText {
-    font-size: 1.5em;
+.legend-text {
+    font-size: 1.2em;
     color: inherit;
     font-family: inherit;
     line-height: 1.1;
 }
 
-.lineChartlegendText {
+.line-chart-legend-text {
     font-size: 2em;
     color: inherit;
     font-family: inherit;
     line-height: 1.1;
 }
 
-.timeLine {
+.time-line {
     fill: none;
     stroke-width: 5px;
     stroke: #000;
@@ -214,7 +238,7 @@
     stroke: #e7298a !important;
 }
 
-.hullPath {
+.hull-path {
     fill: #fff;
     fill-opacity: 0;
     stroke-width: 3;
@@ -222,7 +246,13 @@
     stroke-opacity: 0.5;
 }
 
-.delaunayTriangulation {
+.hierarchy-group {
+    stroke-width: 10;
+    stroke-linejoin: round;
+    opacity: 0.2;
+}
+
+.delaunay-triangulation {
     fill-opacity: 0;
     stroke-width: 2;
     stroke: #000;
@@ -338,23 +368,30 @@ div.tooltip table td:nth-child(2) {
     font-weight: bold;
 }
 
-.lineChartCheckBox.disabled {
+.tooltip-span {
+    display: block;
+    width: 150px;
+    word-wrap: break-word;
+    font-size: 1.5em;
+}
+
+.line-chart-check-box.disabled {
     color: #ccc;
 }
 
-.upperOuterArea, .lowerOuterArea {
+.upper-outer-area, .lower-outer-area {
     stroke-width: 1;
     fill: #74a9cf;
     stroke: #3690c0;
 }
 
-.upperInnerArea, .lowerInnerArea {
+.upper-inner-area, .lower-inner-area {
     stroke-width: 1;
     fill: #045a8d;
     stroke: #023858;
 }
 
-.medianLine {
+.median-line {
     fill: none;
     stroke: #525252;
     stroke-width: 5;
@@ -373,7 +410,7 @@ div.tooltip table td:nth-child(2) {
     pointer-events: all;
 }
 
-.x.axisLineChart>g>text {
+.x.axis-line-chart>g>text {
     font-size: 3em;
     color: inherit;
     font-family: inherit;
@@ -488,7 +525,133 @@ div.tooltip table td:nth-child(2) {
     background-color: #386cb0;
 }
 
-.networkEdges {
+.network-edges {
     fill-opacity: 0;
     stroke-width: 2;
+}
+
+.node text {
+    font: 12px sans-serif;
+}
+
+.node--internal text {
+    text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+}
+
+.link {
+    fill: none;
+    stroke: #636363;
+    stroke-width: 5px;
+}
+
+.custom-checkbox {
+    min-height: 1rem;
+    padding-left: 0;
+    margin-right: 0;
+    cursor: pointer;
+}
+
+.custom-checkbox .custom-control-indicator {
+    content: "";
+    display: inline-block;
+    position: relative;
+    width: 30px;
+    height: 10px;
+    background-color: #818181;
+    border-radius: 15px;
+    margin-right: 10px;
+    -webkit-transition: background .3s ease;
+    transition: background .3s ease;
+    vertical-align: middle;
+    margin: 0 16px;
+    box-shadow: none;
+}
+
+.custom-checkbox .custom-control-indicator:after {
+    content: "";
+    position: absolute;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background-color: #f1f1f1;
+    border-radius: 21px;
+    box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.4);
+    left: -2px;
+    top: -4px;
+    -webkit-transition: left .3s ease, background .3s ease, box-shadow .1s ease;
+    transition: left .3s ease, background .3s ease, box-shadow .1s ease;
+}
+
+.custom-checkbox .custom-control-input:checked~.custom-control-indicator {
+    background-color: #84c7c1;
+    background-image: none;
+    box-shadow: none !important;
+}
+
+.custom-checkbox .custom-control-input:checked~.custom-control-indicator:after {
+    background-color: #84c7c1;
+    left: 15px;
+}
+
+.custom-checkbox .custom-control-input:focus~.custom-control-indicator {
+    box-shadow: none !important;
+}
+
+#active-network-name {
+    font-weight: bold;
+    color: #296292;
+}
+
+.active-level {
+    fill: #386cb0;
+}
+
+#dendrogram-panel {
+    position: initial;
+}
+
+#dendrogram-panel {
+    display: none
+}
+
+.show-dendrogram {
+    float: right;
+    border-radius: 3px;
+    border: 1px solid #D1D3D4;
+    font-weight: normal;
+}
+
+.show-dendrogram:hover {
+    background: #D1D3D4;
+}
+
+.highlight-hierarchy {
+    fill: #252525;
+    stroke: #252525;
+    stroke-width: 10;
+    stroke-linejoin: round;
+    opacity: 0.3;
+}
+
+#dendrogram-buttons-div .btn span.glyphicon {
+    opacity: 0;
+}
+
+#dendrogram-buttons-div .btn.active span.glyphicon {
+    opacity: 1;
+}
+
+#dendrogram-buttons-div {
+    border: 2px solid #D1D3D4;
+    border-radius: 5px;
+}
+
+.intersection {
+    fill: url(#striped) !important;
+    stroke: #67000d;
+}
+
+.sym-difference {
+    fill: url(#striped) !important;
+    stroke: #67000d;
 }

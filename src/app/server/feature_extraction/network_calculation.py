@@ -2,8 +2,10 @@ import sys
 import os
 import numpy as np
 from scipy.spatial.distance import pdist
+from scipy.cluster.hierarchy import ward, to_tree
 import multiprocessing as mp
 import json
+from functools import reduce
 
 from db import create_session
 
@@ -53,6 +55,12 @@ def calculate_network(dataset_id, network_id):
         # get the movement data
         movement_data = session.query(Movement_data).filter_by(dataset_id=dataset_id) \
             .order_by(Movement_data.time, Movement_data.animal_id)
+        # get the unique animal ids from the dataset needed for the labeling of the hierarchy
+        animal_ids = session.query(Movement_data.animal_id).filter_by(dataset_id=dataset_id) \
+            .order_by(Movement_data.animal_id).distinct()
+        animal_ids = [d[0] for d in animal_ids]
+        labels = dict(zip(range(len(animal_ids)), animal_ids))
+
         # object of  ndarray of feature vectors - e.g. {1:array[(...)], 2:array[(...)]}
         # attributes of the object are the time steps
         feature_matrices = {}
@@ -80,20 +88,32 @@ def calculate_network(dataset_id, network_id):
         # start the calculation function for each time step
         results = pool.map(distance_calculation, arglist)
 
+        # hierarchical clustering (ward clustering)
+        arglist = [[d, labels] for d in results]
+        result_hclust = pool.map(hierarchical_clustering, arglist)
+
         pool.close()
         # wait until all processes are finished
         pool.join()
-
         # convert the results in a format which can be converted to json
         tmp = {}
         for res in results:
             for t in res:
                 tmp[t] = res[t].round(2).tolist()
-
         results = tmp
+
+        # convert the hierarchical clustering in a form which can be converted to json
+        tmp = {}
+        for data in result_hclust:
+            for key, value in data.items():
+                tmp[key] = value;
+
+
+        result_hclust = tmp;
 
         # save the results in the database
         network_model.network = json.dumps(results)
+        network_model.hierarchy = json.dumps(result_hclust, separators=(',', ':'))
         network_model.finished = True
         session.commit()
     except Exception as e:
@@ -117,6 +137,65 @@ def distance_calculation(args):
     # return squareform(pdist(X, metric, p, w))
     i, X, metric, p, w = args
     return {i: pdist(X[i], metric, p, w)}
+
+
+def hierarchical_clustering(args):
+    """
+        Return the hierarchical clustering encoded as a linkage matrix
+        Perform Ward’s linkage on a condensed distance matrix.
+
+        :param args: ([{time:condensed matrix}, labels])
+    """
+    # args
+    data, labels = args
+    time = -1
+    # cluster and transform to a tree object
+    for key, value in data.items():
+        clusters = ward(value)
+        tree = to_tree(clusters, rd=False)
+        time = key
+
+    def add_node(node, parent):
+        """
+            Create a nested dictionary from the ClusterNode's returned by SciPy
+        """
+        # First create the new node and append it to its parent's children
+        newNode = dict(node_id=node.id, children=[])
+        parent['children'].append(newNode)
+
+        # Recursively add the current node's children
+        if node.left:
+            add_node(node.left, newNode)
+        if node.right:
+            add_node(node.right, newNode)
+
+    # Label each node with the names of each leaf in its subtree
+    def label_tree(n):
+        # If the node is a leaf, then we have its name
+        if len(n['children']) == 0:
+            leafNames = [labels[n['node_id']]]
+
+        # If not, flatten all the leaves in the node's subtree
+        else:
+            leafNames = reduce(lambda ls, c: ls + label_tree(c), n['children'], [])
+
+        # Delete the node id since we don't need it anymore and
+        # it makes for cleaner JSON
+        del n['node_id']
+
+        # Labeling convention: "-"-separated leaf names
+        n['name'] = sorted(leafNames)
+
+        return leafNames
+
+    # parse the scipy tree structure to a json tree structure
+    dendro = dict(children=[], name='Root')
+    add_node(tree, dendro)
+
+    # label the leafs of the tree
+    label_tree(dendro['children'][0])
+
+    return {time: dendro}
 
 
 def normalize(value, min, max):

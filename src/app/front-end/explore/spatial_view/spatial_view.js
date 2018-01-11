@@ -11,7 +11,8 @@ import {
     networkColorScale,
     networkAuto,
     setNetworLimit,
-    networkLimit
+    networkLimit,
+    showNetworkHierarchy
 } from '../network.js';
 
 import {
@@ -50,6 +51,18 @@ import {
     addSpatialViewGroup
 } from './legend.js';
 
+import {
+    initDendrogram,
+    drawDendrogram,
+    networkHierarchyIds
+} from '../hierarchy.js';
+
+import {
+    trackingBoolean,
+    addTrackedData
+} from '../visual_parameter.js';
+
+
 export let indexTime = 0; // actual time moment in the animation
 export let tankWidth;
 export let tankHeight;
@@ -61,7 +74,6 @@ export let animal_ids; // array of unique animal ids
 
 let svgContainer; // svg container for the spatial view
 let tank; // svg group for the spatial view tank
-
 
 /**
  * Initialize the spatial view with all the important factors
@@ -82,8 +94,8 @@ export function spatialViewInit() {
             }).resizable({
                 aspectRatio: true,
                 maxWidth: $('#main-vis-div').width()
-            }).height(tankHeight * 0.5)
-            .width(tankWidth * 0.5);
+            }).height(tankHeight * 0.6)
+            .width(tankWidth * 0.6);
     });
 
     //reset all checkboxes
@@ -235,9 +247,9 @@ export function spatialViewInit() {
     tank.append('g')
         .attr('id', 'networkGroup');
 
-    //append delaunayTriangulation group
+    //append delaunay-triangulation group
     tank.append('g')
-        .attr('id', 'delaunayTriangulationGroup');
+        .attr('id', 'delaunay-triangulation-group');
 
     //append voronoi group
     tank.append('g')
@@ -245,7 +257,7 @@ export function spatialViewInit() {
 
     //append the frame time text
     svgContainer.append('text')
-        .attr('class', 'frameText')
+        .attr('class', 'frame-text')
         .attr('x', 30)
         .attr('y', 30)
         .text('-- : -- : -- ');
@@ -266,6 +278,7 @@ export function spatialViewInit() {
     initColorPicker();
     lineChart();
     initListeners();
+    initDendrogram();
     // start the animation
     draw();
 }
@@ -290,8 +303,10 @@ export function draw() {
 
     //the timeout is set after one update 30 ms
     setTimeout(function() {
+            // draw hierarchy
+            drawDendrogram();
             //change the time frame text
-            svgContainer.select('.frameText')
+            svgContainer.select('.frame-text')
                 .text(Math.floor(indexTime / 1500) % 60 + ':' + Math.floor(indexTime / parameters['fps']) % 60 + '::' + indexTime % parameters['fps']);
             // if a second has changed move the slider
             if (indexTime % parameters['fps'] === 0) {
@@ -308,18 +323,40 @@ export function draw() {
                 let tmp = networkData[indexTime];
 
                 let tmp_index = 0;
-                for (let i = 0; i < arrayAnimals.length; i++) {
-                    for (let j = i + 1; j < arrayAnimals.length; j++) {
-                        network.push({
-                            'node1': arrayAnimals[i]['a'],
-                            'node2': arrayAnimals[j]['a'],
-                            'start': arrayAnimals[i]['p'],
-                            'end': arrayAnimals[j]['p'],
-                            'val': tmp[tmp_index]
-                        });
-                        tmp_index = tmp_index + 1;
+                // display the whole network
+                if (showNetworkHierarchy == null) {
+                    for (let i = 0; i < arrayAnimals.length; i++) {
+                        for (let j = i + 1; j < arrayAnimals.length; j++) {
+                            network.push({
+                                'node1': arrayAnimals[i]['a'],
+                                'node2': arrayAnimals[j]['a'],
+                                'start': arrayAnimals[i]['p'],
+                                'end': arrayAnimals[j]['p'],
+                                'val': tmp[tmp_index]
+                            });
+                            tmp_index = tmp_index + 1;
+                        }
+                    }
+                } // display the network only in the clustering
+                else {
+                    for (let i = 0; i < arrayAnimals.length; i++) {
+                        for (let j = i + 1; j < arrayAnimals.length; j++) {
+                            for (let k = 0; k < networkHierarchyIds.length; k++) {
+                                if (networkHierarchyIds[k].includes(arrayAnimals[i]['a']) && networkHierarchyIds[k].includes(arrayAnimals[j]['a'])) {
+                                    network.push({
+                                        'node1': arrayAnimals[i]['a'],
+                                        'node2': arrayAnimals[j]['a'],
+                                        'start': arrayAnimals[i]['p'],
+                                        'end': arrayAnimals[j]['p'],
+                                        'val': tmp[tmp_index]
+                                    });
+                                }
+                            }
+                            tmp_index = tmp_index + 1;
+                        }
                     }
                 }
+
                 network.forEach(function(d) {
                     $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
                     $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
@@ -334,11 +371,11 @@ export function draw() {
                 }
 
                 network = network.filter(function(d) {
-                    return d['val'] >= networkLimit;
+                    return d['val'] <= networkLimit;
                 });
                 // DATA JOIN
                 networkVis = tank.select('#networkGroup')
-                    .selectAll('line.networkEdges')
+                    .selectAll('line.network-edges')
                     .data(network);
                 // UPDATE
                 networkVis
@@ -358,13 +395,13 @@ export function draw() {
                         return networkColorScale(d['val']);
                     })
                     .attr('stroke-opacity', function(d) {
-                        return d['val'];
+                        return 1 - d['val'];
                     });
                 //ENTER
                 networkVis
                     .enter()
                     .append('line')
-                    .attr('class', 'networkEdges')
+                    .attr('class', 'network-edges')
                     .attr('x1', function(d) {
                         return d['start'][0];
                     })
@@ -385,7 +422,7 @@ export function draw() {
                     });
 
             } else {
-                networkVis = tank.selectAll('line.networkEdges')
+                networkVis = tank.selectAll('line.network-edges')
                     .data([]);
             }
             // EXIT - network
@@ -397,8 +434,8 @@ export function draw() {
             var triangulation;
             if ($('#draw-triangulation')
                 .is(':checked')) {
-                triangulation = tank.select('#delaunayTriangulationGroup')
-                    .selectAll('path.delaunayTriangulation')
+                triangulation = tank.select('#delaunay-triangulation-group')
+                    .selectAll('path.delaunay-triangulation')
                     .data([swarmData[indexTime]['triangulation']]);
 
                 // UPDATE - triangulation
@@ -409,12 +446,12 @@ export function draw() {
                 //ENTER - triangulation
                 triangulation.enter()
                     .append('path')
-                    .attr('class', 'delaunayTriangulation')
+                    .attr('class', 'delaunay-triangulation')
                     .attr('d', function(d) {
                         return d;
                     });
             } else {
-                triangulation = tank.selectAll('path.delaunayTriangulation')
+                triangulation = tank.selectAll('path.delaunay-triangulation')
                     .data([]);
             }
             // EXIT - triangulation
@@ -562,8 +599,8 @@ export function draw() {
             if ($('#draw-convex-hull')
                 .is(':checked')) {
                 // DATA JOIN - paths
-                var hullPath = tank.selectAll('path.hullPath')
-                    .data([swarmData[indexTime]['hull']]);
+                var hullPath = tank.selectAll('path.hull-path')
+                    .data([swarmData[indexTime]['convex_hull']]);
 
                 // UPDATE - hull path
                 hullPath
@@ -574,14 +611,14 @@ export function draw() {
                 // ENTER - hull paths
                 hullPath.enter()
                     .append('path')
-                    .attr('class', 'hullPath')
+                    .attr('class', 'hull-path')
                     .attr('d', function(d) {
                         return d;
                     });
 
             } else {
                 // draw no hull
-                hullPath = tank.select('path.hullPath')
+                hullPath = tank.select('path.hull-path')
                     .data([]);
             }
             // EXIT - hull paths
@@ -631,11 +668,19 @@ export function draw() {
                     .is(':disabled')) {
                     $('#remove-active-selected-button')
                         .prop('disabled', false);
+                    $('#visual-parameter-button')
+                        .prop('disabled', false);
+                }
+                // if tracking is on
+                if (trackingBoolean) {
+                    addTrackedData(arrayAnimals[0]['t'], activeAnimals);
                 }
             } else {
                 if (!$('#remove-active-selected-button')
                     .is(':disabled')) {
                     $('#remove-active-selected-button')
+                        .prop('disabled', true);
+                    $('#visual-parameter-button')
                         .prop('disabled', true);
                 }
                 // normal opacity
@@ -695,6 +740,7 @@ export function draw() {
                 d3.selectAll('#animal-' + medoidAnimal)
                     .classed('medoid', true);
             }
+
             //next frame
             indexTime++;
 
