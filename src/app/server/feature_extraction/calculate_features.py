@@ -1,5 +1,6 @@
 import csv
 import os
+import sys
 from db import create_session
 
 from model.movement_data_model import Movement_data
@@ -137,29 +138,34 @@ def calculate_percentiles(id):
 
     dataset = session.query(Dataset).filter_by(id=id)
 
-    percentiles = ['speed', 'acceleration', 'distance_centroid']
+    # get the one movement data record to check if the fields exists, from which the percentiles are calculated
+    # needed because there are optional fields
+    movement_data = session.query(Movement_data).filter_by(dataset_id=id).first().get_percentile_fields()
+
+    percentiles = ['speed', 'acceleration', 'distance_centroid', 'midline_offset']
     try:
         # calculate the percentiles
         for elem in percentiles:
-            query = '''INSERT INTO percentile (dataset_id, feature, min, percentile_1, percentile_2, percentile_3,
-            percentile_4, percentile_5, percentile_6, percentile_7, percentile_8, percentile_9, max)
-            SELECT 	:id,
-                    :feature,
-                    percentile_disc(.0) WITHIN GROUP (ORDER BY ''' + elem + ''') AS min,
-                    percentile_disc(.1) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_1,
-                    percentile_disc(.2) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_2,
-                    percentile_disc(.3) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_3,
-                    percentile_disc(.4) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_4,
-                    percentile_disc(.5) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_5,
-                    percentile_disc(.6) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_6,
-                    percentile_disc(.7) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_7,
-                    percentile_disc(.8) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_8,
-                    percentile_disc(.9) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_9,
-                    percentile_disc(1) WITHIN GROUP (ORDER BY ''' + elem + ''')  AS max
-                FROM movement_data
-                WHERE dataset_id = :id;
-            '''
-            session.execute(query, {'id': id, 'feature': elem})
+            if movement_data[elem]:
+                query = '''INSERT INTO percentile (dataset_id, feature, min, percentile_1, percentile_2, percentile_3,
+                percentile_4, percentile_5, percentile_6, percentile_7, percentile_8, percentile_9, max)
+                SELECT 	:id,
+                        :feature,
+                        percentile_disc(.0) WITHIN GROUP (ORDER BY ''' + elem + ''') AS min,
+                        percentile_disc(.1) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_1,
+                        percentile_disc(.2) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_2,
+                        percentile_disc(.3) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_3,
+                        percentile_disc(.4) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_4,
+                        percentile_disc(.5) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_5,
+                        percentile_disc(.6) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_6,
+                        percentile_disc(.7) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_7,
+                        percentile_disc(.8) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_8,
+                        percentile_disc(.9) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_9,
+                        percentile_disc(1) WITHIN GROUP (ORDER BY ''' + elem + ''')  AS max
+                    FROM movement_data
+                    WHERE dataset_id = :id;
+                '''
+                session.execute(query, {'id': id, 'feature': elem})
     except Exception as e:
         # Something went wrong when calculating the percentiles
         session.rollback()

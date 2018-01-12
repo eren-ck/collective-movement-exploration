@@ -365,15 +365,17 @@ export function lineChart() {
 /**
  * Line chart details click listener
  */
-$('.draw-details').click(function() {
-    if (!$(this).hasClass('active')) {
-        disableLineChart();
-        addTrendChart(this);
-    } else {
-        removeTrendChart();
-        enableLineChart();
-    }
-});
+export function initTrendChartListener() {
+    $('.draw-details').click(function() {
+        if (!$(this).hasClass('active')) {
+            disableLineChart();
+            addTrendChart(this);
+        } else {
+            removeTrendChart();
+            enableLineChart();
+        }
+    });
+}
 
 /**
  * Line chart details click listener
@@ -413,8 +415,10 @@ function addTrendChart(elem) {
         feature = 'speed';
     } else if (elem['id'].toLowerCase().includes('acceleration')) {
         feature = 'acceleration';
-    } else if (elem['id'].toLowerCase().includes('distance-centroid')) {
+    } else if (elem['id'].toLowerCase().includes('distance_centroid')) {
         feature = 'distance_centroid';
+    } else if (elem['id'].toLowerCase().includes('midline_offset')) {
+        feature = 'midline_offset';
     } else {
         return;
     }

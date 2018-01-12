@@ -10,6 +10,9 @@ import {
     setPlayBoolean
 } from './listener.js';
 
+import {
+    initTrendChartListener
+} from './line_chart.js';
 /**
  * Disable the play button --> Loading symbol
  */
@@ -79,4 +82,29 @@ export function percentilesLineChart(arr) {
         }
     }
     return result;
+}
+
+/**
+ * Add the absolute feature checkboxes in the feature panel
+ *
+ */
+export function addAbsoluteFeatureButtons(dataSetPercentile) {
+    // iterate over the object
+    for (var key in dataSetPercentile) {
+        if (dataSetPercentile.hasOwnProperty(key)) {
+            // generate text for the displayed button
+            let capitalized_feature_string = key.split('_').join(' ');
+            capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
+            // add the button
+            $('#absolute-feature-checkboxes').after('<div class="feature-check-box-default"> <input type="checkbox" name="checkbox" id="draw-' + key +
+                '"/><label for="draw-' + key + '">' + capitalized_feature_string +
+                '<button type="button" id="draw-' + key +
+                '-details" class="btn btn-default pull-right hidden draw-details" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+                '<span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button> </label> </div>');
+
+        }
+    }
+    // init the listerners
+    initTrendChartListener();
+
 }

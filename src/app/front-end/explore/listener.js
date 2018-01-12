@@ -370,7 +370,8 @@ function af_listeners() {
             $('.draw-details').addClass('hidden');
             $('#draw-speed-details').removeClass('hidden');
             $('#draw-acceleration').prop('checked', false);
-            $('#draw-distance-centroid').prop('checked', false);
+            $('#draw-distance_centroid').prop('checked', false);
+            $('#draw-midline_offset').prop('checked', false);
             SPV.setActiveScale('speed');
         } else {
             $('#draw-speed-details').addClass('hidden');
@@ -403,7 +404,8 @@ function af_listeners() {
             $('.draw-details').addClass('hidden');
             $('#draw-acceleration-details').removeClass('hidden');
             $('#draw-speed').prop('checked', false);
-            $('#draw-distance-centroid').prop('checked', false);
+            $('#draw-distance_centroid').prop('checked', false);
+            $('#draw-midline_offset').prop('checked', false);
             SPV.setActiveScale('acceleration');
         } else {
             $('#draw-acceleration-details').addClass('hidden');
@@ -425,8 +427,8 @@ function af_listeners() {
     /**
      * Draw distance to centroid button
      */
-    $('#draw-distance-centroid').click(function() {
-        if ($('#draw-distance-centroid').is(':checked')) {
+    $('#draw-distance_centroid').click(function() {
+        if ($('#draw-distance_centroid').is(':checked')) {
             // load absolute feature distance_centroid data once
             if (!('distance_centroid' in dataset[0])) {
                 disablePlayButton();
@@ -434,12 +436,47 @@ function af_listeners() {
                 getDatasetFeature('distance_centroid');
             }
             $('.draw-details').addClass('hidden');
-            $('#draw-distance-centroid-details').removeClass('hidden');
+            $('#draw-distance_centroid-details').removeClass('hidden');
             $('#draw-speed').prop('checked', false);
             $('#draw-acceleration').prop('checked', false);
+            $('#draw-midline_offset').prop('checked', false);
             SPV.setActiveScale('distance_centroid');
         } else {
-            $('#draw-distance-centroid-details').addClass('hidden');
+            $('#draw-distance_centroid-details').addClass('hidden');
+            SPV.setActiveScale('black');
+        }
+        $('.draw-details.active').click();
+        //change color legend
+        d3.selectAll('.colorLegend *').remove();
+        changeLegend();
+
+        if (!$('#play-button').hasClass('active')) {
+            //go back one second and draw the next frame
+            //this applys the changes
+            SPV.decIndexTime();
+            SPV.draw();
+        }
+    });
+
+    /**
+     * Draw midline offset
+     */
+    $('#draw-midline_offset').click(function() {
+        if ($('#draw-midline_offset').is(':checked')) {
+            // load absolute feature draw-midline_offset data once
+            if (!('draw-midline_offset' in dataset[0])) {
+                disablePlayButton();
+                // ajax query to get the absolute feature midline_offset
+                getDatasetFeature('midline_offset');
+            }
+            $('.draw-details').addClass('hidden');
+            $('#draw-midline_offset-details').removeClass('hidden');
+            $('#draw-speed').prop('checked', false);
+            $('#draw-acceleration').prop('checked', false);
+            $('#draw-distance_centroid').prop('checked', false);
+            SPV.setActiveScale('midline_offset');
+        } else {
+            $('#draw-midline_offset-details').addClass('hidden');
             SPV.setActiveScale('black');
         }
         $('.draw-details.active').click();

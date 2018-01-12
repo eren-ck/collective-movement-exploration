@@ -146,7 +146,7 @@ def api_get_feature(id=None, feature=None):
         return jsonify({})
 
     # return absolute features
-    if feature in ['speed', 'acceleration', 'distance_centroid', 'metric_distance', 'direction']:
+    if feature in ['speed', 'acceleration', 'distance_centroid', 'metric_distance', 'direction', 'midline_offset']:
         stmt = '''SELECT array(
                            SELECT round(''' + feature + ''',2)::text
                            FROM movement_data
@@ -323,4 +323,4 @@ def api_get_dataset_suggested_parameters(dataset_id=None, tracked_data=None):
             dataset_id: id of the specific dataset
             tracked_data: JSON String of the tracked data
     """
-    return jsonify(data=calculate_parameters(dataset_id,tracked_data))
+    return jsonify(data=calculate_parameters(dataset_id, tracked_data))

@@ -20,7 +20,8 @@ import {
 
 import {
     enablePlayButton,
-    disablePlayButton
+    disablePlayButton,
+    addAbsoluteFeatureButtons
 } from './helpers.js';
 
 import {
@@ -88,6 +89,7 @@ export function getPercentile() {
                 dataSetPercentile[data[i]['feature']] = [data[i]['min'], data[i]['p1'], data[i]['p2'], data[i]['p3'], data[i]['p5'], data[i]['p7'], data[i]['p8'], data[i]['p9'], data[i]['max']];
             }
             setDataSetPercentile(dataSetPercentile);
+            addAbsoluteFeatureButtons(dataSetPercentile);
         }
     });
 

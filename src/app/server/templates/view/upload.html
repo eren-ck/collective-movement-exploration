@@ -102,6 +102,9 @@
                                         <div class="alert alert-warning" id="movement-primary-key" role="alert">
                                             No duplicate entries
                                         </div>
+                                        <div class="alert alert-warning" id="movement-optional-fields" role="alert">
+                                            Optional Fields
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -286,16 +289,42 @@
                         </strong>
                         The y value in the local coordinate system.
                     </li>
+                    <li>
+                        <i>Optional</i>
+                        <strong>
+                            direction:
+                        </strong>
+                        Moving direction of the animal in degree between [-180°, 180°]
+                    </li>
+                    <li>
+                        <i>Optional</i>
+                        <strong>
+                            midline_offset:
+                        </strong>
+                        Midline offset of the animal
+                    </li>
                 </ul>
                 <br><br>
 
-                An example 'test-movement.csv' file could look like this:
+                Two example files could look like this:
                 <hr>
                 <samp>
                     Animal_id,Time,X,Y <br>
                     0,0,102.5,22 <br>
                     0,1,102.9,23.5 <br>
                     0,2,103,24.124 <br>
+                    ... <br>
+
+                </samp>
+
+                <hr>
+                <samp>
+                    Animal_id,Time,X,y,direction,midline_offset<br>
+                    0,0,102.5,22,120,0.541<br>
+                    0,1,102,23,118,0.58<br>
+                    0,2,102,24,116,0.61<br>
+                    0,3,103,25,114,0.71<br>
+                    0,4,104,26,112,0.72<br>
                     ... <br>
 
                 </samp>
