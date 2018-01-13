@@ -346,7 +346,7 @@ function drawHierarchy() {
         for (let i = 0; i < hierarchyIds.length; i++) {
             hierarchyVertices[i] = unionPolygons(hierarchyVertices[i]);
         }
-        // console.log(hierarchyVertices);
+
         // transform and calculate the intersection polygons of the n hierarchies
         if (setOperation === 'intersection') {
             // temp solution of two intersections
@@ -364,31 +364,63 @@ function drawHierarchy() {
                 // convert it again
                 tmpIntersection = tmpIntersection['regions'];
             }
+
             // result
             hierarchyVertices = [tmpIntersection];
         }
         // transform and calculate the symmetric difference polygons of the n hierarchies
         else if (setOperation === 'sym-difference') {
-            // temp solution of the symmetric difference
-            let tmpDifference = hierarchyVertices[0];
-            // iterate over the hierarchies
+            // xor = Union of all hierarchies - intersection of all hierarchies
+            // temp solution of two intersections
+            let tmpIntersection = hierarchyVertices[0];
+            // iterate over the hierarchies and intersect all of them
             for (let i = 1; i < hierarchyVertices.length; i++) {
-                // symmetric difference
-                tmpDifference = PolyBool.xor({
-                    regions: tmpDifference, // list of regions
+                // intersection
+                tmpIntersection = PolyBool.intersect({
+                    regions: tmpIntersection, // list of regions
                     inverted: false // is this polygon inverted?
                 }, {
                     regions: hierarchyVertices[i],
                     inverted: false
                 });
                 // convert it again
-                tmpDifference = tmpDifference['regions'];
+                tmpIntersection = tmpIntersection['regions'];
             }
+            // intersection result
+            let intersectionHierarchyPolygons = tmpIntersection;
+
+            // union
+            let tmpUnion = hierarchyVertices[0];
+            // iterate over the hierarchies and intersect all of them
+            for (let i = 1; i < hierarchyVertices.length; i++) {
+                // intersection
+                tmpUnion = PolyBool.union({
+                    regions: tmpUnion, // list of regions
+                    inverted: false // is this polygon inverted?
+                }, {
+                    regions: hierarchyVertices[i],
+                    inverted: false
+                });
+                // convert it again
+                tmpUnion = tmpUnion['regions'];
+            }
+            let unionHierarchyPolygons = tmpUnion;
+
+
+            // symmetric difference
+            let tmpDifference = PolyBool.xor({
+                regions: unionHierarchyPolygons, // list of regions
+                inverted: false // is this polygon inverted?
+            }, {
+                regions: intersectionHierarchyPolygons,
+                inverted: false
+            });
+            // convert it again
+            tmpDifference = tmpDifference['regions'];
             // result
             hierarchyVertices = [tmpDifference];
         }
     }
-
 
     // DATA Join
     let hierarchies = spatialView
@@ -470,6 +502,7 @@ function drawHierarchy() {
  * @param {array} polygons - array of array of points
  */
 function unionPolygons(polygons) {
+    // console.log(polygons);
     for (let i = 0; i < polygons.length; i++) {
         polygons[i] = {
             regions: [polygons[i]],
