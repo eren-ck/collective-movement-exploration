@@ -35,9 +35,7 @@ let setOperation = 'union';
 // TODO add more colors
 let colors = ['#7fc97f', '#e7298a', '#ff9900', '#386cb0'];
 
-// for the concave hull
-// let concaveHull = d3.concaveHull().distance(10000);
-// which level of the hierarchy is visualized
+let id; // needed for the collapse function
 
 /**
  * Initialize the dendrogram
@@ -80,7 +78,7 @@ export function initDendrogram() {
 
     // d3 tree
     treemap = d3.tree() //d3.cluster()
-        .size([(height - margin), (width - margin)]);
+        .size([(height - 10 * margin), (width - 10 * margin)]);
 
     // set the spatial view - needed to add the clustering to the spatial view window
     spatialView = d3.select('.tank');
@@ -150,8 +148,7 @@ export function initDendrogram() {
  */
 export function drawDendrogram() {
     // get the active dendrogram
-    let id = $('.show-dendrogram.btn-primary').attr('data');
-
+    id = $('.show-dendrogram.btn-primary').attr('data');
     // if data is avaiable draw hierarchy clusters and a button is active selcted
     if (!$.isEmptyObject(networkHierarchy) && id) {
 
@@ -160,6 +157,10 @@ export function drawDendrogram() {
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
         });
+        // skip the root node
+        nodes = nodes.children[0];
+        // collapse the tree
+        nodes.children.forEach(collapse);
 
         // maps the node data to the tree layout
         nodes = treemap(nodes);
@@ -214,9 +215,9 @@ export function drawDendrogram() {
             nodeEnter.append('circle')
                 .attr('r', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 40;
+                        return 40 + d.data.name.length;
                     } else {
-                        return 20;
+                        return 20 + d.data.name.length;
                     }
                 })
                 .attr('class', function(d) {
@@ -274,9 +275,9 @@ export function drawDendrogram() {
                 .select('circle')
                 .attr('r', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 40;
+                        return 40 + d.data.name.length;
                     } else {
-                        return 20;
+                        return 20 + d.data.name.length;
                     }
                 })
                 .attr('class', function(d) {
@@ -295,6 +296,18 @@ export function drawDendrogram() {
     if (!$.isEmptyObject(networkHierarchy)) {
         // draw the hierarchy in spatial view
         drawHierarchy();
+    }
+}
+
+/**
+ * Collapse function - only show the active level and one sub level
+ */
+function collapse(d) {
+    if (d.children && d.depth <= hierarchyLevels['h' + id]) {
+        d._children = d.children;
+        d._children.forEach(collapse);
+    } else {
+        d.children = null;
     }
 }
 
@@ -547,16 +560,10 @@ function getHierarchyVertices(hierarchies) {
             }
         }
         // Andrew montone chain algorithm reutrns for points fewer than 3 null
-        // console.log(vertices);
         if (vertices.length >= 3) {
-            // result.push(d3.polygonHull(vertices));
             result.push(d3.polygonHull(vertices));
-            // concaveHull(vertices).forEach(function(hull) {
-            //     result.push(hull);
-            // });
         }
     });
-    // console.log(result);
     return result;
 }
 
