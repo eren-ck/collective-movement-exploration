@@ -20,7 +20,6 @@ import {
 
 
 export let zoomFunction;
-export let lineChartRatio = 0;
 
 let trendChartsZoom = {};
 let trendChartsElem = ['lower-outer-area', 'lower-inner-area', 'median-line', 'upper-inner-area', 'upper-outer-area'];
@@ -35,11 +34,7 @@ let y;
  */
 export function lineChart() {
 
-    zoomFunction = d3.scaleLinear()
-        .domain([0, swarmData.length])
-        .range([0, lineChartWidth]);
-
-    lineChartRatio = Math.ceil(swarmData.length / lineChartWidth);
+    ratio = Math.ceil(swarmData.length / lineChartWidth);
 
     // Swarm features line chart
     let lineChartHeight = 500; // the line chart height
@@ -73,7 +68,6 @@ export function lineChart() {
     let lineChartData = [];
     // aggregate and average the swarm data to lineChartWidth points in the line chart
     if (swarmData.length > lineChartWidth) {
-        ratio = Math.ceil(swarmData.length / lineChartWidth);
         // tmp array for the aggregated and averaged features
         let tmp = new Array(swarm_features.length).fill(0);
 
@@ -101,6 +95,9 @@ export function lineChart() {
         lineChartData = swarmData;
     }
 
+    zoomFunction = d3.scaleLinear()
+        .domain([0, lineChartData.length])
+        .range([0, lineChartWidth]);
 
 
     // x axis scale - minus marginLineChart  needed
@@ -215,7 +212,6 @@ export function lineChart() {
         .attr('x2', 0)
         .attr('y2', lineChartHeight);
 
-    // **
     // colors for the lines
     let line_colors = d3.scaleOrdinal(d3.schemeCategory10);
     let lines = {};
@@ -447,7 +443,6 @@ function addTrendChart(elem) {
         //aggregate and average the trendChartData to lineChartWidth data points
         if (trendChartData.length > lineChartWidth) {
             let tmpTrendChartData = [];
-            ratio = Math.ceil(trendChartData.length / lineChartWidth);
 
             // [perc05,perc25,perc50,perc75,perc95]
             let tmp = [0, 0, 0, 0, 0];
@@ -546,8 +541,8 @@ function addTrendChart(elem) {
  * Update the line chart fields and the line chart time line
  */
 export function updateLineChart() {
-    if (d3.select('#lineChartTimeLine') && swarmData[Math.ceil(indexTime / lineChartRatio)]) {
-        let tmp = Math.ceil(indexTime / lineChartRatio);
+    if (d3.select('#lineChartTimeLine') && swarmData[Math.ceil(indexTime / ratio)]) {
+        let tmp = Math.ceil(indexTime / ratio);
         //update the line chart legend text values per second
         if (indexTime % 25 === 0) {
             // TODO change this to a more modular way
