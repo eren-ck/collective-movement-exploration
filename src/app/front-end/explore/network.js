@@ -1,14 +1,21 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $, d3 */
+import {
+    hierarchyColors,
+    colors,
+    changeHierarchyLegend
+} from './hierarchy.js';
+
+
 
 export let networkAuto = false; // if true the network edge limit is automatically suggested
 export let networkLimit = 0.5;
 export let showNetworkHierarchy;
+export let networkColor = {};
 // fixed color scale for the network
 
 /**
  * Static color scale for the network coloring
- * TODO change this sometime
  */
 export let networkColorScale = d3.scaleThreshold()
     .domain(
@@ -68,4 +75,52 @@ export function setNetworLimit(value) {
  */
 export function setNetworkHierarchy(value) {
     showNetworkHierarchy = value;
+}
+
+/**
+ * Set network color scale range
+
+ * @param {Number} id - id of the network
+ */
+export function setnetworkColor(network_id) {
+    // if id = -1 set the color to nothing
+    if (network_id >= 0) {
+        // reset color of the edges
+        networkColor = {};
+
+        // hierarchy colors which are already in usage
+        let tmpColor = [];
+
+        // get the color
+        // search in the hieraryColors if a color was defined for the network id
+        for (var key in hierarchyColors) {
+            if (hierarchyColors.hasOwnProperty(key)) {
+                if (key === ('h' + network_id)) {
+                    networkColor['h' + network_id] = hierarchyColors[key];
+                } else {
+                    tmpColor.push(hierarchyColors[key]);
+                }
+            }
+        }
+        // if the the networkColor is still empty choose a color
+        // check if the color is already in usage, if so skip
+        if (Object.keys(networkColor).length === 0) {
+            for (let i = 0; i < colors.length; i++) {
+                if (tmpColor.indexOf(colors[i]) === -1) {
+                    networkColor['h' + network_id] = colors[i];
+                    break;
+                }
+            }
+        }
+        // change the color scale
+        let tmp = networkColor['h' + network_id];
+        networkColorScale
+            .range([d3.color(tmp).darker([5]), d3.color(tmp).darker([4]), d3.color(tmp).darker([3]), d3.color(tmp).darker([2]), d3.color(tmp).darker([1]),
+                d3.color(tmp), d3.color(tmp).brighter([1]), d3.color(tmp).brighter([2]), d3.color(tmp).brighter([3]), d3.color(tmp).brighter([])
+            ]);
+
+    } else {
+        networkColor = {};
+    }
+    changeHierarchyLegend();
 }

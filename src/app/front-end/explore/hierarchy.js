@@ -15,7 +15,8 @@ import {
 } from './spatial_view/spatial_view';
 
 import {
-    showNetworkHierarchy
+    showNetworkHierarchy,
+    networkColor
 } from './network.js';
 
 let zoomGroup; // zoom group for the specific dendrogram
@@ -26,14 +27,15 @@ let svgLegend;
 
 export const maxNumberHierarchies = 4;
 export let networkHierarchyIds = [];
+export let hierarchyColors = {};
+// TODO add more colors
+export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
+
 
 let hierarchyLevels = {};
-let hierarchyColors = {};
 
 let setOperation = 'union';
 
-// TODO add more colors
-let colors = ['#7fc97f', '#e7298a', '#ff9900', '#386cb0'];
 
 let id; // needed for the collapse function
 
@@ -624,9 +626,18 @@ export function removeHierarchyLevel(hierarchy) {
  * @param {number} hierarchy - Hierarchy can be from [0-3]
  */
 export function setHierarchyColor(hierarchy) {
+    // check if the hierarchy is already shown as network
+    // take the same color
+    for (let key in networkColor) {
+        if (key === ('h' + hierarchy)) {
+            hierarchyColors['h' + hierarchy] = networkColor[key];
+            return;
+        }
+    }
+    // hierarchy is not visualized already as a network
     for (let i = 0; i < colors.length; i++) {
         let tmp_boolean = true;
-        for (var key in hierarchyColors) {
+        for (let key in hierarchyColors) {
             if (hierarchyColors.hasOwnProperty(key)) {
                 if (hierarchyColors[key] === colors[i]) {
                     tmp_boolean = false;
@@ -634,7 +645,20 @@ export function setHierarchyColor(hierarchy) {
             }
         }
         if (tmp_boolean) {
-            hierarchyColors['h' + hierarchy] = colors[i];
+            // check if a network is depicted
+            // if so skip the color which is already choosen for the network
+            if (Object.keys(networkColor).length !== 0) {
+                for (let key in networkColor) {
+                    if (networkColor[key] !== colors[i]) {
+                        hierarchyColors['h' + hierarchy] = colors[i];
+                        return;
+                    }
+                }
+            } else {
+                hierarchyColors['h' + hierarchy] = colors[i];
+                return;
+            }
+
         }
     }
 }
@@ -699,7 +723,7 @@ export function changeHierarchyLegend() {
     let legendSwatchHeight = 20;
 
     // Show or hide the svg element
-    if (Object.keys(hierarchyColors).length !== 0) {
+    if (Object.keys(hierarchyColors).length !== 0 || Object.keys(networkColor).length !== 0) {
         $('#hierarchy-legend-div').show();
     } else {
         $('#hierarchy-legend-div').hide();
@@ -715,7 +739,15 @@ export function changeHierarchyLegend() {
             legendTextData.push($(obj).attr('name'));
         }
     });
-
+    // add the network color
+    if (Object.keys(networkColor).length !== 0) {
+        for (let key in networkColor) {
+            if (legendData.indexOf(networkColor[key]) === -1) {
+                legendData.push(networkColor[key]);
+                legendTextData.push('Network');
+            }
+        }
+    }
     // DATA JOIN
     legend = svgLegend.selectAll('rect.legend')
         .data(legendData);
