@@ -27,7 +27,8 @@ import {
     setNetworkAuto,
     setNetworLimit,
     setNetworkHierarchy,
-    setnetworkColor
+    setnetworkColor,
+    setNetworkID
 } from './network.js';
 
 import {
@@ -520,8 +521,8 @@ function n_listeners() {
      */
     $('#network-remove').click(function() {
         setNetworkData({});
-
-        // remove the network color 
+        setNetworkID(-1);
+        // remove the network color
         setnetworkColor(-1);
         $('#active-network-name').text('');
     });

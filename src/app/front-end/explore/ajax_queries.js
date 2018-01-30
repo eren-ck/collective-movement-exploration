@@ -15,7 +15,8 @@ import {
 } from './explore.js';
 
 import {
-    addNetworkButtons
+    addNetworkButtons,
+    setNetworkID
 } from './network.js';
 
 import {
@@ -223,7 +224,8 @@ export function getNetworkData(network_id) {
             enablePlayButton();
         }
     });
-
+    // needed for standard Deviation in dendrogram
+    setNetworkID(network_id);
 }
 
 /**

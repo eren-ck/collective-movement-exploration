@@ -12,16 +12,16 @@ export let networkAuto = false; // if true the network edge limit is automatical
 export let networkLimit = 0.5;
 export let showNetworkHierarchy;
 export let networkColor = {};
+export let networkID;
 // fixed color scale for the network
 
 /**
- * Static color scale for the network coloring
+ * color scale for network - range is defined dynamic based on the hierarhcy color
  */
 export let networkColorScale = d3.scaleThreshold()
     .domain(
         [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
-    )
-    .range(['#000000', '#1d1d1d', '#353535', '#4e4e4e', '#696969', '#858585', '#a3a3a3', '#c0c0c0', '#dfdfdf', '#ffffff']);
+    );
 
 
 /**
@@ -75,6 +75,14 @@ export function setNetworLimit(value) {
  */
 export function setNetworkHierarchy(value) {
     showNetworkHierarchy = value;
+}
+
+/**
+ * Set the network network id - needed for hierarchy standard deviation coloring
+ * @param {Number} value - e.g. 0-n
+ */
+export function setNetworkID(value) {
+    networkID = value;
 }
 
 /**

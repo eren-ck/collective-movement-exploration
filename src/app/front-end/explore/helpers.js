@@ -108,3 +108,35 @@ export function addAbsoluteFeatureButtons(dataSetPercentile) {
     initTrendChartListener();
 
 }
+
+// generate hash codes from strings
+// source: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+String.prototype.hashCode = function() {
+    var hash = 0,
+        i, chr;
+    if (this.length === 0) return hash;
+    for (i = 0; i < this.length; i++) {
+        chr = this.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
+
+/**
+ * Calculate the standardDeviation of an array of numbers
+ * @param {Array} arr - array of numbers
+ */
+export function standardDeviation(arr) {
+    if (arr instanceof Array) {
+        let mean = arr.reduce(function(pv, cv) {
+            return pv + cv;
+        }, 0) / arr.length;
+        let tmp = arr.map(function(num) {
+            return Math.pow(num - mean, 2);
+        });
+        return Math.sqrt(tmp.reduce(function(pv, cv) {
+            return pv + cv;
+        }, 0) / tmp.length);
+    }
+}

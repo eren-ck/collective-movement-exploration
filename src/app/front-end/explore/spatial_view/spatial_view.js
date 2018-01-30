@@ -12,7 +12,8 @@ import {
     networkAuto,
     setNetworLimit,
     networkLimit,
-    showNetworkHierarchy
+    showNetworkHierarchy,
+    networkID
 } from '../network.js';
 
 import {
@@ -53,7 +54,9 @@ import {
 import {
     initDendrogram,
     drawDendrogram,
-    networkHierarchyIds
+    networkHierarchyIds,
+    sethierarchyGroupStdev,
+    resethierarchyGroupStdev
 } from '../hierarchy.js';
 
 import {
@@ -320,6 +323,9 @@ export function draw() {
             if (indexTime in networkData) {
                 let network = [];
                 let tmp = networkData[indexTime];
+                // reset the group standard deviation for the hierarhcy
+                // needed for coloring of the dendrogram nodes (variacne )
+                resethierarchyGroupStdev();
 
                 let tmp_index = 0;
                 // display the whole network
@@ -338,10 +344,13 @@ export function draw() {
                     }
                 } // display the network only in the clustering
                 else {
+                    let show_dendrogram = $('.show-dendrogram.btn-primary').length;
+                    let id = $('.show-dendrogram.btn-primary').attr('data');
                     for (let i = 0; i < arrayAnimals.length; i++) {
                         for (let j = i + 1; j < arrayAnimals.length; j++) {
                             for (let k = 0; k < networkHierarchyIds.length; k++) {
                                 if (networkHierarchyIds[k].includes(arrayAnimals[i]['a']) && networkHierarchyIds[k].includes(arrayAnimals[j]['a'])) {
+                                    // console.log(networkHierarchyIds[k]);
                                     network.push({
                                         'node1': arrayAnimals[i]['a'],
                                         'node2': arrayAnimals[j]['a'],
@@ -349,6 +358,11 @@ export function draw() {
                                         'end': arrayAnimals[j]['p'],
                                         'val': tmp[tmp_index]
                                     });
+                                    // if true depict the standard deviation via color in the dendrogram
+                                    // TODO make this faster
+                                    if (show_dendrogram && id === networkID) {
+                                        sethierarchyGroupStdev('h' + networkHierarchyIds[k].toString().hashCode(), tmp[tmp_index]);
+                                    }
                                 }
                             }
                             tmp_index = tmp_index + 1;

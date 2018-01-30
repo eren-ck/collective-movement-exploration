@@ -19,6 +19,10 @@ import {
     networkColor
 } from './network.js';
 
+import {
+    standardDeviation
+} from './helpers.js';
+
 let zoomGroup; // zoom group for the specific dendrogram
 let treemap;
 let tooltipDiv;
@@ -28,11 +32,19 @@ let svgLegend;
 export const maxNumberHierarchies = 4;
 export let networkHierarchyIds = [];
 export let hierarchyColors = {};
+export let hierarchyGroupStdev = {};
 // TODO add more colors
 export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
 
 
 let hierarchyLevels = {};
+
+//Static color scale for the dendrogram variacne coloring
+let standardDeviationColorScale = d3.scaleThreshold()
+    .domain(
+        [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
+    )
+    .range(['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b']);
 
 let setOperation = 'union';
 
@@ -153,7 +165,6 @@ export function drawDendrogram() {
     id = $('.show-dendrogram.btn-primary').attr('data');
     // if data is avaiable draw hierarchy clusters and a button is active selcted
     if (!$.isEmptyObject(networkHierarchy) && id) {
-
         // get the data and transform it
         let treeData = networkHierarchy['h' + id][indexTime];
         let nodes = d3.hierarchy(treeData, function(d) {
@@ -227,6 +238,9 @@ export function drawDendrogram() {
                         return 'active-level';
                     }
                 })
+                .attr('id', function(d) {
+                    return 'h' + d['data']['name'].toString().hashCode();
+                })
                 // TODO find a nice function for the on click method
                 .on('click', click)
                 .on('mouseover', function(d) {
@@ -284,15 +298,59 @@ export function drawDendrogram() {
                 })
                 .attr('class', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
+                        // console.log('active-level');
+                        // console.log(('h' + d['data']['name'].toString().hashCode()));
                         return 'active-level';
                     } else {
                         return '';
                     }
+                })
+                .attr('id', function(d) {
+                    return 'h' + d['data']['name'].toString().hashCode();
                 });
 
             // EXIT
             node.exit()
                 .remove();
+
+            // color the dendrogram nodes using the standardDeviation in the cluster
+            if (Object.keys(hierarchyGroupStdev).length) {
+                // show the legend for the coloring
+                // console.log(hierarchyGroupStdev);
+                // TODO legend here
+                // console.log('JUMPS HERE');
+
+                // IMPORTANT - async problems
+                // TODO solve this - very slow
+                setTimeout(function() {
+                    node.select('circle')
+                        .style('fill', function(d) {
+                            // console.log(hierarchyGroupStdev);
+                            // console.log(('h' + d['data']['name'].toString().hashCode()));
+                            // console.log(('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev)
+                            // color the nodes by calculating the standardDeviation
+                            // for each cluster
+                            // only active is show in cluster is choosen
+                            if (('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev) {
+                                // console.log('hello');
+                                // console.log(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
+                                return standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
+                            } else if (d['depth'] !== hierarchyLevels['h' + id]) {
+                                return '';
+                            } else {
+                                return '#000';
+                            }
+                        });
+                }, 250);
+                // for (let key in hierarchyGroupStdev) {
+                //     if (hierarchyGroupStdev.hasOwnProperty(key)) {
+                //         console.log(key);
+                //         console.log(standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[key])));
+                //         d3.select('#' + key)
+                //             .style('fill', standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[key])));
+                //     }
+                // }
+            }
         }
     }
     if (!$.isEmptyObject(networkHierarchy)) {
@@ -807,4 +865,24 @@ export function changeHierarchyLegend() {
  */
 export function setSetOperation(value) {
     setOperation = value;
+}
+
+/**
+ * Set the hierarchy group standard deviation
+ * @param {String} key - unique hash id for the group
+ * @param {number} value - unique hash id for the group
+ */
+export function sethierarchyGroupStdev(key, value) {
+    if (key in hierarchyGroupStdev) {
+        hierarchyGroupStdev[key].push(value);
+    } else {
+        hierarchyGroupStdev[key] = [value];
+    }
+}
+
+/**
+ * Reset hierarchy group standard deviation
+ */
+export function resethierarchyGroupStdev() {
+    hierarchyGroupStdev = {};
 }
