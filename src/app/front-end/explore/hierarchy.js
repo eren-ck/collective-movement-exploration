@@ -79,7 +79,7 @@ export function initDendrogram() {
         .classed('svg-content-dendrogram', true)
         .call(zoom);
 
-    initDendrogramLegend()
+    initDendrogramLegend();
 
     // append the zoom group to the svg
     zoomGroup = svg.append('g')
@@ -246,30 +246,16 @@ export function drawDendrogram() {
                         .style('top', (d3.event.pageY + 5) + 'px')
                         .style('opacity', 1);
                     tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
-                    // highlight in the spatial view
-                    //TODO make this work again
-                    // console.log('#hp' + d['data']['name'].join(''));
-                    // spatialView.select('#hp' + d['data']['name'].join(''))
-                    // .classed('highlight-hierarchy', true);
-                    // highlight each animal in the cluster in the spatial view
-                    for (let i = 0; i < d['data']['name'].length; i++) {
-                        spatialView.select('#animal-' + d['data']['name'][i])
-                            .style('fill', '#c51b7d');
-                    }
+                    // add highlight in the spatial view
+                    // the undion of the paths makes this complicated
+                    addHighlightSpatialView(d['data']['name']);
                 })
-                .on('mouseout', function(d) {
+                .on('mouseout', function() {
                     tooltipDiv.transition()
                         .duration(500)
                         .style('opacity', 0);
                     // remove highlight in the spatial view
-                    // TODO make this work again
-                    // spatialView.select('#hp' + d['data']['name'].join(''))
-                    // .classed('highlight-hierarchy', false);
-                    // remove highlight each animal in the cluster in the spatial view
-                    for (let i = 0; i < d['data']['name'].length; i++) {
-                        spatialView.select('#animal-' + d['data']['name'][i])
-                            .style('fill', '#000');
-                    }
+                    removeHighlightSpatialView();
                 });
 
             // UPDATE -- update the groups
@@ -938,4 +924,35 @@ export function sethierarchyGroupStdev(key, value) {
  */
 export function resethierarchyGroupStdev() {
     hierarchyGroupStdev = {};
+}
+
+/**
+ * Highlight a subset of animals in the spatial view
+ * @param {array} animals - array of animal ids which have to be highlighted
+ */
+export function addHighlightSpatialView(animals) {
+    // points to calculate the convex hull of the highlight cluster
+    let vertices = [];
+    // iterate through the objects in the cluster
+    // get the points and highlight the animals
+    for (let i = 0; i < animals.length; i++) {
+        let tmpAnimal = spatialView.select('#animal-' + animals[i]);
+        let point = tmpAnimal.data()[0]['p'];
+        vertices.push([point[0], -point[1]]);
+
+        tmpAnimal.classed('animal-highlight', true);
+    }
+    // add a polygon hull in the spatial view
+    spatialView.append('path')
+        .attr('class', 'highlight-hierarchy')
+        .attr('d', ('M' + d3.polygonHull(vertices).join('L') + 'Z'));
+}
+
+/**
+ * Remove the highlight in the spatial view
+ */
+export function removeHighlightSpatialView() {
+    // remove the coloring and the hierarchy highlight hull
+    d3.selectAll('.animal').classed('animal-highlight', false);
+    d3.selectAll('.highlight-hierarchy').remove();
 }

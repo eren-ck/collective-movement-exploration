@@ -633,6 +633,10 @@ div.tooltip table td:nth-child(2) {
     opacity: 0.3;
 }
 
+.animal-highlight {
+    fill: #c51b7d !important;
+}
+
 #dendrogram-buttons-div .btn span.glyphicon {
     opacity: 0;
 }
