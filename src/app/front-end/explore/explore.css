@@ -646,6 +646,10 @@ div.tooltip table td:nth-child(2) {
     border-radius: 5px;
 }
 
+#dendrogram-legend {
+    margin-left: 20px;
+}
+
 .intersection {
     fill: url(#striped) !important;
     stroke: #67000d;

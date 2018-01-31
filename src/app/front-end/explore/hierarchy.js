@@ -28,17 +28,9 @@ let treemap;
 let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
 let svgLegend;
-
-export const maxNumberHierarchies = 4;
-export let networkHierarchyIds = [];
-export let hierarchyColors = {};
-export let hierarchyGroupStdev = {};
-// TODO add more colors
-export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
-
-
 let hierarchyLevels = {};
-
+let setOperation = 'union';
+let id; // needed for the collapse function
 //Static color scale for the dendrogram variacne coloring
 let standardDeviationColorScale = d3.scaleThreshold()
     .domain(
@@ -46,10 +38,12 @@ let standardDeviationColorScale = d3.scaleThreshold()
     )
     .range(['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b']);
 
-let setOperation = 'union';
-
-
-let id; // needed for the collapse function
+export const maxNumberHierarchies = 4;
+export let networkHierarchyIds = [];
+export let hierarchyColors = {};
+export let hierarchyGroupStdev = {};
+// TODO add more colors
+export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
 
 /**
  * Initialize the dendrogram
@@ -84,6 +78,8 @@ export function initDendrogram() {
         // add the class svg-content
         .classed('svg-content-dendrogram', true)
         .call(zoom);
+
+    initDendrogramLegend()
 
     // append the zoom group to the svg
     zoomGroup = svg.append('g')
@@ -319,7 +315,9 @@ export function drawDendrogram() {
                 // console.log(hierarchyGroupStdev);
                 // TODO legend here
                 // console.log('JUMPS HERE');
-
+                if ($('#dendrogram-legend').css('display') == 'none') {
+                    $('#dendrogram-legend').show();
+                }
                 // IMPORTANT - async problems
                 // TODO solve this - very slow
                 setTimeout(function() {
@@ -342,14 +340,8 @@ export function drawDendrogram() {
                             }
                         });
                 }, 250);
-                // for (let key in hierarchyGroupStdev) {
-                //     if (hierarchyGroupStdev.hasOwnProperty(key)) {
-                //         console.log(key);
-                //         console.log(standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[key])));
-                //         d3.select('#' + key)
-                //             .style('fill', standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[key])));
-                //     }
-                // }
+            } else if ($('#dendrogram-legend').css('display') !== 'none') {
+                $('#dendrogram-legend').hide();
             }
         }
     }
@@ -857,6 +849,67 @@ export function changeHierarchyLegend() {
     legendText.exit()
         .remove();
 
+}
+
+
+/**
+ * Initialize the dendrogram legend
+ */
+function initDendrogramLegend() {
+    let legendWidth = 550;
+    let legendHeight = 60;
+
+    let dendrogramLegend = d3.select('#dendrogram-panel')
+        .append('svg')
+        .attr('id', 'dendrogram-legend')
+        .attr('width', legendWidth)
+        .attr('height', legendHeight);
+
+    $('#dendrogram-legend').hide();
+
+    let legend; // the color legend
+    let legendText; // color legend text
+    // vars for the legend
+    let legendSwatchWidth = 50;
+    let legendSwatchHeight = 20;
+
+    let legendData = standardDeviationColorScale.range();
+    //TODO change this to better solution
+    let legendTextData = ['low', '', '', '', '', '', '', '', 'high'];
+
+    legend = dendrogramLegend.selectAll('rect.legend')
+        .data(legendData);
+    legendText = dendrogramLegend.selectAll('text.legend-text')
+        .data(legendTextData);
+
+    // ENTER - legend
+    legend
+        .enter()
+        .append('rect')
+        .attr('class', 'legend')
+        .attr('width', legendSwatchWidth)
+        .attr('height', legendSwatchHeight)
+        .attr('y', 0)
+        .attr('x', function(d, i) {
+            return (i * legendSwatchWidth) + 'px';
+        })
+        .style('fill', function(d) {
+            return d;
+        });
+
+    // --------------- Text  -------------------
+    // ENTER - legend text
+    legendText
+        .enter()
+        .append('text')
+        .attr('class', 'legend-text')
+        .attr('y', 2 * legendSwatchHeight)
+        .attr('x', function(d, i) {
+            return (i * legendSwatchWidth) + 'px';
+        })
+        .text(function(d) {
+            return d;
+        });
 }
 
 /**
