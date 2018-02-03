@@ -108,7 +108,6 @@ def calculate_network(dataset_id, network_id):
             for key, value in data.items():
                 tmp[key] = value;
 
-
         result_hclust = tmp;
 
         # save the results in the database
@@ -207,3 +206,99 @@ def normalize(value, min, max):
             max -- maximum
         """
     return (value - min) / (max - min)
+
+
+def calculate_basic_networks(dataset_id):
+    """ Calculate a few basic networks for a uploaded dataset
+
+        Keyword arguments:
+            dataset_id -- id of the dataset
+        """
+    # create new db session for the new spanned process
+    session = create_session()
+
+    # network  0 - euclidean distance
+    try:
+        # arguments for network
+        network0_args = {'dataset_id': dataset_id,
+                         'name': 'euclidean dist',
+                         'metric_distance': 0,
+                         'speed': 0,
+                         'acceleration': 0,
+                         'distance_centroid': 0,
+                         'direction': 0,
+                         'euclidean_distance': 1,
+                         }
+        # create and commit the network
+        network0_model = Network(0, **network0_args)
+        session.add(network0_model)
+        session.commit()
+        # calculate the network and the hierarhcy
+        calculate_network(dataset_id, 0)
+        session.commit()
+    except Exception as e:
+        # Something went wrong while calculating the network
+        session.rollback()
+        network0_model.status = 'Error - ' + str(e)[0:200]
+        network0_model.error = True
+        session.commit()
+        pass
+
+    # network  1 - speed direction
+    try:
+        # arguments for network
+        network1_args = {'dataset_id': dataset_id,
+                         'name': 'speed direction',
+                         'metric_distance': 1,
+                         'speed': 1,
+                         'acceleration': 1,
+                         'distance_centroid': 0,
+                         'direction': 1,
+                         'euclidean_distance': 0,
+                         }
+        # create and commit the network
+        network1_model = Network(1, **network1_args)
+        session.add(network1_model)
+        session.commit()
+        # calculate the network and the hierarhcy
+        calculate_network(dataset_id, 1)
+        session.commit()
+    except Exception as e:
+        # Something went wrong while calculating the network
+        session.rollback()
+        network1_model.status = 'Error - ' + str(e)[0:200]
+        network1_model.error = True
+        session.commit()
+        pass
+
+
+    # network  2 - distance - direction
+    try:
+        # arguments for network
+        network2_args = {'dataset_id': dataset_id,
+                         'name': 'distance direction',
+                         'metric_distance': 0,
+                         'speed': 0,
+                         'acceleration': 0,
+                         'distance_centroid': 1,
+                         'direction': 1,
+                         'euclidean_distance': 1,
+                         }
+        # create and commit the network
+        network2_model = Network(2, **network2_args)
+        session.add(network2_model)
+        session.commit()
+        # calculate the network and the hierarhcy
+        calculate_network(dataset_id, 2)
+        session.commit()
+    except Exception as e:
+        # Something went wrong while calculating the network
+        session.rollback()
+        network2_model.status = 'Error - ' + str(e)[0:200]
+        network2_model.error = True
+        session.commit()
+        pass
+
+    session.remove()
+
+    return

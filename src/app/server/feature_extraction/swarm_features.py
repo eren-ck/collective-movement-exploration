@@ -39,7 +39,7 @@ def calculate_swarm_features(id):
         # calculate delaunay triangulation
         calculate_delaunay_triangulation(id, session)
         # calculate voronoi diagram
-        # calculate_voronoi_diagram(id, session)
+        calculate_voronoi_diagram(id, session)
         # calculate metric distance, speed and acceleration
         calculate_speed_acceleration(id, session)
         #  calculate the mean distance to centorid for the whole swarm

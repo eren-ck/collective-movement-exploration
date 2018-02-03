@@ -8,6 +8,7 @@ from model.metadata_model import Metadata
 from model.group_data_model import Group_data
 from model.dataset_model import Dataset
 from feature_extraction.swarm_features import calculate_swarm_features
+from feature_extraction.network_calculation import calculate_basic_networks
 
 from feature_extraction.absolute_features import calculate_absolute_features
 
@@ -33,6 +34,9 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
 
     # calculate percentiles
     calculate_percentiles(id)
+
+    # calculate several basic networks for each dataset automatically with the upload
+    calculate_basic_networks(id)
 
 
 def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
