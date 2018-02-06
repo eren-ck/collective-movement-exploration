@@ -530,6 +530,12 @@ div.tooltip table td:nth-child(2) {
     stroke-width: 2;
 }
 
+.network-background-edges {
+    fill-opacity: 0;
+    stroke-opacity: 0.25;
+    stroke: #737373;
+}
+
 .node text {
     font: 12px sans-serif;
 }

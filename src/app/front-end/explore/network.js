@@ -13,6 +13,7 @@ export let networkLimit = 0.5;
 export let showNetworkHierarchy;
 export let networkColor = {};
 export let networkID;
+export let networkBackground = true;
 // fixed color scale for the network
 
 /**
@@ -87,7 +88,6 @@ export function setNetworkID(value) {
 
 /**
  * Set network color scale range
-
  * @param {Number} id - id of the network
  */
 export function setnetworkColor(network_id) {
@@ -131,4 +131,12 @@ export function setnetworkColor(network_id) {
         networkColor = {};
     }
     changeHierarchyLegend();
+}
+
+/**
+ * Set the boolean value for the network background color
+ * @param {Boolean} value - true or false
+ */
+export function setNetworkBackground(value) {
+    networkBackground = value;
 }

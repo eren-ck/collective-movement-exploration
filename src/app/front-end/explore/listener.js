@@ -28,7 +28,8 @@ import {
     setNetworLimit,
     setNetworkHierarchy,
     setnetworkColor,
-    setNetworkID
+    setNetworkID,
+    setNetworkBackground
 } from './network.js';
 
 import {
@@ -212,6 +213,17 @@ function cp_listener() {
             $('#main-vis .frame-text').show();
         } else {
             $('#main-vis .frame-text').hide();
+        }
+    });
+
+    /**
+     * Draw the network background color
+     */
+    $('#network-background').on('change', function() {
+        if (this.checked) {
+            setNetworkBackground(true);
+        } else {
+            setNetworkBackground(false);
         }
     });
 
