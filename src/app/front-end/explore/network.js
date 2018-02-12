@@ -14,6 +14,7 @@ export let showNetworkHierarchy;
 export let networkColor = {};
 export let networkID;
 export let networkBackground = true;
+export let networkBackgroundLimit = 1; //draw background line if limit is exceeded
 // fixed color scale for the network
 
 /**
@@ -139,4 +140,13 @@ export function setnetworkColor(network_id) {
  */
 export function setNetworkBackground(value) {
     networkBackground = value;
+}
+
+
+/**
+ * Set the network background color limit - draw background line if limit is exceeded
+ * @param {Integer} value - new limit
+ */
+export function setNetworkBackgroundLimit(value) {
+    networkBackgroundLimit = value;
 }

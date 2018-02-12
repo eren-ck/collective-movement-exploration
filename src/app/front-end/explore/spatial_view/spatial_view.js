@@ -14,7 +14,8 @@ import {
     networkLimit,
     showNetworkHierarchy,
     networkID,
-    networkBackground
+    networkBackground,
+    networkBackgroundLimit
 } from '../network.js';
 
 import {
@@ -477,7 +478,7 @@ export function draw() {
                         // console.log(key);
                         // console.log(key in networkBakData);
                         if (key in networkBakData) {
-                            if (networkBakData[key]['stroke'] != 10) {
+                            if (networkBakData[key]['stroke'] <= 10 || networkBakData[key]['stroke'] <= 2 * networkBackgroundLimit) {
                                 networkBakData[key]['stroke'] = networkBakData[key]['stroke'] + 1;
                             }
                             networkBakData[key]['start'] = tmp_data[key]['start'];
@@ -491,9 +492,15 @@ export function draw() {
                             };
                         }
                     }
+
+                    let filteredData = Object.values(networkBakData).filter(function(d) {
+                        return d['stroke'] > networkBackgroundLimit;
+                    });
+
                     networkVisBak = tank.select('#networkGroup')
                         .selectAll('line.network-background-edges')
-                        .data(Object.values(networkBakData));
+                        .data(filteredData);
+
                     // UPDATE
                     networkVisBak
                         .attr('x1', function(d) {
@@ -509,7 +516,13 @@ export function draw() {
                             return (-d['end'][1]);
                         })
                         .attr('stroke-width', function(d) {
-                            return d['stroke'];
+                            // return d['stroke'];
+                            let val = d['stroke'];
+                            if (val > 10) {
+                                return 10;
+                            } else {
+                                return val;
+                            }
                         });
 
                     //ENTER
@@ -530,7 +543,13 @@ export function draw() {
                             return (-d['end'][1]);
                         })
                         .attr('stroke-width', function(d) {
-                            return d['stroke'];
+                            // return d['stroke'];
+                            let val = d['stroke'] - networkBackgroundLimit;
+                            if (val > 10) {
+                                return 10;
+                            } else {
+                                return val;
+                            }
                         });
                     // .attr('stroke-opacity', function(d) {
                     //     return d['val'];

@@ -29,7 +29,8 @@ import {
     setNetworkHierarchy,
     setnetworkColor,
     setNetworkID,
-    setNetworkBackground
+    setNetworkBackground,
+    setNetworkBackgroundLimit
 } from './network.js';
 
 import {
@@ -224,6 +225,19 @@ function cp_listener() {
             setNetworkBackground(true);
         } else {
             setNetworkBackground(false);
+        }
+    });
+
+    /**
+     * Set the network background edge limit
+     */
+    $('#network-background-limit').val(1);
+    $('#network-background-limit').on('change', function() {
+        let val = $(this).val();
+        if ($.isNumeric(val) && val > 0) {
+            setNetworkBackgroundLimit(val);
+        } else {
+            $(this).val(1);
         }
     });
 
