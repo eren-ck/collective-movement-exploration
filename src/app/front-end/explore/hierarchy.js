@@ -258,6 +258,15 @@ export function drawDendrogram() {
                     removeHighlightSpatialView();
                 });
 
+            // add the text - # number of animals in the cluster
+            nodeEnter.append('text')
+                .attr('class', 'dendrogram-text')
+                .attr('x', 150)
+                .attr('y', -150)
+                .text(function(d) {
+                    return d.data.name.length;
+                });
+
             // UPDATE -- update the groups
             nodeEnter
                 .attr('transform', function(d) {
@@ -289,6 +298,12 @@ export function drawDendrogram() {
                 })
                 .attr('id', function(d) {
                     return 'h' + d['data']['name'].toString().hashCode();
+                });
+
+            // update the text of number of entities
+            node.select('text')
+                .text(function(d) {
+                    return d.data.name.length;
                 });
 
             // EXIT
@@ -483,7 +498,8 @@ function drawHierarchy() {
         })
         .attr('stroke', function(d, i) {
             return hierarchyColors['h' + hierarchyIds[i]];
-        });
+        })
+        .moveToBack();
 
     // UPDATE - the class needed for intersection and symmetric difference
     hierarchies.attr('class', function(d, i) {

@@ -631,6 +631,10 @@ div.tooltip table td:nth-child(2) {
     background: #D1D3D4;
 }
 
+.dendrogram-text {
+    font-size: 10em !important;
+}
+
 .highlight-hierarchy {
     fill: #252525;
     stroke: #252525;

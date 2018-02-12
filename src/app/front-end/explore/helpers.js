@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window,$,*/
+/*global window,$, d3,*/
 // import * as spv from './spatial_view.js';
 
 import {
@@ -140,3 +140,15 @@ export function standardDeviation(arr) {
         }, 0) / tmp.length);
     }
 }
+
+/**
+ * Move element in SVG into background done by moving it to first element 
+ */
+d3.selection.prototype.moveToBack = function() {
+    return this.each(function() {
+        var firstChild = this.parentNode.firstChild;
+        if (firstChild) {
+            this.parentNode.insertBefore(this, firstChild);
+        }
+    });
+};
