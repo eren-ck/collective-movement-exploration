@@ -70,7 +70,8 @@ def calculate_parameters(dataset_id, tracked_data):
                                    })
         # Optimize the values and catch errors
         try:
-            bo.maximize(init_points=20, n_iter=10)
+            # bo.maximize(init_points=20, n_iter=10)
+            bo.maximize(init_points=25, n_iter=10, acq="poi", xi=1e-4)
         except Exception as e:
             print('Error bayesian optimization ', file=sys.stderr)
             print(e, file=sys.stderr)

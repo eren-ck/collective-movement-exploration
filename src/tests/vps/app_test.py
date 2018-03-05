@@ -1,9 +1,7 @@
 import csv
 import random
 import numpy as np
-import math
 import time
-import sys
 
 from scipy.spatial.distance import pdist, cdist
 from scipy.cluster.hierarchy import *
@@ -145,6 +143,7 @@ def quantitative_evaluation():
     f1_weights = np.array([f1_weights['x'], f1_weights['y'], f1_weights['metric_distance'], f1_weights['speed'],
                            f1_weights['acceleration'], f1_weights['distance_centroid'], f1_weights['direction']])
 
+    # print(f1_weights)
     f1_hclust = []
     f1_dist = 0
     for i in range(0, number_frames):
@@ -152,6 +151,7 @@ def quantitative_evaluation():
         dist_matrix = pdist(np.array(cluster_data[i]), 'wminkowski', 2, f1_weights)
         f1_hclust.append(fcluster(ward(dist_matrix), 2, criterion='maxclust'))
         f1_dist = f1_dist + np.absolute(hclust[i] - f1_hclust[i]).sum()
+        # print(f1_dist)
 
     ##
     ## function 2
@@ -163,6 +163,7 @@ def quantitative_evaluation():
     f2_weights = np.array([f2_weights['x'], f2_weights['y'], f2_weights['metric_distance'], f2_weights['speed'],
                            f2_weights['acceleration'], f2_weights['distance_centroid'], f2_weights['direction']])
 
+    # print(f2_weights)
     f2_hclust = []
     f2_dist = 0
     for i in range(0, number_frames):
@@ -170,24 +171,38 @@ def quantitative_evaluation():
         dist_matrix = pdist(np.array(cluster_data[i]), 'wminkowski', 2, f2_weights)
         f2_hclust.append(fcluster(ward(dist_matrix), 2, criterion='maxclust'))
         f2_dist = f2_dist + np.absolute(hclust[i] - f2_hclust[i]).sum()
+        # print(f2_dist)
 
     ##
     ## random guess for weights
     ##
-    random_weights_guess = []
-    for i in range(0, 7):
-        random_weights_guess.append(random.uniform(0, 1))
-    random_weights_guess = np.array(random_weights_guess)
+    t = time.process_time()
+    random_weights_best_guess = []
+    for i in range(0, 50):
+        random_weights_guess = []
+        for i in range(0, 7):
+            random_weights_guess.append(random.uniform(0, 1))
+        random_weights_guess = np.array(random_weights_guess)
 
+        if len(random_weights_best_guess) == 0:
+            random_weights_best_guess = random_weights_guess
+        else:
+            if random_target(left_hclust, right_hclust, random_weights_guess) < random_target(left_hclust, right_hclust,
+                                                                                              random_weights_best_guess):
+                random_weights_best_guess = random_weights_guess
+    ran_elapsed_time = time.process_time() - t
+
+    # print(random_weights_guess)
     ran_hclust = []
     ran_dist = 0
     for i in range(0, number_frames):
         # calculate the condensed distance matrix with the weights
-        dist_matrix = pdist(np.array(cluster_data[i]), 'wminkowski', 2, random_weights_guess)
+        dist_matrix = pdist(np.array(cluster_data[i]), 'wminkowski', 2, random_weights_best_guess)
         ran_hclust.append(fcluster(ward(dist_matrix), 2, criterion='maxclust'))
         ran_dist = ran_dist + np.absolute(hclust[i] - ran_hclust[i]).sum()
+        # print(ran_dist)
 
-    return (f1_dist, f1_elapsed_time, f2_dist, f2_elapsed_time, ran_dist)
+    return (f1_dist, f1_elapsed_time, f2_dist, f2_elapsed_time, ran_dist, ran_elapsed_time)
 
 
 def calculate_parameters_f1(data):
@@ -210,7 +225,7 @@ def calculate_parameters_f1(data):
         p = 2
         # check if sum of weights is zero - otherwise it will divide through 0 and throw an error
         if not weights.sum():
-            return -math.inf
+            return -10000
 
         # result array for each time point
         result = []
@@ -234,8 +249,7 @@ def calculate_parameters_f1(data):
                                })
     # Optimize the values and catch errors
     try:
-        # use sklearn's default parameters for theta and random_start
-        bo.maximize(init_points=20, n_iter=20)
+        bo.maximize(init_points=25, n_iter=10, acq="poi", xi=1e-4)
     except Exception as e:
         print(e)
         pass
@@ -261,7 +275,7 @@ def calculate_parameters_f2(selected_data, unselected_data):
         p = 2
         # check if sum of weights is zero - otherwise it will divide through 0 and throw an error
         if not weights.sum():
-            return -math.inf
+            return -10000
 
         # result array for each time point
         result = []
@@ -296,13 +310,48 @@ def calculate_parameters_f2(selected_data, unselected_data):
                                })
     # Optimize the values and catch errors
     try:
-        # use sklearn's default parameters for theta and random_start
-        bo.maximize(init_points=20, n_iter=20)
+        bo.maximize(init_points=25, n_iter=10, acq="poi", xi=1e-4)
     except Exception as e:
         print(e)
         pass
     # return the result
     return bo.res['max']
+
+
+def random_target(selected_data, unselected_data, weights):
+    """
+           Calculate the weighted euclidean distance - function is optimized
+
+           :param 7 weights
+       """
+    # weights definition and variables for weighted euclidean calculation
+    # weights = np.array([x, y, metric_distance, speed, acceleration, distance_centroid, direction])
+    metric = 'wminkowski'
+    p = 2
+    # check if sum of weights is zero - otherwise it will divide through 0 and throw an error
+    if not weights.sum():
+        return -10000
+
+    # result array for each time point
+    result = []
+    # calculate the weighted distances between the vectors and add them to each other
+    for i in range(0, len(selected_data)):
+        # calculate the weighted distance between each selected animal and than the sum of the matrix
+        selected_dists = pdist(np.array(selected_data[i]), metric, p, weights).sum()
+        # normalize the proportion between selected and unselected animals
+        selected_dists = (len(selected_data[i]) / (
+                len(selected_data[i]) + len(unselected_data[i]))) * selected_dists
+
+        # calculate the weighted distance between each selected animal and unselected animal and than the sum of the matrix
+        dists = cdist(np.array(selected_data[i]), np.array(unselected_data[i]), metric, p=p, w=weights).sum()
+        dists = (len(unselected_data[i]) / (
+                len(selected_data[i]) + len(unselected_data[i]))) * dists
+
+        result.append(selected_dists / dists)
+
+        # add all the distances between the frames to one value which has to be minimized
+        # multiply by -1 to find the maximum minus value - library has no minimize
+    return np.array(result).sum() * (-1)
 
 
 if __name__ == '__main__':
@@ -311,10 +360,10 @@ if __name__ == '__main__':
     normalize_vectors()
 
     # test n times and write to output file
-    n = 15
+    n = 10
 
-    number_frames_list = [1, 5, 10, 25, 25]
-    number_animals_list = [5, 10, 25, 50]
+    number_frames_list = [25, 50, 125]
+    number_animals_list = [5, 10, 15, 25, 50]
     for frame in number_frames_list:
         number_frames = frame
 
@@ -323,11 +372,11 @@ if __name__ == '__main__':
 
             with open('output_' + str(number_frames) + '_' + str(number_animals) + '.txt', 'w') as f:
                 f.write(
-                    'random_weights, random_time,  suggested_f1, suggested_f1_time, suggested_f2, suggested_f2_time\n')
+                    'random_weights, random_time, suggested_f1, suggested_f1_time, suggested_f2, suggested_f2_time\n')
                 f.flush()
                 for i in range(0, n):
                     # return random results for one time
-                    f1_dist, f1_elapsed_time, f2_dist, f2_elapsed_time, ran_dist = quantitative_evaluation()
-                    f.write(str(ran_dist) + ', 0, ' + str(f1_dist) + ', ' + str(f1_elapsed_time) + ', ' + str(
-                        f2_dist) + ', ' + str(f2_elapsed_time) + '\n')
+                    f1_dist, f1_elapsed_time, f2_dist, f2_elapsed_time, ran_dist, ran_elapsed_time = quantitative_evaluation()
+                    f.write(str(ran_dist) + ', ' + str(ran_elapsed_time) + ', ' + str(f1_dist) + ', ' + str(
+                        f1_elapsed_time) + ', ' + str(f2_dist) + ', ' + str(f2_elapsed_time) + '\n')
                     f.flush()
