@@ -106,7 +106,6 @@ class MyDatasetView(sqla.ModelView):
         """
         # get the path to the files folder
         path_file = os.path.dirname(os.getcwd()) + '\\files\\' + str(current_user.id) + '\\'
-
         # print(path_file + model.name + '.csv',
         #  delete the movement file of the dataset
         try:

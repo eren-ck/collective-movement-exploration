@@ -1,6 +1,8 @@
 import csv
 import os
 import sys
+import chardet
+import codecs
 from db import create_session
 
 from model.movement_data_model import Movement_data
@@ -58,8 +60,21 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
     group_time = set()
 
     ## Save the movement data into the database
+
+    # detect encoding
+    # encoding detection
+    num_bytes = min(1024, os.path.getsize(movement_file_filename))
+    raw = open(movement_file_filename, 'rb').read(num_bytes)
+    if raw.startswith(codecs.BOM_UTF8):
+        file_encoding = 'utf-8-sig'
+    else:
+        file_encoding = chardet.detect(raw)['encoding']
+
     # open the csv file
-    csv_data = csv.DictReader(open(movement_file_filename, 'rU'), delimiter=',')
+    csv_data = csv.DictReader(open(movement_file_filename, 'rU', encoding=file_encoding), delimiter=',')
+    # print('Old Version ', file=sys.stderr)
+    # print(csv_data, file=sys.stderr)
+
     # change the headers to lowercase - make it case insensitive
     for i in range(0, len(csv_data.fieldnames)):
         csv_data.fieldnames[i] = csv_data.fieldnames[i].lower()
@@ -67,6 +82,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
     # and extract the absolute features
     try:
         for row in csv_data:
+            # print('Hello World ', file=sys.stderr)
+            # print(row, file=sys.stderr)
             query = Movement_data(id, **row)
             session.add(query)
             # fill group set
@@ -82,7 +99,15 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
 
     if metadata_file_filename:
         ## Save the metadata file in the database
-        csv_data = csv.DictReader(open(metadata_file_filename, 'rU'), delimiter=',')
+        # encoding detection
+        num_bytes = min(1024, os.path.getsize(movement_file_filename))
+        raw = open(movement_file_filename, 'rb').read(num_bytes)
+        if raw.startswith(codecs.BOM_UTF8):
+            file_encoding = 'utf-8-sig'
+        else:
+            file_encoding = chardet.detect(raw)['encoding']
+
+        csv_data = csv.DictReader(open(metadata_file_filename, 'rU', encoding=file_encoding), delimiter=',')
         # change the headers to lowercase - make it case insensitive
         for i in range(0, len(csv_data.fieldnames)):
             csv_data.fieldnames[i] = csv_data.fieldnames[i].lower()

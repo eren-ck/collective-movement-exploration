@@ -1,6 +1,6 @@
 from bayes_opt import BayesianOptimization
 import numpy as np
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, cdist
 import json
 import sys
 import math
@@ -23,12 +23,12 @@ def calculate_parameters(dataset_id, tracked_data):
         return {}
     else:
         # preprocess the data and get the vectors
-        data = preprocess_data(dataset_id, tracked_data)
+        selected_data, unselected_data = preprocess_data(dataset_id, tracked_data)
         # if emtpy return nothing
-        if not bool(data):
+        if not bool(selected_data):
             return {}
         # normalize the vectors
-        data = normalize_vectors(data)
+        selected_data, unselected_data = normalize_vectors(selected_data, unselected_data)
 
         # target function
         def target(x, y, metric_distance, speed, acceleration, distance_centroid, direction):
@@ -38,7 +38,7 @@ def calculate_parameters(dataset_id, tracked_data):
                    :param 7 weights
                """
             # TODO find modular way to calculate this
-            if not len(data):
+            if not len(selected_data) or not len(unselected_data):
                 return 0
             # weights definition and variables for weighted euclidean calculation
             weights = np.array([x, y, metric_distance, speed, acceleration, distance_centroid, direction])
@@ -46,14 +46,25 @@ def calculate_parameters(dataset_id, tracked_data):
             p = 2
             # check if sum of weights is zero - otherwise it will divide through 0 and throw an error
             if not weights.sum():
-                return -math.inf
+                return -1000000
 
             # result array for each time point
             result = []
             # calculate the weighted distances between the vectors and add them to each other
-            for elem in data:
-                dists = pdist(np.array(elem), metric, p, weights)
-                result.append(dists.sum() / weights.sum())
+            for i in range(0, len(selected_data)):
+                # calculate the weighted distance between each selected animal and than the sum of the matrix
+                selected_dists = pdist(np.array(selected_data[i]), metric, p, weights).sum()
+                # normalize the proportion between selected and unselected animals
+                selected_dists = (len(selected_data[i]) / (
+                        len(selected_data[i]) + len(unselected_data[i]))) * selected_dists
+
+                # calculate the weighted distance between each selected animal and unselected animal and than the sum of the matrix
+                dists = cdist(np.array(selected_data[i]), np.array(unselected_data[i]), metric, p=p, w=weights).sum()
+                dists = (len(unselected_data[i]) / (
+                        len(selected_data[i]) + len(unselected_data[i]))) * dists
+
+                result.append(selected_dists / dists)
+
             # add all the distances between the frames to one value which has to be minimized
             # multiply by -1 to find the maximum minus value - library has no minimize
             return np.array(result).sum() * (-1)
@@ -70,8 +81,8 @@ def calculate_parameters(dataset_id, tracked_data):
                                    })
         # Optimize the values and catch errors
         try:
-            # bo.maximize(init_points=20, n_iter=10)
-            bo.maximize(init_points=25, n_iter=10, acq="poi", xi=1e-4)
+            gp_params = {"alpha": 1e-4, "n_restarts_optimizer": 2}
+            bo.maximize(init_points=25, n_iter=5, acq="poi", xi=1e-4,  **gp_params)
         except Exception as e:
             print('Error bayesian optimization ', file=sys.stderr)
             print(e, file=sys.stderr)
@@ -90,6 +101,7 @@ def preprocess_data(dataset_id, tracked_data):
     session = create_session()
     # selected animals object with a list with the animals for each time step
     selected_animals = {}
+    unselected_animals = {}
     try:
         # extract all the time moments
         time_moments = []
@@ -109,10 +121,14 @@ def preprocess_data(dataset_id, tracked_data):
 
         for time in time_moments:
             selected_animals[time] = []
+            unselected_animals[time] = []
+
         # get the data
         for data in movement_data:
             if data.animal_id in tracked_data[str(data.time)]:
                 selected_animals[str(data.time)].append(data)
+            else:
+                unselected_animals[str(data.time)].append(data)
 
         # parse the features of each animals to a list
         tmp_selected_animals = []
@@ -126,31 +142,51 @@ def preprocess_data(dataset_id, tracked_data):
         # [ [ [animal_features list ], [..] ]
         selected_animals = tmp_selected_animals
 
+        # parse the features of each unselected animals to a list
+        tmp_unselected_animals = []
+        for key, data in unselected_animals.items():
+            tmp_animals = []
+            for animal in data:
+                tmp_animals.append(animal.get_data_vector())
+                tmp_unselected_animals.append(tmp_animals)
+
+        # Result is 2d list with first level time moment and second animals of each time moment
+        # [ [ [animal_features list ], [..] ]
+        unselected_animals = tmp_unselected_animals
+
     except Exception as e:
         print('Error', file=sys.stderr)
         print(e, file=sys.stderr)
         pass
 
     session.remove()
-    return selected_animals
+    return (selected_animals, unselected_animals)
 
 
-def normalize_vectors(data):
+def normalize_vectors(selected_data, unselected_data):
     """
         normalize the vectors
 
-        :param dataset_id: id of the specific dataset
-        :param tracked_data: list of objects [{time_moment: animal_id1, animalid2,...}...}
+        :param selected_data: vector list of selected animals
+        :param unselected_data: vector list of selected animals
     """
     # [x, y, metric_distance, speed, acceleration, distance_centroid, direction]
     min = []
     max = []
     # fill min and max
-    for i in range(0, len(data[0][0])):
-        min.append(data[0][0][i])
-        max.append(data[0][0][i])
-    # get min max
-    for elem in data:
+    for i in range(0, len(selected_data[0][0])):
+        min.append(selected_data[0][0][i])
+        max.append(selected_data[0][0][i])
+    # get min max of selected data
+    for elem in selected_data:
+        for vector in elem:
+            for i in range(0, len(vector)):
+                if vector[i] < min[i]:
+                    min[i] = vector[i]
+                if vector[i] > max[i]:
+                    max[i] = vector[i]
+    # get min max of unselected data
+    for elem in unselected_data:
         for vector in elem:
             for i in range(0, len(vector)):
                 if vector[i] < min[i]:
@@ -158,12 +194,19 @@ def normalize_vectors(data):
                 if vector[i] > max[i]:
                     max[i] = vector[i]
 
-    # normalize
-    for elem in data:
+    # normalize selected data
+    for elem in selected_data:
         for vector in elem:
             for i in range(0, len(vector)):
                 vector[i] = normalize(vector[i], min[i], max[i])
-    return data
+
+    # normalize unselected data
+    for elem in unselected_data:
+        for vector in elem:
+            for i in range(0, len(vector)):
+                vector[i] = normalize(vector[i], min[i], max[i])
+
+    return (selected_data, unselected_data)
 
 
 def normalize(value, min, max):
