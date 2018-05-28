@@ -72,18 +72,32 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
 
     # open the csv file
     csv_data = csv.DictReader(open(movement_file_filename, 'rU', encoding=file_encoding), delimiter=',')
-    # print('Old Version ', file=sys.stderr)
-    # print(csv_data, file=sys.stderr)
 
     # change the headers to lowercase - make it case insensitive
     for i in range(0, len(csv_data.fieldnames)):
         csv_data.fieldnames[i] = csv_data.fieldnames[i].lower()
     # build the query
     # and extract the absolute features
+
+    # needed to map the time moments to a sequence from 0,..,n without gaps in between the frame numbers
+    csv_data = list(csv_data)
+    tmp_list = []
+    # get all time moments
+    for row in csv_data:
+        tmp_list.append(int(row['time']))
+
+    # create a mapping to consecutive numbers
+    mapping = {}
+    index = 0
+    for time in sorted(set(tmp_list)):
+        mapping[time] = index
+        index = index + 1
+    # transform the frame numbers
+    for row in csv_data:
+        row['time'] = mapping[int(row['time'])]
+
     try:
         for row in csv_data:
-            # print('Hello World ', file=sys.stderr)
-            # print(row, file=sys.stderr)
             query = Movement_data(id, **row)
             session.add(query)
             # fill group set
@@ -111,6 +125,7 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         # change the headers to lowercase - make it case insensitive
         for i in range(0, len(csv_data.fieldnames)):
             csv_data.fieldnames[i] = csv_data.fieldnames[i].lower()
+
         try:
             # build the query
             for row in csv_data:
