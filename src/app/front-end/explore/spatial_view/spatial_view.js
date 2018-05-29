@@ -307,7 +307,12 @@ export function draw() {
         .val();
 
     //get the next animals
-    arrayAnimals = dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
+    // console.log(dataset);
+    // arrayAnimals = dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
+    arrayAnimals = dataset.filter(function(d) {
+        return d['t'] === indexTime;
+    });
+
 
     //the timeout is set after one update 30 ms
     setTimeout(function() {
