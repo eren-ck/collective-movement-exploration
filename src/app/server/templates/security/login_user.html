@@ -15,30 +15,6 @@
 </div>
 {% endmacro %}
 
-{% macro render_field(field) %}
-<p>{{ field(class_='form-control', **kwargs)|safe }}</p>
-{% endmacro %}
-
-{% macro render_checkbox_field(field) -%}
-<div class="form-group">
-    <div class="checkbox">
-        <label>
-            {{ field(type='checkbox', **kwargs) }} {{ field.label }}
-        </label>
-    </div>
-</div>
-{%- endmacro %}
-
-{%- with messages = get_flashed_messages(with_categories=true) -%}
-{% if messages %}
-<ul class="flashes">
-  {% for category, message in messages %}
-  <li class="{{ category }}">{{ message }}</li>
-  {% endfor %}
-</ul>
-{% endif %}
-{%- endwith %}
-
 {% block body %}
 {% include "security/_messages.html" %}
 

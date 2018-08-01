@@ -34,6 +34,30 @@
         <h5 class="my-0 mr-md-auto font-weight-normal">
             <a class="text-dark" href="/">Collective Movement Exploration</a>
         </h5>
+
+        {% if current_user.is_authenticated %}
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/">Info</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/upload">Upload</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/explore">Explore</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/network">Network</a>
+        </nav>
+            {% if  current_user.has_role('admin') %}
+            <nav class="my-2 my-md-0 mr-md-3">
+                <a class="p-2 text-dark" href="/center/role">Role</a>
+            </nav>
+            <nav class="my-2 my-md-0 mr-md-3">
+                <a class="p-2 text-dark" href="/center/user">User</a>
+            </nav>
+            {% endif %}
+        {% endif %}
+
         <nav class="my-2 my-md-0 mr-md-3">
             <a class="p-2 text-dark" href="/contact">Contact</a>
         </nav>
@@ -41,17 +65,7 @@
 
         {% if current_user.is_authenticated %}
 
-        <a href="#" class="dropdown-toggle text-dark" data-toggle="dropdown" role="button" aria-expanded="false">
-            <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-            {% if current_user.first_name -%}
-            {{ current_user.first_name }}
-            {% else -%}
-            {{ current_user.email }}
-            {%- endif %}<span class="caret"></span></a>
-        <ul class="dropdown-menu" role="menu">
-            <li><a class="text-dark" href="/admin">My Area</a></li>
-            <li><a class="text-dark" href="{{ url_for('security.logout') }}">Log out</a></li>
-        </ul>
+        <a class="btn btn-light btn-sm" href="{{ url_for('security.logout' )}}">Log out</a>
 
         {% else %}
         <a class="btn btn-primary btn-sm" href="{{ url_for('security.login' )}}">Login</a>

@@ -37,7 +37,7 @@ class User(db.Model, UserMixin):
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        self.password = utils.encrypt_password(self.password)
+        self.password = utils.hash_password(self.password)
 
     def __str__(self):
         return self.email

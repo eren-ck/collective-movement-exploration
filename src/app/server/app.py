@@ -7,7 +7,7 @@ from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import helpers as admin_helpers
 
 # from view.admin_view import MyAdminView
-# from view.home_view import MyHomeView
+from view.center_view import MyCenterView
 # from view.file_view import MyFileAdminView
 # from view.dataset_view import MyDatasetView
 # from view.network_view import MyNetworkView
@@ -38,11 +38,6 @@ def index():
 @app.route('/contact')
 def contact():
     return render_template('/contact.html')
-
-
-@app.route('/view/')
-def redirect_view():
-    return redirect('/')
 
 
 # Custom Rest API
@@ -95,15 +90,19 @@ def get_dataset_networks(id):
 def get_dataset_network_data(dataset_id, network_id):
     return api_get_network_data(dataset_id, network_id)
 
+
 @app.route('/api/dataset/network/hierarchy/<int:dataset_id>/<int:network_id>', methods=['GET'])
 def get_dataset_network_hierarchy_data(dataset_id, network_id):
-    return api_get_network_hierarchy_data(dataset_id, network_id)\
+    return api_get_network_hierarchy_data(dataset_id, network_id) \
+ \
+           @ app.route('/api/dataset/visual_parameter/<int:dataset_id>', methods=['POST'])
 
-@app.route('/api/dataset/visual_parameter/<int:dataset_id>', methods=['POST'])
+
 def get_dataset_suggested_parameters(dataset_id):
     # Get JSON object passed with Ajax request
     tracked_data = request.json
     return api_get_dataset_suggested_parameters(dataset_id, tracked_data)
+
 
 # Create view
 # admin = Admin(
@@ -132,6 +131,10 @@ def get_dataset_suggested_parameters(dataset_id):
 #         h=admin_helpers,
 #         get_url=url_for
 #     )
+
+
+# Class based views
+app.add_url_rule('/center/', view_func=MyCenterView.as_view('center_view'))
 
 
 @app.errorhandler(404)
