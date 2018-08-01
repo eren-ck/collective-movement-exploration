@@ -4,14 +4,13 @@ import atexit
 
 from flask import Flask, render_template, url_for, redirect, request
 from flask_security import Security, SQLAlchemyUserDatastore
-from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
 
-from view.admin_view import MyAdminView
-from view.home_view import MyHomeView
-from view.file_view import MyFileAdminView
-from view.dataset_view import MyDatasetView
-from view.network_view import MyNetworkView
+# from view.admin_view import MyAdminView
+# from view.home_view import MyHomeView
+# from view.file_view import MyFileAdminView
+# from view.dataset_view import MyDatasetView
+# from view.network_view import MyNetworkView
 
 from model.network_model import Network
 from model.user_role_model import *
@@ -106,35 +105,33 @@ def get_dataset_suggested_parameters(dataset_id):
     tracked_data = request.json
     return api_get_dataset_suggested_parameters(dataset_id, tracked_data)
 
-
-
 # Create view
-admin = Admin(
-    app,
-    name='Collective Movement Exploration',
-    index_view=MyHomeView(name='Info'),
-    base_template='my_master.html',
-    template_mode='bootstrap3'
-)
-
-# Add model views
-admin.add_view(MyFileAdminView(path, '/files/', name='Upload'))
-admin.add_view(MyDatasetView(Dataset, db.session, name='Explore'))
-admin.add_view(MyNetworkView(Network, db.session))
-admin.add_view(MyAdminView(Role, db.session))
-admin.add_view(MyAdminView(User, db.session))
+# admin = Admin(
+#     app,
+#     name='Collective Movement Exploration',
+#     index_view=MyHomeView(name='Info'),
+#     base_template='my_master.html',
+#     template_mode='bootstrap3'
+# )
+#
+# # Add model views
+# admin.add_view(MyFileAdminView(path, '/files/', name='Upload'))
+# admin.add_view(MyDatasetView(Dataset, db.session, name='Explore'))
+# admin.add_view(MyNetworkView(Network, db.session))
+# admin.add_view(MyAdminView(Role, db.session))
+# admin.add_view(MyAdminView(User, db.session))
 
 
 # define a context processor for merging flask-view's template context into the
 # flask-security views.
-@security.context_processor
-def security_context_processor():
-    return dict(
-        admin_base_template=admin.base_template,
-        admin_view=admin.index_view,
-        h=admin_helpers,
-        get_url=url_for
-    )
+# @security.context_processor
+# def security_context_processor():
+#     return dict(
+#         admin_base_template=admin.base_template,
+#         admin_view=admin.index_view,
+#         h=admin_helpers,
+#         get_url=url_for
+#     )
 
 
 @app.errorhandler(404)
