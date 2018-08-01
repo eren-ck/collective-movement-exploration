@@ -1,20 +1,29 @@
 /*eslint-disable no-unused-lets*/
 /*global window, $, d3 */
+import {
+    hierarchyColors,
+    colors,
+    changeHierarchyLegend
+} from './hierarchy.js';
+
+
 
 export let networkAuto = false; // if true the network edge limit is automatically suggested
 export let networkLimit = 0.5;
 export let showNetworkHierarchy;
+export let networkColor = {};
+export let networkID;
+export let networkBackground = true;
+export let networkBackgroundLimit = 1; //draw background line if limit is exceeded
 // fixed color scale for the network
 
 /**
- * Static color scale for the network coloring
- * TODO change this sometime
+ * color scale for network - range is defined dynamic based on the hierarhcy color
  */
 export let networkColorScale = d3.scaleThreshold()
     .domain(
         [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
-    )
-    .range(['#000000', '#1d1d1d', '#353535', '#4e4e4e', '#696969', '#858585', '#a3a3a3', '#c0c0c0', '#dfdfdf', '#ffffff']);
+    );
 
 
 /**
@@ -68,4 +77,76 @@ export function setNetworLimit(value) {
  */
 export function setNetworkHierarchy(value) {
     showNetworkHierarchy = value;
+}
+
+/**
+ * Set the network network id - needed for hierarchy standard deviation coloring
+ * @param {Number} value - e.g. 0-n
+ */
+export function setNetworkID(value) {
+    networkID = value;
+}
+
+/**
+ * Set network color scale range
+ * @param {Number} id - id of the network
+ */
+export function setnetworkColor(network_id) {
+    // if id = -1 set the color to nothing
+    if (network_id >= 0) {
+        // reset color of the edges
+        networkColor = {};
+
+        // hierarchy colors which are already in usage
+        let tmpColor = [];
+
+        // get the color
+        // search in the hieraryColors if a color was defined for the network id
+        for (var key in hierarchyColors) {
+            if (hierarchyColors.hasOwnProperty(key)) {
+                if (key === ('h' + network_id)) {
+                    networkColor['h' + network_id] = hierarchyColors[key];
+                } else {
+                    tmpColor.push(hierarchyColors[key]);
+                }
+            }
+        }
+        // if the the networkColor is still empty choose a color
+        // check if the color is already in usage, if so skip
+        if (Object.keys(networkColor).length === 0) {
+            for (let i = 0; i < colors.length; i++) {
+                if (tmpColor.indexOf(colors[i]) === -1) {
+                    networkColor['h' + network_id] = colors[i];
+                    break;
+                }
+            }
+        }
+        // change the color scale
+        let tmp = networkColor['h' + network_id];
+        networkColorScale
+            .range([d3.color(tmp).darker([5]), d3.color(tmp).darker([4]), d3.color(tmp).darker([3]), d3.color(tmp).darker([2]), d3.color(tmp).darker([1]),
+                d3.color(tmp), d3.color(tmp).brighter([1]), d3.color(tmp).brighter([2]), d3.color(tmp).brighter([3]), d3.color(tmp).brighter([])
+            ]);
+
+    } else {
+        networkColor = {};
+    }
+    changeHierarchyLegend();
+}
+
+/**
+ * Set the boolean value for the network background color
+ * @param {Boolean} value - true or false
+ */
+export function setNetworkBackground(value) {
+    networkBackground = value;
+}
+
+
+/**
+ * Set the network background color limit - draw background line if limit is exceeded
+ * @param {Integer} value - new limit
+ */
+export function setNetworkBackgroundLimit(value) {
+    networkBackgroundLimit = value;
 }

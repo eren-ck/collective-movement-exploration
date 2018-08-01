@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window,$,*/
+/*global window,$, d3,*/
 // import * as spv from './spatial_view.js';
 
 import {
@@ -10,6 +10,9 @@ import {
     setPlayBoolean
 } from './listener.js';
 
+import {
+    initTrendChartListener
+} from './line_chart.js';
 /**
  * Disable the play button --> Loading symbol
  */
@@ -80,3 +83,72 @@ export function percentilesLineChart(arr) {
     }
     return result;
 }
+
+/**
+ * Add the absolute feature checkboxes in the feature panel
+ *
+ */
+export function addAbsoluteFeatureButtons(dataSetPercentile) {
+    // iterate over the object
+    for (var key in dataSetPercentile) {
+        if (dataSetPercentile.hasOwnProperty(key)) {
+            // generate text for the displayed button
+            let capitalized_feature_string = key.split('_').join(' ');
+            capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
+            // add the button
+            $('#absolute-feature-checkboxes').after('<div class="feature-check-box-default"> <input type="checkbox" name="checkbox" id="draw-' + key +
+                '"/><label for="draw-' + key + '">' + capitalized_feature_string +
+                '<button type="button" id="draw-' + key +
+                '-details" class="btn btn-default pull-right hidden draw-details" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+                '<span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button> </label> </div>');
+
+        }
+    }
+    // init the listerners
+    initTrendChartListener();
+
+}
+
+// generate hash codes from strings
+// source: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+String.prototype.hashCode = function() {
+    var hash = 0,
+        i, chr;
+    if (this.length === 0) return hash;
+    for (i = 0; i < this.length; i++) {
+        chr = this.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
+
+/**
+ * Calculate the standardDeviation of an array of numbers
+ * @param {Array} arr - array of numbers
+ */
+export function standardDeviation(arr) {
+    if (arr instanceof Array) {
+        let mean = arr.reduce(function(pv, cv) {
+            return pv + cv;
+        }, 0) / arr.length;
+        let tmp = arr.map(function(num) {
+            return Math.pow(num - mean, 2);
+        });
+        return Math.sqrt(tmp.reduce(function(pv, cv) {
+            return pv + cv;
+        }, 0) / tmp.length);
+    }
+}
+
+/**
+ * Move element in SVG into background done by moving it to first element 
+ */
+d3.selection.prototype.moveToBack = function() {
+    return this.each(function() {
+        var firstChild = this.parentNode.firstChild;
+        if (firstChild) {
+            this.parentNode.insertBefore(this, firstChild);
+        }
+    });
+};

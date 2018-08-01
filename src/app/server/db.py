@@ -16,7 +16,7 @@ def create_session():
 
     """
     session = scoped_session(sessionmaker())
-    session.configure(bind=engine, autoflush=False, expire_on_commit=False)
+    session.configure(bind=engine, autoflush=False, expire_on_commit=False, autocommit=False)
     return session
 
 

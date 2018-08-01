@@ -530,6 +530,12 @@ div.tooltip table td:nth-child(2) {
     stroke-width: 2;
 }
 
+.network-background-edges {
+    fill-opacity: 0;
+    stroke-opacity: 0.25;
+    stroke: #737373;
+}
+
 .node text {
     font: 12px sans-serif;
 }
@@ -625,12 +631,20 @@ div.tooltip table td:nth-child(2) {
     background: #D1D3D4;
 }
 
+.dendrogram-text {
+    font-size: 10em !important;
+}
+
 .highlight-hierarchy {
     fill: #252525;
     stroke: #252525;
     stroke-width: 10;
     stroke-linejoin: round;
     opacity: 0.3;
+}
+
+.animal-highlight {
+    fill: #c51b7d !important;
 }
 
 #dendrogram-buttons-div .btn span.glyphicon {
@@ -644,6 +658,10 @@ div.tooltip table td:nth-child(2) {
 #dendrogram-buttons-div {
     border: 2px solid #D1D3D4;
     border-radius: 5px;
+}
+
+#dendrogram-legend {
+    margin-left: 20px;
 }
 
 .intersection {

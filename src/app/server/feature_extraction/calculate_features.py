@@ -1,5 +1,8 @@
 import csv
 import os
+import sys
+import chardet
+import codecs
 from db import create_session
 
 from model.movement_data_model import Movement_data
@@ -7,6 +10,7 @@ from model.metadata_model import Metadata
 from model.group_data_model import Group_data
 from model.dataset_model import Dataset
 from feature_extraction.swarm_features import calculate_swarm_features
+from feature_extraction.network_calculation import calculate_basic_networks
 
 from feature_extraction.absolute_features import calculate_absolute_features
 
@@ -33,6 +37,9 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
     # calculate percentiles
     calculate_percentiles(id)
 
+    # calculate several basic networks for each dataset automatically with the upload
+    calculate_basic_networks(id)
+
 
 def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
     """  Upload the movement and metadata file to the db.
@@ -53,13 +60,42 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
     group_time = set()
 
     ## Save the movement data into the database
+
+    # detect encoding
+    # encoding detection
+    num_bytes = min(1024, os.path.getsize(movement_file_filename))
+    raw = open(movement_file_filename, 'rb').read(num_bytes)
+    if raw.startswith(codecs.BOM_UTF8):
+        file_encoding = 'utf-8-sig'
+    else:
+        file_encoding = chardet.detect(raw)['encoding']
+
     # open the csv file
-    csv_data = csv.DictReader(open(movement_file_filename, 'rU'), delimiter=',')
+    csv_data = csv.DictReader(open(movement_file_filename, 'rU', encoding=file_encoding), delimiter=',')
+
     # change the headers to lowercase - make it case insensitive
     for i in range(0, len(csv_data.fieldnames)):
         csv_data.fieldnames[i] = csv_data.fieldnames[i].lower()
     # build the query
     # and extract the absolute features
+
+    # needed to map the time moments to a sequence from 0,..,n without gaps in between the frame numbers
+    csv_data = list(csv_data)
+    tmp_list = []
+    # get all time moments
+    for row in csv_data:
+        tmp_list.append(int(row['time']))
+
+    # create a mapping to consecutive numbers
+    mapping = {}
+    index = 0
+    for time in sorted(set(tmp_list)):
+        mapping[time] = index
+        index = index + 1
+    # transform the frame numbers
+    for row in csv_data:
+        row['time'] = mapping[int(row['time'])]
+
     try:
         for row in csv_data:
             query = Movement_data(id, **row)
@@ -77,10 +113,19 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
 
     if metadata_file_filename:
         ## Save the metadata file in the database
-        csv_data = csv.DictReader(open(metadata_file_filename, 'rU'), delimiter=',')
+        # encoding detection
+        num_bytes = min(1024, os.path.getsize(movement_file_filename))
+        raw = open(movement_file_filename, 'rb').read(num_bytes)
+        if raw.startswith(codecs.BOM_UTF8):
+            file_encoding = 'utf-8-sig'
+        else:
+            file_encoding = chardet.detect(raw)['encoding']
+
+        csv_data = csv.DictReader(open(metadata_file_filename, 'rU', encoding=file_encoding), delimiter=',')
         # change the headers to lowercase - make it case insensitive
         for i in range(0, len(csv_data.fieldnames)):
             csv_data.fieldnames[i] = csv_data.fieldnames[i].lower()
+
         try:
             # build the query
             for row in csv_data:
@@ -137,29 +182,34 @@ def calculate_percentiles(id):
 
     dataset = session.query(Dataset).filter_by(id=id)
 
-    percentiles = ['speed', 'acceleration', 'distance_centroid']
+    # get the one movement data record to check if the fields exists, from which the percentiles are calculated
+    # needed because there are optional fields
+    movement_data = session.query(Movement_data).filter_by(dataset_id=id).first().get_percentile_fields()
+
+    percentiles = ['speed', 'acceleration', 'distance_centroid', 'midline_offset']
     try:
         # calculate the percentiles
         for elem in percentiles:
-            query = '''INSERT INTO percentile (dataset_id, feature, min, percentile_1, percentile_2, percentile_3,
-            percentile_4, percentile_5, percentile_6, percentile_7, percentile_8, percentile_9, max)
-            SELECT 	:id,
-                    :feature,
-                    percentile_disc(.0) WITHIN GROUP (ORDER BY ''' + elem + ''') AS min,
-                    percentile_disc(.1) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_1,
-                    percentile_disc(.2) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_2,
-                    percentile_disc(.3) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_3,
-                    percentile_disc(.4) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_4,
-                    percentile_disc(.5) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_5,
-                    percentile_disc(.6) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_6,
-                    percentile_disc(.7) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_7,
-                    percentile_disc(.8) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_8,
-                    percentile_disc(.9) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_9,
-                    percentile_disc(1) WITHIN GROUP (ORDER BY ''' + elem + ''')  AS max
-                FROM movement_data
-                WHERE dataset_id = :id;
-            '''
-            session.execute(query, {'id': id, 'feature': elem})
+            if movement_data[elem]:
+                query = '''INSERT INTO percentile (dataset_id, feature, min, percentile_1, percentile_2, percentile_3,
+                percentile_4, percentile_5, percentile_6, percentile_7, percentile_8, percentile_9, max)
+                SELECT 	:id,
+                        :feature,
+                        percentile_disc(.0) WITHIN GROUP (ORDER BY ''' + elem + ''') AS min,
+                        percentile_disc(.1) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_1,
+                        percentile_disc(.2) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_2,
+                        percentile_disc(.3) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_3,
+                        percentile_disc(.4) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_4,
+                        percentile_disc(.5) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_5,
+                        percentile_disc(.6) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_6,
+                        percentile_disc(.7) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_7,
+                        percentile_disc(.8) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_8,
+                        percentile_disc(.9) WITHIN GROUP (ORDER BY ''' + elem + ''') AS percentile_9,
+                        percentile_disc(1) WITHIN GROUP (ORDER BY ''' + elem + ''')  AS max
+                    FROM movement_data
+                    WHERE dataset_id = :id;
+                '''
+                session.execute(query, {'id': id, 'feature': elem})
     except Exception as e:
         # Something went wrong when calculating the percentiles
         session.rollback()

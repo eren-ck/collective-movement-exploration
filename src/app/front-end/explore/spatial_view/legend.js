@@ -38,7 +38,8 @@ export function changeLegend() {
     // let differentColors = 0;
 
     // Show the svg first of all
-    $('#main-vis-legend-div').show();
+    $('#main-vis-legend-div')
+        .show();
 
     //change the colors of the animals
     if (activeScale !== 'black') {
@@ -57,7 +58,8 @@ export function changeLegend() {
         legendText = svgLegend.selectAll('text.legend-text')
             .data([]);
         // hide the div again
-        $('#main-vis-legend-div').hide();
+        $('#main-vis-legend-div')
+            .hide();
     }
 
     // --------------- Legend swatches  -------------------

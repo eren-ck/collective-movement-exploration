@@ -90,7 +90,7 @@ def absolute_feature_worker(tmp):
         animal = session.query(Movement_data) \
             .filter_by(dataset_id=id, animal_id=animal_ids[i]) \
             .order_by(Movement_data.time)
-        print('Animal ' + str(i), file=sys.stderr)
+        # print('Animal ' + str(i), file=sys.stderr)
 
         # calculate the metric distance
         calculate_metric_distance(animal)
@@ -182,10 +182,11 @@ def calculate_direction(animal):
     animal -- dataset with all time moments
 
     """
-    animal[0].direction = 0
-    number_elem = animal.count()
-    for i in range(1, number_elem):
-        angle = math.atan2((animal[i].get_y() - animal[i - 1].get_y()), (animal[i].get_x() - animal[i - 1].get_x()))
+    if not animal[0].direction:
+        animal[0].direction = 0
+        number_elem = animal.count()
+        for i in range(1, number_elem):
+            angle = math.atan2((animal[i].get_y() - animal[i - 1].get_y()), (animal[i].get_x() - animal[i - 1].get_x()))
 
-        angle = round(math.degrees(angle), 2)
-        animal[i].direction = angle
+            angle = round(math.degrees(angle), 2)
+            animal[i].direction = angle

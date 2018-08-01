@@ -44,6 +44,8 @@ $('#movement').on('change', function() {
                 if (results.meta.fields.length >= 4) {
                     //needed fields
                     let needed_fields = ['animal_id', 'time', 'x', 'y'];
+                    //optional fields
+                    let optional_fields = ['direction', 'midline_offset'];
                     //fields of the csv file
                     let fields = results.meta.fields;
                     // compare the fields - this is case insensitive
@@ -55,6 +57,13 @@ $('#movement').on('change', function() {
                             disableSubmitButton();
                             changeAlertDanger('#movement-correct-fields');
                             return;
+                        }
+                    }
+                    // check if there are any optional fields
+                    for (let i = 0; i < optional_fields.length; i++) {
+                        let query = optional_fields[i];
+                        if (fields.findIndex(item => query === item) > 0) {
+                            changeAlertSuccess('#movement-optional-fields');
                         }
                     }
 

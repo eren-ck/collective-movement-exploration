@@ -15,29 +15,35 @@ import {
 } from './spatial_view/spatial_view';
 
 import {
-    showNetworkHierarchy
+    showNetworkHierarchy,
+    networkColor
 } from './network.js';
+
+import {
+    standardDeviation
+} from './helpers.js';
 
 let zoomGroup; // zoom group for the specific dendrogram
 let treemap;
 let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
 let svgLegend;
+let hierarchyLevels = {};
+let setOperation = 'union';
+let id; // needed for the collapse function
+//Static color scale for the dendrogram variacne coloring
+let standardDeviationColorScale = d3.scaleThreshold()
+    .domain(
+        [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
+    )
+    .range(['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b']);
 
 export const maxNumberHierarchies = 4;
 export let networkHierarchyIds = [];
-
-let hierarchyLevels = {};
-let hierarchyColors = {};
-
-let setOperation = 'union';
-
+export let hierarchyColors = {};
+export let hierarchyGroupStdev = {};
 // TODO add more colors
-let colors = ['#7fc97f', '#e7298a', '#ff9900', '#386cb0'];
-
-// for the concave hull
-// let concaveHull = d3.concaveHull().distance(10000);
-// which level of the hierarchy is visualized
+export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
 
 /**
  * Initialize the dendrogram
@@ -73,6 +79,8 @@ export function initDendrogram() {
         .classed('svg-content-dendrogram', true)
         .call(zoom);
 
+    initDendrogramLegend();
+
     // append the zoom group to the svg
     zoomGroup = svg.append('g')
         .attr('transform', 'translate(' + margin + ',' + margin + ')')
@@ -80,7 +88,7 @@ export function initDendrogram() {
 
     // d3 tree
     treemap = d3.tree() //d3.cluster()
-        .size([(height - margin), (width - margin)]);
+        .size([(height - 10 * margin), (width - 10 * margin)]);
 
     // set the spatial view - needed to add the clustering to the spatial view window
     spatialView = d3.select('.tank');
@@ -150,16 +158,18 @@ export function initDendrogram() {
  */
 export function drawDendrogram() {
     // get the active dendrogram
-    let id = $('.show-dendrogram.btn-primary').attr('data');
-
+    id = $('.show-dendrogram.btn-primary').attr('data');
     // if data is avaiable draw hierarchy clusters and a button is active selcted
     if (!$.isEmptyObject(networkHierarchy) && id) {
-
         // get the data and transform it
         let treeData = networkHierarchy['h' + id][indexTime];
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
         });
+        // skip the root node
+        nodes = nodes.children[0];
+        // collapse the tree
+        nodes.children.forEach(collapse);
 
         // maps the node data to the tree layout
         nodes = treemap(nodes);
@@ -214,15 +224,18 @@ export function drawDendrogram() {
             nodeEnter.append('circle')
                 .attr('r', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 40;
+                        return 40 + d.data.name.length;
                     } else {
-                        return 20;
+                        return 20 + d.data.name.length;
                     }
                 })
                 .attr('class', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
                         return 'active-level';
                     }
+                })
+                .attr('id', function(d) {
+                    return 'h' + d['data']['name'].toString().hashCode();
                 })
                 // TODO find a nice function for the on click method
                 .on('click', click)
@@ -233,30 +246,25 @@ export function drawDendrogram() {
                         .style('top', (d3.event.pageY + 5) + 'px')
                         .style('opacity', 1);
                     tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
-                    // highlight in the spatial view
-                    //TODO make this work again
-                    // console.log('#hp' + d['data']['name'].join(''));
-                    // spatialView.select('#hp' + d['data']['name'].join(''))
-                    // .classed('highlight-hierarchy', true);
-                    // highlight each animal in the cluster in the spatial view
-                    for (let i = 0; i < d['data']['name'].length; i++) {
-                        spatialView.select('#animal-' + d['data']['name'][i])
-                            .style('fill', '#c51b7d');
-                    }
+                    // add highlight in the spatial view
+                    // the undion of the paths makes this complicated
+                    addHighlightSpatialView(d['data']['name']);
                 })
-                .on('mouseout', function(d) {
+                .on('mouseout', function() {
                     tooltipDiv.transition()
                         .duration(500)
                         .style('opacity', 0);
                     // remove highlight in the spatial view
-                    // TODO make this work again
-                    // spatialView.select('#hp' + d['data']['name'].join(''))
-                    // .classed('highlight-hierarchy', false);
-                    // remove highlight each animal in the cluster in the spatial view
-                    for (let i = 0; i < d['data']['name'].length; i++) {
-                        spatialView.select('#animal-' + d['data']['name'][i])
-                            .style('fill', '#000');
-                    }
+                    removeHighlightSpatialView();
+                });
+
+            // add the text - # number of animals in the cluster
+            nodeEnter.append('text')
+                .attr('class', 'dendrogram-text')
+                .attr('x', 150)
+                .attr('y', -150)
+                .text(function(d) {
+                    return d.data.name.length;
                 });
 
             // UPDATE -- update the groups
@@ -274,27 +282,85 @@ export function drawDendrogram() {
                 .select('circle')
                 .attr('r', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 40;
+                        return 40 + d.data.name.length;
                     } else {
-                        return 20;
+                        return 20 + d.data.name.length;
                     }
                 })
                 .attr('class', function(d) {
                     if (d['depth'] === hierarchyLevels['h' + id]) {
+                        // console.log('active-level');
+                        // console.log(('h' + d['data']['name'].toString().hashCode()));
                         return 'active-level';
                     } else {
                         return '';
                     }
+                })
+                .attr('id', function(d) {
+                    return 'h' + d['data']['name'].toString().hashCode();
+                });
+
+            // update the text of number of entities
+            node.select('text')
+                .text(function(d) {
+                    return d.data.name.length;
                 });
 
             // EXIT
             node.exit()
                 .remove();
+
+            // color the dendrogram nodes using the standardDeviation in the cluster
+            if (Object.keys(hierarchyGroupStdev).length) {
+                // show the legend for the coloring
+                // console.log(hierarchyGroupStdev);
+                // TODO legend here
+                // console.log('JUMPS HERE');
+                if ($('#dendrogram-legend').css('display') == 'none') {
+                    $('#dendrogram-legend').show();
+                }
+                // IMPORTANT - async problems
+                // TODO solve this - very slow
+                setTimeout(function() {
+                    node.select('circle')
+                        .style('fill', function(d) {
+                            // console.log(hierarchyGroupStdev);
+                            // console.log(('h' + d['data']['name'].toString().hashCode()));
+                            // console.log(('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev)
+                            // color the nodes by calculating the standardDeviation
+                            // for each cluster
+                            // only active is show in cluster is choosen
+                            if (('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev) {
+                                // console.log('hello');
+                                // console.log(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
+                                return standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
+                            } else if (d['depth'] !== hierarchyLevels['h' + id]) {
+                                return '';
+                            } else {
+                                return '#000';
+                            }
+                        });
+                }, 250);
+            } else if ($('#dendrogram-legend').css('display') !== 'none') {
+                $('#dendrogram-legend').hide();
+            }
         }
     }
     if (!$.isEmptyObject(networkHierarchy)) {
         // draw the hierarchy in spatial view
         drawHierarchy();
+    }
+}
+
+/**
+ * Collapse function - only show the active level and one sub level
+ */
+function collapse(d) {
+    if (d.children && d.depth <= hierarchyLevels['h' + id]) {
+        d._children = d.children;
+        d._children.forEach(collapse);
+    } else {
+        d.children = null;
     }
 }
 
@@ -329,7 +395,11 @@ function drawHierarchy() {
 
     // if more than 2 hierarchies are drawn
     if (hierarchyVertices.length > 0) {
-        // console.log(hierarchyVertices);
+        // union the list of polygons to one polygon
+        for (let i = 0; i < hierarchyIds.length; i++) {
+            hierarchyVertices[i] = unionPolygons(hierarchyVertices[i]);
+        }
+
         // transform and calculate the intersection polygons of the n hierarchies
         if (setOperation === 'intersection') {
             // temp solution of two intersections
@@ -347,31 +417,63 @@ function drawHierarchy() {
                 // convert it again
                 tmpIntersection = tmpIntersection['regions'];
             }
+
             // result
             hierarchyVertices = [tmpIntersection];
         }
         // transform and calculate the symmetric difference polygons of the n hierarchies
         else if (setOperation === 'sym-difference') {
-            // temp solution of the symmetric difference
-            let tmpDifference = hierarchyVertices[0];
-            // iterate over the hierarchies
+            // xor = Union of all hierarchies - intersection of all hierarchies
+            // temp solution of two intersections
+            let tmpIntersection = hierarchyVertices[0];
+            // iterate over the hierarchies and intersect all of them
             for (let i = 1; i < hierarchyVertices.length; i++) {
-                // symmetric difference
-                tmpDifference = PolyBool.xor({
-                    regions: tmpDifference, // list of regions
+                // intersection
+                tmpIntersection = PolyBool.intersect({
+                    regions: tmpIntersection, // list of regions
                     inverted: false // is this polygon inverted?
                 }, {
                     regions: hierarchyVertices[i],
                     inverted: false
                 });
                 // convert it again
-                tmpDifference = tmpDifference['regions'];
+                tmpIntersection = tmpIntersection['regions'];
             }
+            // intersection result
+            let intersectionHierarchyPolygons = tmpIntersection;
+
+            // union
+            let tmpUnion = hierarchyVertices[0];
+            // iterate over the hierarchies and intersect all of them
+            for (let i = 1; i < hierarchyVertices.length; i++) {
+                // intersection
+                tmpUnion = PolyBool.union({
+                    regions: tmpUnion, // list of regions
+                    inverted: false // is this polygon inverted?
+                }, {
+                    regions: hierarchyVertices[i],
+                    inverted: false
+                });
+                // convert it again
+                tmpUnion = tmpUnion['regions'];
+            }
+            let unionHierarchyPolygons = tmpUnion;
+
+
+            // symmetric difference
+            let tmpDifference = PolyBool.xor({
+                regions: unionHierarchyPolygons, // list of regions
+                inverted: false // is this polygon inverted?
+            }, {
+                regions: intersectionHierarchyPolygons,
+                inverted: false
+            });
+            // convert it again
+            tmpDifference = tmpDifference['regions'];
             // result
             hierarchyVertices = [tmpDifference];
         }
     }
-
 
     // DATA Join
     let hierarchies = spatialView
@@ -396,7 +498,8 @@ function drawHierarchy() {
         })
         .attr('stroke', function(d, i) {
             return hierarchyColors['h' + hierarchyIds[i]];
-        });
+        })
+        .moveToBack();
 
     // UPDATE - the class needed for intersection and symmetric difference
     hierarchies.attr('class', function(d, i) {
@@ -446,6 +549,28 @@ function drawHierarchy() {
     hieraryHulls.exit()
         .remove();
 
+}
+
+/**
+ * Union multiple polygons together - needed or else there will be holes in the intersections
+ * @param {array} polygons - array of array of points
+ */
+function unionPolygons(polygons) {
+    // console.log(polygons);
+    for (let i = 0; i < polygons.length; i++) {
+        polygons[i] = {
+            regions: [polygons[i]],
+            inverted: false // is this polygon inverted?
+        };
+    }
+    // union a list of polygons together
+    let segments = PolyBool.segments(polygons[0]);
+    for (let i = 1; i < polygons.length; i++) {
+        let seg2 = PolyBool.segments(polygons[i]);
+        let comb = PolyBool.combine(segments, seg2);
+        segments = PolyBool.selectUnion(comb);
+    }
+    return PolyBool.polygon(segments)['regions'];
 }
 
 /**
@@ -522,16 +647,10 @@ function getHierarchyVertices(hierarchies) {
             }
         }
         // Andrew montone chain algorithm reutrns for points fewer than 3 null
-        // console.log(vertices);
         if (vertices.length >= 3) {
-            // result.push(d3.polygonHull(vertices));
             result.push(d3.polygonHull(vertices));
-            // concaveHull(vertices).forEach(function(hull) {
-            //     result.push(hull);
-            // });
         }
     });
-    // console.log(result);
     return result;
 }
 
@@ -559,9 +678,18 @@ export function removeHierarchyLevel(hierarchy) {
  * @param {number} hierarchy - Hierarchy can be from [0-3]
  */
 export function setHierarchyColor(hierarchy) {
+    // check if the hierarchy is already shown as network
+    // take the same color
+    for (let key in networkColor) {
+        if (key === ('h' + hierarchy)) {
+            hierarchyColors['h' + hierarchy] = networkColor[key];
+            return;
+        }
+    }
+    // hierarchy is not visualized already as a network
     for (let i = 0; i < colors.length; i++) {
         let tmp_boolean = true;
-        for (var key in hierarchyColors) {
+        for (let key in hierarchyColors) {
             if (hierarchyColors.hasOwnProperty(key)) {
                 if (hierarchyColors[key] === colors[i]) {
                     tmp_boolean = false;
@@ -569,7 +697,20 @@ export function setHierarchyColor(hierarchy) {
             }
         }
         if (tmp_boolean) {
-            hierarchyColors['h' + hierarchy] = colors[i];
+            // check if a network is depicted
+            // if so skip the color which is already choosen for the network
+            if (Object.keys(networkColor).length !== 0) {
+                for (let key in networkColor) {
+                    if (networkColor[key] !== colors[i]) {
+                        hierarchyColors['h' + hierarchy] = colors[i];
+                        return;
+                    }
+                }
+            } else {
+                hierarchyColors['h' + hierarchy] = colors[i];
+                return;
+            }
+
         }
     }
 }
@@ -634,7 +775,7 @@ export function changeHierarchyLegend() {
     let legendSwatchHeight = 20;
 
     // Show or hide the svg element
-    if (Object.keys(hierarchyColors).length !== 0) {
+    if (Object.keys(hierarchyColors).length !== 0 || Object.keys(networkColor).length !== 0) {
         $('#hierarchy-legend-div').show();
     } else {
         $('#hierarchy-legend-div').hide();
@@ -650,7 +791,15 @@ export function changeHierarchyLegend() {
             legendTextData.push($(obj).attr('name'));
         }
     });
-
+    // add the network color
+    if (Object.keys(networkColor).length !== 0) {
+        for (let key in networkColor) {
+            if (legendData.indexOf(networkColor[key]) === -1) {
+                legendData.push(networkColor[key]);
+                legendTextData.push('Network');
+            }
+        }
+    }
     // DATA JOIN
     legend = svgLegend.selectAll('rect.legend')
         .data(legendData);
@@ -704,10 +853,122 @@ export function changeHierarchyLegend() {
 
 }
 
+
+/**
+ * Initialize the dendrogram legend
+ */
+function initDendrogramLegend() {
+    let legendWidth = 550;
+    let legendHeight = 60;
+
+    let dendrogramLegend = d3.select('#dendrogram-panel')
+        .append('svg')
+        .attr('id', 'dendrogram-legend')
+        .attr('width', legendWidth)
+        .attr('height', legendHeight);
+
+    $('#dendrogram-legend').hide();
+
+    let legend; // the color legend
+    let legendText; // color legend text
+    // vars for the legend
+    let legendSwatchWidth = 50;
+    let legendSwatchHeight = 20;
+
+    let legendData = standardDeviationColorScale.range();
+    //TODO change this to better solution
+    let legendTextData = ['low', '', '', '', '', '', '', '', 'high'];
+
+    legend = dendrogramLegend.selectAll('rect.legend')
+        .data(legendData);
+    legendText = dendrogramLegend.selectAll('text.legend-text')
+        .data(legendTextData);
+
+    // ENTER - legend
+    legend
+        .enter()
+        .append('rect')
+        .attr('class', 'legend')
+        .attr('width', legendSwatchWidth)
+        .attr('height', legendSwatchHeight)
+        .attr('y', 0)
+        .attr('x', function(d, i) {
+            return (i * legendSwatchWidth) + 'px';
+        })
+        .style('fill', function(d) {
+            return d;
+        });
+
+    // --------------- Text  -------------------
+    // ENTER - legend text
+    legendText
+        .enter()
+        .append('text')
+        .attr('class', 'legend-text')
+        .attr('y', 2 * legendSwatchHeight)
+        .attr('x', function(d, i) {
+            return (i * legendSwatchWidth) + 'px';
+        })
+        .text(function(d) {
+            return d;
+        });
+}
+
 /**
  * Set the set operation
  * @param {string} operation - e.g. "union" "intersection" "sym-difference"
  */
 export function setSetOperation(value) {
     setOperation = value;
+}
+
+/**
+ * Set the hierarchy group standard deviation
+ * @param {String} key - unique hash id for the group
+ * @param {number} value - unique hash id for the group
+ */
+export function sethierarchyGroupStdev(key, value) {
+    if (key in hierarchyGroupStdev) {
+        hierarchyGroupStdev[key].push(value);
+    } else {
+        hierarchyGroupStdev[key] = [value];
+    }
+}
+
+/**
+ * Reset hierarchy group standard deviation
+ */
+export function resethierarchyGroupStdev() {
+    hierarchyGroupStdev = {};
+}
+
+/**
+ * Highlight a subset of animals in the spatial view
+ * @param {array} animals - array of animal ids which have to be highlighted
+ */
+export function addHighlightSpatialView(animals) {
+    // points to calculate the convex hull of the highlight cluster
+    let vertices = [];
+    // iterate through the objects in the cluster
+    // get the points and highlight the animals
+    for (let i = 0; i < animals.length; i++) {
+        let tmpAnimal = spatialView.select('#animal-' + animals[i]);
+        let point = tmpAnimal.data()[0]['p'];
+        vertices.push([point[0], -point[1]]);
+
+        tmpAnimal.classed('animal-highlight', true);
+    }
+    // add a polygon hull in the spatial view
+    spatialView.append('path')
+        .attr('class', 'highlight-hierarchy')
+        .attr('d', ('M' + d3.polygonHull(vertices).join('L') + 'Z'));
+}
+
+/**
+ * Remove the highlight in the spatial view
+ */
+export function removeHighlightSpatialView() {
+    // remove the coloring and the hierarchy highlight hull
+    d3.selectAll('.animal').classed('animal-highlight', false);
+    d3.selectAll('.highlight-hierarchy').remove();
 }

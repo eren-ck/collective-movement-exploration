@@ -1,16 +1,12 @@
-{
-	"parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true
-        }
-    },
+module.exports = {
     "env": {
         "browser": true,
-        "commonjs": true
+        "es6": true
     },
     "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module"
+    },
     "rules": {
         "linebreak-style": [
             "error",
@@ -25,4 +21,4 @@
             "always"
         ]
     }
-}
+};
