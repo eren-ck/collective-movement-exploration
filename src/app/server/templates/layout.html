@@ -29,67 +29,37 @@
 <body>
 {% block page_body %}
 <div class="container">
-    <nav class="navbar navbar-default" role="navigation">
 
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#admin-navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            {% block brand %}
-            <a class="navbar-brand" href="/">Collective Movement Exploration</a>
-            {% endblock %}
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+        <h5 class="my-0 mr-md-auto font-weight-normal">
+            <a class="text-dark" href="/">Collective Movement Exploration</a>
+        </h5>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/contact">Contact</a>
+        </nav>
 
-        </div>
 
-        <!-- navbar content -->
-        <div class="collapse navbar-collapse" id="admin-navbar-collapse">
+        {% if current_user.is_authenticated %}
 
-            <ul class="nav navbar-nav">
-                <!--<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"-->
-                <!--aria-haspopup="true" aria-expanded="false"> Explore <span class="caret"></span></a>-->
-                <!--<ul class="dropdown-menu">-->
-                <!--<li><a href="#">Golden Shiners</a></li>-->
-                <!--<li role="separator" class="divider"></li>-->
-                <!--<li><a href="#">Animal 2</a></li>-->
-                <!--<li role="separator" class="divider"></li>-->
-                <!--<li><a href="#">Animal 3</a></li>-->
-                <!--</ul>-->
-                <!--</li>-->
-                <li><a href="/contact">Contact</a></li>
-            </ul>
+        <a href="#" class="dropdown-toggle text-dark" data-toggle="dropdown" role="button" aria-expanded="false">
+            <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+            {% if current_user.first_name -%}
+            {{ current_user.first_name }}
+            {% else -%}
+            {{ current_user.email }}
+            {%- endif %}<span class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+            <li><a class="text-dark" href="/admin">My Area</a></li>
+            <li><a class="text-dark" href="{{ url_for('security.logout') }}">Log out</a></li>
+        </ul>
 
-            <div class="navbar-text btn-group pull-right">
-                {% if current_user.is_authenticated %}
+        {% else %}
+        <a class="btn btn-primary btn-sm" href="{{ url_for('security.login') }}">login</a>
+        {% endif %}
 
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                    {% if current_user.first_name -%}
-                    {{ current_user.first_name }}
-                    {% else -%}
-                    {{ current_user.email }}
-                    {%- endif %}<span class="caret"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="/admin">My Area</a></li>
-                    <li><a href="{{ url_for('security.logout') }}">Log out</a></li>
-                </ul>
-
-                {% else %}
-                <a class="btn btn-primary btn-sm" href="{{ url_for('security.login') }}">login</a>
-                {% endif %}
-            </div>
-
-            {% block access_control %}
-            {% endblock %}
-        </div>
-    </nav>
-
+    </div>
     {% block messages %}
     {% endblock %}
-
 
     {% block body %}{% endblock %}
 </div>
@@ -99,7 +69,7 @@
     {% block footer %}
     <div class="container">
         <hr>
-        <p>© 2017</p>
+        <p>© 2018</p>
     </div>
     {% endblock %}
 
@@ -110,10 +80,8 @@
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="{{url_for('static', filename='jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='popper.min.js')}}"></script>
 <script src="{{url_for('static', filename='bootstrap.min.js')}}"></script>
-<script>
-
-</script>
 
 {% endblock %}
 
