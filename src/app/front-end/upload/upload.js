@@ -5,8 +5,11 @@ import './upload.css';
 
 //disable the submit button
 disableSubmitButton();
-$('#metadata').val('');
-$('#movement').val('');
+$('#upload-form').trigger('reset');
+
+/**
+ * Check input variables form card
+ */
 
 /**
  * Upload form movement file
@@ -389,42 +392,3 @@ $('#submit').click(function() {
     $(this).hide();
     $('#submit-button').removeClass('hidden');
 });
-
-
-// upload from upload-wizard using tab
-$(document).ready(function() {
-    //Initialize tooltips
-    $('.nav-tabs > li a[title]').tooltip();
-
-    //upload-wizard
-    $('a[data-toggle="tab"]').on('show.bs.tab', function(e) {
-
-        let $target = $(e.target);
-
-        if ($target.parent().hasClass('disabled')) {
-            return false;
-        }
-    });
-
-    $('.next-step').click(function() {
-
-        let $active = $('.upload-wizard .nav-tabs li.active');
-        $active.next().removeClass('disabled');
-        nextTab($active);
-
-    });
-    $('.prev-step').click(function() {
-
-        let $active = $('.upload-wizard .nav-tabs li.active');
-        prevTab($active);
-
-    });
-});
-
-function nextTab(elem) {
-    $(elem).next().find('a[data-toggle="tab"]').click();
-}
-
-function prevTab(elem) {
-    $(elem).prev().find('a[data-toggle="tab"]').click();
-}

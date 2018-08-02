@@ -6,8 +6,11 @@ from flask import Flask, render_template, url_for, redirect, request
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import helpers as admin_helpers
 
-# from view.admin_view import MyAdminView
 from view.center_view import MyCenterView
+
+from view.upload_view import upload_page
+
+# from view.admin_view import MyAdminView
 # from view.file_view import MyFileAdminView
 # from view.dataset_view import MyDatasetView
 # from view.network_view import MyNetworkView
@@ -136,6 +139,8 @@ def get_dataset_suggested_parameters(dataset_id):
 # Class based views
 app.add_url_rule('/center/', view_func=MyCenterView.as_view('center_view'))
 
+# Register Blueprints
+app.register_blueprint(upload_page)
 
 @app.errorhandler(404)
 def page_not_found(error):

@@ -1,0 +1,368 @@
+{% extends 'layout.html' %}
+{% from "formhelpers.html" import render_field %}
+
+{% block head_css %}
+{{ super() }}
+{% endblock %}
+
+{% block body %}
+
+{% block header %}<h2>{{ header_text }}</h2>{% endblock %}
+
+<div class="container main-container">
+    <div class="row">
+        <section>
+            <div class="upload-wizard">
+                <h3>Upload wizard</h3>
+                <hr>
+
+                <form action="" method="POST" role="form" class="admin-form form-horizontal" id="upload-form"
+                      enctype="multipart/form-data">
+
+                    <div class="row">
+                        <!--Input variables -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <h5 class="card-header">
+                                    Input Variables
+                                    <button class="btn btn-secondary btn-sm float-right" data-toggle="modal"
+                                            data-target="#environmenttModal">
+                                        Info
+                                    </button>
+                                </h5>
+
+                                <div class="card-body">
+                                    {{ render_field(form.name, placeholder='Dataset name', required="required") }}
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Origin</strong>
+                                            <br>
+                                            {{ render_field(form.origin_x, placeholder='0.0', required="required") }}
+                                            {{ render_field(form.origin_y, placeholder='0.0', required="required")}}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Min</strong>
+                                            <br>
+                                            {{ render_field(form.min_x, placeholder='0.0', required="required") }}
+                                            {{ render_field(form.min_y, placeholder='0.0', required="required")}}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Max</strong>
+                                            <br>
+                                            {{ render_field(form.max_x, placeholder='0.0', required="required")}}
+                                            {{ render_field(form.max_y, placeholder='0.0', required="required")}}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Invert Coordinate System</strong>
+                                            <br>
+                                            {{ render_field(form.inverted_x) }}
+                                            {{ render_field(form.inverted_y) }}
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            {{ render_field(form.fps, required="required") }}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <h5 class="card-header">
+                                    Input Files
+                                    <button class="btn btn-secondary btn-sm float-right" data-toggle="modal"
+                                            data-target="#filesModal">
+                                        Info
+                                    </button>
+                                </h5>
+                                <div class="card-body">
+
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="card">
+                                                <h5 class="card-header">
+                                                    <span class="required"> Movement File </span>
+                                                </h5>
+                                                <div class="card-body">
+                                                    <p class="card-text">{{ form.movement }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="card">
+                                                <h5 class="card-header">
+                                                    <i>Optional Reference File</i>
+                                                </h5>
+                                                <div class="card-body">
+                                                    <p class="card-text">{{ form.metadata }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="card">
+                                                <h5 class="card-header">
+                                                    <i>Optional Background Image</i>
+                                                </h5>
+                                                <div class="card-body">
+                                                    <p class="card-text"> {{ form.background_image }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <hr>
+
+                    {{form.hidden_tag()}}
+                    <div class="form-group pull-right">
+                        <div class="submit-row">
+                            {{render_field(form.submit, class="btn btn-primary btn-lg", value="Upload" )}}
+                        </div>
+                        <button class="btn btn-default btn-lg pull-right hidden" id="submit-button">
+                            Uploading ...
+                            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                        </button>
+                    </div>
+
+
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+<!-- Modal - information metadata file  -->
+
+
+<div class="modal fade" id="filesModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Supported File Formats</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+                <h5>Movement File </h5>
+                The movement file has to be a CSV file. This upload form checks if the CSV file is in the
+                right
+                format and also beforehand if there is missing data or missing columns. The uploaded file
+                extension has
+                to be '.csv'.
+                <br><br>
+                The uploaded file has to have four columns:
+
+                <ul>
+                    <li>
+                        <strong>
+                            Animal_id:
+                        </strong>
+                        An individual identifier (tag) for the animal.
+                    </li>
+                    <li>
+                        <strong>
+                            Time:
+                        </strong>
+                        The time the animal position was measured. This has to be integer (normally frame
+                        number).
+                    </li>
+                    <li>
+                        <strong>
+                            X:
+                        </strong>
+                        The x value in the local coordinate system.
+                    </li>
+                    <li>
+                        <strong>
+                            Y:
+                        </strong>
+                        The y value in the local coordinate system.
+                    </li>
+                    <li>
+                        <i>Optional</i>
+                        <strong>
+                            direction:
+                        </strong>
+                        Moving direction of the animal in degree between [-180°, 180°]
+                    </li>
+                    <li>
+                        <i>Optional</i>
+                        <strong>
+                            midline_offset:
+                        </strong>
+                        Midline offset of the animal
+                    </li>
+                </ul>
+                <br><br>
+
+                Two example files could look like this:
+                <hr>
+                <samp>
+                    Animal_id,Time,X,Y <br>
+                    0,0,102.5,22 <br>
+                    0,1,102.9,23.5 <br>
+                    0,2,103,24.124 <br>
+                    ... <br>
+
+                </samp>
+
+                <hr>
+                <samp>
+                    Animal_id,Time,X,y,direction,midline_offset<br>
+                    0,0,102.5,22,120,0.541<br>
+                    0,1,102,23,118,0.58<br>
+                    0,2,102,24,116,0.61<br>
+                    0,3,103,25,114,0.71<br>
+                    0,4,104,26,112,0.72<br>
+                    ... <br>
+
+                </samp>
+                <br>
+                <hr>
+                <br>
+                <h5>Reference File </h5>
+
+                The reference file has to be a CSV file. This upload form checks if the CSV file is in the
+                right
+                format and also beforehand if there is missing data or missing columns. The uploaded file
+                extension has
+                to be '.csv'.
+                <br><br>
+                The uploaded file has to have five columns:
+
+                <ul>
+                    <li>
+                        <strong>
+                            Animal_id:
+                        </strong>
+                        An individual identifier (tag) for the animal.
+                    </li>
+                    <li>
+                        <strong>
+                            Species:
+                        </strong>
+                        The scientific name of the species which was tracked.
+                    </li>
+                    <li>
+                        <strong>
+                            Sex:
+                        </strong>
+                        The sex of the animal.
+                    </li>
+                    <li>
+                        <strong>
+                            Size:
+                        </strong>
+                        The size of the animal.
+                    </li>
+                    <li>
+                        <strong>
+                            Weight:
+                        </strong>
+                        The weight of the animal.
+                    </li>
+                </ul>
+                <br><br>
+
+                An example 'test-refence.csv' file could look like this:
+                <hr>
+                <samp>
+                    animal_id,species,sex,size,weight<br>
+                    1,"Stickleback","male","15.8","200"<br>
+                    2,"Stickleback","male","14.8","210"<br>
+                    3,"Stickleback","female","15.3","205"<br>
+                    ...<br>
+                </samp>
+
+                <br>
+                <hr>
+                <br>
+                <h5>Background image</h5>
+                Optional background image which is depcited later in the exploration view.
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal - information environment variables definition -->
+<div class="modal fade" id="environmenttModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Environment definitions information</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+                The environment variables are:
+
+                <ul>
+                    <li>
+                        <strong>
+                            Origin X,Y:
+                        </strong>
+                        Coordinate system origin - default is (0,0).
+                    </li>
+                    <li>
+                        <strong>
+                            Min X,Y:
+                        </strong>
+                        Minimum values for x and y (automatically extracted).
+                    </li>
+                    <li>
+                        <strong>
+                            Max X,Y:
+                        </strong>
+                        Maximum values for x and y (automatically extracted).
+
+                    </li>
+                    <li>
+                        <strong>
+                            Inverted coordinate system:
+                        </strong>
+                        Define if the cartesian coordinate system is inverted.
+                    </li>
+                    <li>
+                        <strong>
+                            FPS (Frames per second):
+                        </strong>
+                        Frame rate aka frame frequency. Required to calculate multiple features, e.g. speed
+                        per second.
+                        This is depending on the video camera. If your time is in seconds, please enter 60
+                        to calculate
+                        for instance the speed per minute instead of speed per second.
+                    </li>
+                </ul>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block tail_js %}
+{{ super() }}
+<script src="{{url_for('static', filename='papaparse.min.js')}}"></script>
+<script src="{{url_for('static', filename='upload.js')}}"></script>
+{% endblock %}

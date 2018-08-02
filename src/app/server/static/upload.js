@@ -78,8 +78,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 //disable the submit button
 disableSubmitButton();
-$('#metadata').val('');
-$('#movement').val('');
+$('#upload-form').trigger('reset');
+
+/**
+ * Check input variables form card
+ */
 
 /**
  * Upload form movement file
@@ -463,45 +466,6 @@ $('#submit').click(function() {
     $('#submit-button').removeClass('hidden');
 });
 
-
-// upload from upload-wizard using tab
-$(document).ready(function() {
-    //Initialize tooltips
-    $('.nav-tabs > li a[title]').tooltip();
-
-    //upload-wizard
-    $('a[data-toggle="tab"]').on('show.bs.tab', function(e) {
-
-        let $target = $(e.target);
-
-        if ($target.parent().hasClass('disabled')) {
-            return false;
-        }
-    });
-
-    $('.next-step').click(function() {
-
-        let $active = $('.upload-wizard .nav-tabs li.active');
-        $active.next().removeClass('disabled');
-        nextTab($active);
-
-    });
-    $('.prev-step').click(function() {
-
-        let $active = $('.upload-wizard .nav-tabs li.active');
-        prevTab($active);
-
-    });
-});
-
-function nextTab(elem) {
-    $(elem).next().find('a[data-toggle="tab"]').click();
-}
-
-function prevTab(elem) {
-    $(elem).prev().find('a[data-toggle="tab"]').click();
-}
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -542,7 +506,7 @@ exports = module.exports = __webpack_require__(3)(undefined);
 
 
 // module
-exports.push([module.i, "    /* Drag and drop upload */\r\n\r\n    .drop {\r\n        position: relative;\r\n        width: 300px;\r\n        height: 200px;\r\n        border: 4px dashed #E0E0E0;\r\n    }\r\n\r\n    .drop:hover {\r\n        box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.1);\r\n        border: 4px dashed #737373;\r\n    }\r\n\r\n    .drop p {\r\n        width: 100%;\r\n        text-align: center;\r\n        line-height: 130px;\r\n        color: #333;\r\n    }\r\n\r\n    .drop span {\r\n        top: 50px;\r\n        width: 100%;\r\n        font-size: 2.5em;\r\n        text-align: center;\r\n        color: #D9D9D9;\r\n    }\r\n\r\n    .drop input {\r\n        position: absolute;\r\n        margin: 0;\r\n        padding: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        outline: none;\r\n        opacity: 0;\r\n    }\r\n\r\n    .blue {\r\n        box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.1);\r\n        border: 4px dashed #337ab7;\r\n    }\r\n\r\n    .dropped {\r\n        color: #333 !important;\r\n    }\r\n\r\n    .panel-heading .accordion-toggle:after {\r\n        font-family: 'Glyphicons Halflings';\r\n        content: \"\\E114\";\r\n        float: right;\r\n        color: grey;\r\n    }\r\n\r\n    .panel-heading .accordion-toggle.collapsed:after {\r\n        content: \"\\E080\";\r\n    }\r\n\r\n    .required:after {\r\n        content: \"*\";\r\n        color: #cb181d;\r\n    }\r\n\r\n    .upload-wizard {\r\n        margin: 20px auto;\r\n        background: #fff;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs {\r\n        position: relative;\r\n        margin: 40px auto;\r\n        margin-bottom: 0;\r\n        border-bottom-color: #e0e0e0;\r\n    }\r\n\r\n    .upload-wizard>div.upload-wizard-inner {\r\n        position: relative;\r\n    }\r\n\r\n    .connecting-line {\r\n        height: 2px;\r\n        background: #e0e0e0;\r\n        position: absolute;\r\n        width: 80%;\r\n        margin: 0 auto;\r\n        left: 0;\r\n        right: 0;\r\n        top: 50%;\r\n        z-index: 1;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li.active>a, .upload-wizard .nav-tabs>li.active>a:hover, .upload-wizard .nav-tabs>li.active>a:focus {\r\n        color: #555555;\r\n        cursor: default;\r\n        border: 0;\r\n        border-bottom-color: transparent;\r\n    }\r\n\r\n    span.round-tab {\r\n        width: 70px;\r\n        height: 70px;\r\n        line-height: 70px;\r\n        display: inline-block;\r\n        border-radius: 100px;\r\n        background: #fff;\r\n        border: 2px solid #e0e0e0;\r\n        z-index: 2;\r\n        position: absolute;\r\n        left: 0;\r\n        text-align: center;\r\n        font-size: 25px;\r\n    }\r\n\r\n    span.round-tab i {\r\n        color: #555555;\r\n    }\r\n\r\n    .upload-wizard li.active span.round-tab {\r\n        background: #fff;\r\n        border: 2px solid #337ab7;\r\n    }\r\n\r\n    .upload-wizard li.active span.round-tab i {\r\n        color: #337ab7;\r\n    }\r\n\r\n    span.round-tab:hover {\r\n        color: #333;\r\n        border: 2px solid #333;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li {\r\n        width: 25%;\r\n    }\r\n\r\n    .upload-wizard li:after {\r\n        content: \" \";\r\n        position: absolute;\r\n        left: 46%;\r\n        opacity: 0;\r\n        margin: 0 auto;\r\n        bottom: 0px;\r\n        border: 5px solid transparent;\r\n        border-bottom-color: #337ab7;\r\n        transition: 0.1s ease-in-out;\r\n    }\r\n\r\n    .upload-wizard li.active:after {\r\n        content: \" \";\r\n        position: absolute;\r\n        left: 46%;\r\n        opacity: 1;\r\n        margin: 0 auto;\r\n        bottom: 0px;\r\n        border: 10px solid transparent;\r\n        border-bottom-color: #337ab7;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li a {\r\n        width: 70px;\r\n        height: 70px;\r\n        margin: 20px auto;\r\n        border-radius: 100%;\r\n        padding: 0;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li a:hover {\r\n        background: transparent;\r\n    }\r\n\r\n    .upload-wizard .tab-pane {\r\n        position: relative;\r\n        padding-top: 50px;\r\n        border: 1px solid #ccc;\r\n        border-radius: 5px;\r\n        padding: 50px;\r\n    }\r\n\r\n    .upload-wizard h3 {\r\n        margin-top: 0;\r\n    }\r\n\r\n    @media( max-width: 585px) {\r\n        .upload-wizard {\r\n            width: 90%;\r\n            height: auto !important;\r\n        }\r\n        span.round-tab {\r\n            font-size: 16px;\r\n            width: 50px;\r\n            height: 50px;\r\n            line-height: 50px;\r\n        }\r\n        .upload-wizard .nav-tabs>li a {\r\n            width: 50px;\r\n            height: 50px;\r\n            line-height: 50px;\r\n        }\r\n        .upload-wizard li.active:after {\r\n            content: \" \";\r\n            position: absolute;\r\n            left: 35%;\r\n        }\r\n    }\r\n\r\n    body.modal-open .main-container {\r\n        filter: blur(3px);\r\n        -webkit-filter: blur(3px);\r\n        -ms-filter: blur(3px);\r\n        filter: url(\"data:image/svg+xml;utf9,<svg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'><filter%20id='blur'><feGaussianBlur%20stdDeviation='3'%20/></filter></svg>#blur\");\r\n        filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');\r\n    }\r\n\r\n    .glyphicon-refresh-animate {\r\n        -animation: spin .7s infinite linear;\r\n        -webkit-animation: spin2 .7s infinite linear;\r\n    }\r\n\r\n    @-webkit-keyframes spin2 {\r\n        from {\r\n            -webkit-transform: rotate(0deg);\r\n        }\r\n        to {\r\n            -webkit-transform: rotate(360deg);\r\n        }\r\n    }\r\n\r\n    @keyframes spin {\r\n        from {\r\n            transform: scale(1) rotate(0deg);\r\n        }\r\n        to {\r\n            transform: scale(1) rotate(360deg);\r\n        }\r\n    }\r\n", ""]);
+exports.push([module.i, ".required:after {\r\n    content: \"*\";\r\n    color: #cb181d;\r\n}", ""]);
 
 // exports
 
