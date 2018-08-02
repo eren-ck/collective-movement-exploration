@@ -13,7 +13,7 @@
     <div class="row">
         <section>
             <div class="upload-wizard">
-                <h3>Upload wizard</h3>
+                <h3>Upload Wizard</h3>
                 <hr>
 
                 <form action="" method="POST" role="form" class="admin-form form-horizontal" id="upload-form"
@@ -22,7 +22,7 @@
                     <div class="row">
                         <!--Input variables -->
                         <div class="col-md-12">
-                            <div class="card">
+                            <div class="card" id="input-variables-card">
                                 <h5 class="card-header">
                                     Input Variables
                                     <button class="btn btn-secondary btn-sm float-right" data-toggle="modal"
@@ -72,7 +72,7 @@
 
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="card">
+                            <div class="card" id="input-files-card">
                                 <h5 class="card-header">
                                     Input Files
                                     <button class="btn btn-secondary btn-sm float-right" data-toggle="modal"
@@ -84,7 +84,7 @@
 
                                     <div class="row">
                                         <div class="col-sm-4">
-                                            <div class="card">
+                                            <div class="card" id="movement-file-card">
                                                 <h5 class="card-header">
                                                     <span class="required"> Movement File </span>
                                                 </h5>
@@ -94,7 +94,7 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-4">
-                                            <div class="card">
+                                            <div class="card" id="reference-file-card">
                                                 <h5 class="card-header">
                                                     <i>Optional Reference File</i>
                                                 </h5>
@@ -104,7 +104,7 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-4">
-                                            <div class="card">
+                                            <div class="card" id="background-image-card">
                                                 <h5 class="card-header">
                                                     <i>Optional Background Image</i>
                                                 </h5>
@@ -114,7 +114,11 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-md-12" id="file-alerts">
 
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -124,14 +128,10 @@
                     <hr>
 
                     {{form.hidden_tag()}}
-                    <div class="form-group pull-right">
+                    <div class="form-group float-right">
                         <div class="submit-row">
-                            {{render_field(form.submit, class="btn btn-primary btn-lg", value="Upload" )}}
+                            {{render_field(form.submit, class="btn btn-secondary btn-lg", value="Upload" )}}
                         </div>
-                        <button class="btn btn-default btn-lg pull-right hidden" id="submit-button">
-                            Uploading ...
-                            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
-                        </button>
                     </div>
 
 

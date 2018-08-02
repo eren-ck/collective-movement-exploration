@@ -76,35 +76,48 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+let inputVariablesBool = false;
+let inputFilesBool = false;
+
 //disable the submit button
-disableSubmitButton();
+triggerSubmitButton();
 $('#upload-form').trigger('reset');
 
 /**
  * Check input variables form card
  */
+$('#input-variables-card').on('change', function() {
+    let empty = $('#input-variables-card').find('input').filter(function() {
+        return this.value === '';
+    });
+    // check if input is emtpy
+    if (empty.length) {
+        inputVariablesBool = false;
+        $('#input-variables-card').removeClass('border-success');
+        $('#input-variables-card').addClass('border-warning');
+    } else {
+        $('#input-variables-card').removeClass('border-warning');
+        $('#input-variables-card').addClass('border-success');
+        inputVariablesBool = true;
+    }
+    triggerSubmitButton();
+});
 
 /**
  * Upload form movement file
  */
 $('#movement').on('change', function() {
-    //reset the movement alert fields
-    changeAlertWarning('#movement-is-csv');
-    changeAlertWarning('#movement-correct-fields');
-    changeAlertWarning('#movement-file-correct');
-    changeAlertWarning('#movement-primary-key');
+    inputFilesBool = false;
+    $('#movement-file-card').removeClass('border-success');
+    $('#movement-file-card').addClass('border-warning');
+
     // allowed extensions
     let fileExtension = ['csv'];
     // check if extension is csv, if not make an alert
     if ($.inArray($(this).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
-        //disable the submit button
-        disableSubmitButton();
-        changeAlertDanger('#movement-is-csv');
+        appendAlertWarning('Movement File', 'The file extension is not csv');
         return;
     }
-
-    // Enable submit button
-    enableSubmitButton();
 
     //check if csv file input is correct
     $('#movement').parse({
@@ -120,8 +133,6 @@ $('#movement').on('change', function() {
                 if (results.meta.fields.length >= 4) {
                     //needed fields
                     let needed_fields = ['animal_id', 'time', 'x', 'y'];
-                    //optional fields
-                    let optional_fields = ['direction', 'midline_offset'];
                     //fields of the csv file
                     let fields = results.meta.fields;
                     // compare the fields - this is case insensitive
@@ -129,36 +140,23 @@ $('#movement').on('change', function() {
                         let query = needed_fields[i];
                         //if the field is missing
                         if (fields.findIndex(item => query === item) < 0) {
-                            alert('The Movement CSV file is missing the field: ' + query);
-                            disableSubmitButton();
-                            changeAlertDanger('#movement-correct-fields');
+                            appendAlertWarning('Movement File', 'The file is missing the the header field ' + query);
                             return;
                         }
                     }
-                    // check if there are any optional fields
-                    for (let i = 0; i < optional_fields.length; i++) {
-                        let query = optional_fields[i];
-                        if (fields.findIndex(item => query === item) > 0) {
-                            changeAlertSuccess('#movement-optional-fields');
-                        }
-                    }
-
                 } // not the correct number of fields in the csv file
                 else {
-                    changeAlertDanger('#movement-correct-fields');
-                    disableSubmitButton();
+                    appendAlertWarning('Movement File', 'The number of header fields is not correct');
                     return;
                 }
                 //check if there are errors
                 if (results.errors.length !== 0) {
-                    alert('ERROR:' + results.errors[0]['message']);
-                    disableSubmitButton();
+                    appendAlertWarning('Movement File', 'ERROR:' + results.errors[0]['message']);
                     return;
                 }
                 //check if empty
                 if (results.data.length === 0) {
-                    changeAlertDanger('#movement-is-csv');
-                    disableSubmitButton();
+                    appendAlertWarning('Movement File', 'File seems to be emtpy');
                     return;
                 }
 
@@ -166,9 +164,7 @@ $('#movement').on('change', function() {
                 // and if there are no empty values
                 for (let i = 0; i < results.data.length; i++) {
                     if (!isNumber(results.data[i])) {
-                        alert('Something is wrong in CSV line ' + (i + 2));
-                        disableSubmitButton();
-                        changeAlertDanger('#movement-file-correct');
+                        appendAlertWarning('Movement File', 'Something is wrong in CSV line ' + (i + 2));
                         return;
                     }
                 }
@@ -204,16 +200,16 @@ $('#movement').on('change', function() {
                     })).size;
                 });
                 if (hasDuplicates) {
-                    changeAlertDanger('#movement-primary-key');
-                    disableSubmitButton();
+                    // TODO change this to ignore or output the specific line
+                    appendAlertWarning('Movement File', 'There are duplicate values in your csv file');
                     return;
                 }
-
                 // great success
-                changeAlertSuccess('#movement-is-csv');
-                changeAlertSuccess('#movement-correct-fields');
-                changeAlertSuccess('#movement-file-correct');
-                changeAlertSuccess('#movement-primary-key');
+                $('#file-alerts').empty();
+                inputFilesBool = true;
+                $('#movement-file-card').removeClass('border-warning');
+                $('#movement-file-card').addClass('border-success');
+                triggerSubmitButton();
             },
             beforeFirstChunk: function(chunk) {
                 //change the header to lowercase to make it case insensitive
@@ -231,24 +227,15 @@ $('#movement').on('change', function() {
  * Upload form metadata file
  */
 $('#metadata').on('change', function() {
-    //reset the movement alert fields
-    changeAlertWarning('#metadata-is-csv');
-    changeAlertWarning('#metadata-correct-fields');
-    changeAlertWarning('#metadata-file-correct');
-    changeAlertWarning('#metadata-primary-key');
+    $('#reference-file-card').removeClass('border-success');
+    $('#reference-file-card').addClass('border-warning');
+
     // allowed extensions
     let fileExtension = ['csv'];
     // check if extension is csv, if not make an alert
     if ($.inArray($(this).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
-        //disable the submit button
-        disableSubmitButton();
-        changeAlertDanger('#metadata-is-csv');
+        appendAlertWarning('Reference File', 'The file extension is not csv');
         return;
-    }
-
-    if ($('#movement').val()) {
-        // Enable submit button
-        enableSubmitButton();
     }
 
     //check if csv file input is correct
@@ -272,29 +259,24 @@ $('#metadata').on('change', function() {
                         let query = needed_fields[i];
                         //if the field is missing
                         if (fields.findIndex(item => query === item) < 0) {
-                            alert('The metadata CSV file is missing the field: ' + query);
-                            disableSubmitButton();
-                            changeAlertDanger('#metadata-correct-fields');
+                            appendAlertWarning('Reference File', 'The file is missing the header field: ' + query);
                             return;
                         }
                     }
 
                 } // not the correct number of fields in the csv file
                 else {
-                    changeAlertDanger('#metadata-correct-fields');
-                    disableSubmitButton();
+                    appendAlertWarning('Reference File', 'The file has not the correct number of header fields');
                     return;
                 }
                 //check if there are errors
                 if (results.errors.length !== 0) {
-                    alert('ERROR:' + results.errors[0]['message']);
-                    disableSubmitButton();
+                    appendAlertWarning('Reference File', 'ERROR:' + results.errors[0]['message']);
                     return;
                 }
                 //check if empty
                 if (results.data.length === 0) {
-                    changeAlertDanger('#metadata-is-csv');
-                    disableSubmitButton();
+                    appendAlertWarning('Reference File', 'The file seems to be empty');
                     return;
                 }
 
@@ -303,18 +285,14 @@ $('#metadata').on('change', function() {
                 for (let i = 0; i < results.data.length; i++) {
                     //check if the id is a number
                     if (!letIsNumber(results.data[i]['animal_id'])) {
-                        alert('Something is wrong in CSV line ' + (i + 2));
-                        disableSubmitButton();
-                        changeAlertDanger('#metadata-file-correct');
+                        appendAlertWarning('Reference File', 'Something is wrong in CSV line ' + (i + 2));
                         return;
                     }
                     //check if there are also no empty or null values
                     for (let key in results.data[i]) {
                         if (results.data[i].hasOwnProperty(key)) {
                             if (!results.data[i][key]) {
-                                alert('Something is wrong in CSV line ' + (i + 2));
-                                disableSubmitButton();
-                                changeAlertDanger('#metadata-file-correct');
+                                appendAlertWarning('Reference File', 'Something is wrong in CSV line ' + (i + 2));
                                 return;
                             }
                         }
@@ -327,16 +305,15 @@ $('#metadata').on('change', function() {
                     return seen.size === seen.add(current['animal_id']).size;
                 });
                 if (hasDuplicates) {
-                    changeAlertDanger('#metadata-primary-key');
-                    disableSubmitButton();
+                    // TODO improve this warning with more information or ignore it
+                    appendAlertWarning('Reference File', 'The file has some duplicate rows');
                     return;
                 }
 
                 // great success
-                changeAlertSuccess('#metadata-is-csv');
-                changeAlertSuccess('#metadata-correct-fields');
-                changeAlertSuccess('#metadata-file-correct');
-                changeAlertSuccess('#metadata-primary-key');
+                $('#file-alerts').empty();
+                $('#reference-file-card').removeClass('border-warning');
+                $('#reference-file-card').addClass('border-success');
             },
             beforeFirstChunk: function(chunk) {
                 //change the header to lowercase to make it case insensitive
@@ -350,17 +327,34 @@ $('#metadata').on('change', function() {
 });
 
 /**
- * Enable sumbit button
+ * Check if the image has the right img extension
  */
-function enableSubmitButton() {
-    $('input[type="submit"]').prop('disabled', false);
-}
+$('#background_image').on('change', function() {
+    $('#background-image-card').removeClass('border-success');
+    $('#background-image-card').addClass('border-warning');
+
+    let fileExtension = ['png', 'jpg', 'jpeg'];
+    if ($.inArray($(this).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
+        appendAlertWarning('Background image', 'Only formats are allowed : ' + fileExtension.join(', '));
+    } else {
+        $('#background-image-card').removeClass('border-warning');
+        $('#background-image-card').addClass('border-success');
+    }
+});
 
 /**
- * Enable sumbit button
+ * Trigger the sumbit button if all required inputs are correct
  */
-function disableSubmitButton() {
-    $('input[type="submit"]').prop('disabled', true);
+function triggerSubmitButton() {
+    if (inputVariablesBool && inputFilesBool) {
+        $('input[type="submit"]').prop('disabled', false);
+        $('input[type="submit"]').removeClass('btn-secondary');
+        $('input[type="submit"]').addClass('btn-success');
+    } else {
+        $('input[type="submit"]').prop('disabled', true);
+        $('input[type="submit"]').removeClass('btn-success');
+        $('input[type="submit"]').addClass('btn-secondary');
+    }
 }
 
 /**
@@ -383,79 +377,15 @@ function letIsNumber(obj) {
     return !isNaN(parseFloat(obj));
 }
 
-/**
- * Drag and drop effects - still minor issues
- * gets stuck sometimes
- */
-let dropCounter = 0;
-$('.drop').bind({
-    dragenter: function(ev) {
-        dropCounter++;
-        $(this).addClass('blue');
-        ev.preventDefault();
-    },
-
-    dragleave: function() {
-        dropCounter--;
-        if (dropCounter === 0) {
-            $(this).removeClass('blue');
-        }
-    },
-    drop: function() {
-        $(this).find('span').addClass('dropped');
-        dropCounter = 0;
-        $(this).removeClass('blue');
-    }
-});
 
 /**
- * Drag and drop movement input
+ * Append alert to the alert div
+ * @param {String} file - the file which contains the error
+ * @param {String} text - alert text
  */
-$('#movement').change(function() {
-    $('#movement-drop-text').text(this.files[0].name);
-    $('#movement + span').addClass('dropped');
-});
-
-
-/**
- * Drag and drop metadata input
- */
-$('#metadata').change(function() {
-    $('#metadata-drop-text').text(this.files[0].name);
-    $('#metadata + span').addClass('dropped');
-});
-
-/**
- * Change alert to Warning
- */
-function changeAlertWarning(sel) {
-    $(sel)
-        .removeClass(function(index, css) {
-            return (css.match(/(^|\s)alert-\S+/g) || []).join(' ');
-        })
-        .addClass('alert-warning');
-}
-
-/**
- * Change alert to danger
- */
-function changeAlertDanger(sel) {
-    $(sel)
-        .removeClass(function(index, css) {
-            return (css.match(/(^|\s)alert-\S+/g) || []).join(' ');
-        })
-        .addClass('alert-danger');
-}
-
-/**
- * Change alert to success
- */
-function changeAlertSuccess(sel) {
-    $(sel)
-        .removeClass(function(index, css) {
-            return (css.match(/(^|\s)alert-\S+/g) || []).join(' ');
-        })
-        .addClass('alert-success');
+function appendAlertWarning(file, text) {
+    $('#file-alerts').empty();
+    $('#file-alerts').append('<div class="alert alert-warning" role="alert"><strong>' + file + ' :</strong> ' + text + ' </div>');
 }
 
 /**
@@ -463,7 +393,7 @@ function changeAlertSuccess(sel) {
  */
 $('#submit').click(function() {
     $(this).hide();
-    $('#submit-button').removeClass('hidden');
+    $('.submit-row').append('Please wait - files are upoaded');
 });
 
 /***/ }),
