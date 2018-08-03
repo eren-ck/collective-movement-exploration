@@ -7,7 +7,6 @@ from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import helpers as admin_helpers
 
 from view.center_view import MyCenterView
-
 from view.upload_view import upload_page
 
 # from view.admin_view import MyAdminView

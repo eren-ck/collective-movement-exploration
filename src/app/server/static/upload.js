@@ -87,6 +87,7 @@ $('#upload-form').trigger('reset');
  * Check input variables form card
  */
 $('#input-variables-card').on('change', function() {
+    console.log('ACAB');
     let empty = $('#input-variables-card').find('input').filter(function() {
         return this.value === '';
     });
@@ -209,6 +210,7 @@ $('#movement').on('change', function() {
                 inputFilesBool = true;
                 $('#movement-file-card').removeClass('border-warning');
                 $('#movement-file-card').addClass('border-success');
+                $('#input-variables-card').change();
                 triggerSubmitButton();
             },
             beforeFirstChunk: function(chunk) {
@@ -314,6 +316,7 @@ $('#metadata').on('change', function() {
                 $('#file-alerts').empty();
                 $('#reference-file-card').removeClass('border-warning');
                 $('#reference-file-card').addClass('border-success');
+                $('#input-variables-card').change();
             },
             beforeFirstChunk: function(chunk) {
                 //change the header to lowercase to make it case insensitive

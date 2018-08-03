@@ -1,6 +1,7 @@
 from flask_security import current_user
 from flask import url_for, redirect, request
 
+
 def user_required(f):
     """Checks whether user is logged in or raises error 401."""
 
