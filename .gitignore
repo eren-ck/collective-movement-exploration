@@ -1,6 +1,9 @@
 src/.idea/*
 src/app/.idea/*
-src/app/files/*
+src/app/server/files/*
+src/app/server/config.py
+src/app/front-end/node_modules/*
+src/tests/vps/data/*
 
 # Compiled source #
 ###################
