@@ -1,9 +1,12 @@
 import math
 import datetime, sys
 import itertools
-from db import *
+import pandas as pd
 from multiprocessing import Pool
+from geoalchemy2 import functions
+import numpy as np
 
+from db import *
 from model.dataset_model import Dataset
 from model.movement_data_model import Movement_data
 
@@ -17,9 +20,8 @@ def calculate_absolute_features(id):
     id -- id of the dataset
 
     """
-    # print('Absolute features started', file=sys.stderr)
-    # print(datetime.datetime.utcnow(), file=sys.stderr)
-
+    # increasing performance of these computations
+    t0 = datetime.datetime.utcnow()
     # create new db session
     session = create_session()
     # get the dataset row from the db
@@ -31,34 +33,71 @@ def calculate_absolute_features(id):
     session.commit()
 
     # tmp query to get all distinct animal ids from the dataset
-    tmp = session.query(Movement_data) \
-        .filter_by(dataset_id=id) \
-        .distinct(Movement_data.animal_id)
+    query = session.query(Movement_data.time, Movement_data.animal_id,
+                          functions.ST_X(Movement_data.position), functions.ST_Y(Movement_data.position)) \
+        .filter_by(dataset_id=id).order_by('time')
+    df = pd.read_sql(query.statement, query.session.bind)
+    grouped_df = df.groupby(['animal_id'])
+    absolute_feature_worker_2(grouped_df)
 
-    # list for the distinct animal ids of the dataset
-    animal_ids = []
-    # save the ids in the list
-    for data in tmp:
-        animal_ids.append(data.animal_id)
-
-    # progress per animal in the loop
-    # this is added to the progress bar after an animal absolute features calculation are finished
-    progress_per_animal = 45 / (len(animal_ids) + 1)
-
-    # Multiprocessing
-    pool_size = 10  # 5 parallel processes
-    pool = Pool(pool_size)
-    # call the absolute_feature_worker method with the needed parameters
-    pool.map(absolute_feature_worker,
-             zip((range(0, len(animal_ids))), itertools.repeat(id), itertools.repeat(animal_ids),
-                 itertools.repeat(progress_per_animal), ))
-    pool.close()
-    # wait until all processes are finished
-    pool.join()
+    # tmp = session.query(Movement_data) \
+    #     .filter_by(dataset_id=id) \
+    #     .distinct(Movement_data.animal_id)
+    #
+    # # list for the distinct animal ids of the dataset
+    # animal_ids = []
+    # # save the ids in the list
+    # for data in tmp:
+    #     animal_ids.append(data.animal_id)
+    #
+    # # progress per animal in the loop
+    # # this is added to the progress bar after an animal absolute features calculation are finished
+    # progress_per_animal = 45 / (len(animal_ids) + 1)
+    #
+    # # Multiprocessing
+    # pool_size = 10  # 5 parallel processes
+    # pool = Pool(pool_size)
+    # # call the absolute_feature_worker method with the needed parameters
+    # pool.map(absolute_feature_worker,
+    #          zip((range(0, len(animal_ids))), itertools.repeat(id), itertools.repeat(animal_ids),
+    #              itertools.repeat(progress_per_animal), ))
+    # pool.close()
+    # # wait until all processes are finished
+    # pool.join()
 
     session.remove()
-    # print('Absolute features finished', file=sys.stderr)
-    # print(datetime.datetime.utcnow(), file=sys.stderr)
+    print("Performance " + str(datetime.datetime.utcnow() - t0) + " secs")
+
+
+def absolute_feature_worker_2(grouped_df):
+    """ Calculate absolute features for one animal. This is called by a pool.
+
+       Keyword arguments:
+       grouped_df - grouped pandas table data frame
+
+       """
+    # for key, item in grouped_df:
+    for key, group in grouped_df:
+        print(grouped_df.get_group(key), "\n\n")
+        df = grouped_df.get_group(key)
+        df = calculate_metric_distance_2(df)
+        print(df)
+        # df['x'] = to_shape(df['position']).x
+        # df['y'] = to_shape(df['position']).y
+        # print(df[['x', 'y']])
+        # [to_shape(self.position).x, to_shape(self.position).y]
+        # df['metric_distance'] = df[['lat', 'long']].sub(np.array(L1)).pow(2).sum(1).pow(0.5)
+
+
+def calculate_metric_distance_2(df):
+    """ Calculate the metric distance between two consecutive frames.
+
+    Keyword arguments:
+    df -- panda dataframe for one animal
+    """
+    df['metric_distance'] = np.sqrt(
+        (df['ST_X_1'] - df['ST_X_1'].shift()) ** 2 + (df['ST_Y_1'] - df['ST_Y_1'].shift()) ** 2)
+    return df.fillna(0)
 
 
 def absolute_feature_worker(tmp):
@@ -83,7 +122,8 @@ def absolute_feature_worker(tmp):
     dataset = session.query(Dataset).filter_by(id=id)
     # needed for speed and acceleration calculation
     fps = dataset[0].fps
-
+    # remove the session
+    session.remove()
     # and extract the absolute features
     try:
         # query the movement data of the animal
@@ -114,7 +154,7 @@ def absolute_feature_worker(tmp):
         session.commit()
         pass
     # remove the session
-    session.remove()
+    # session.remove()
 
 
 def calculate_metric_distance(animal):

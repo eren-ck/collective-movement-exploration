@@ -87,7 +87,6 @@ $('#upload-form').trigger('reset');
  * Check input variables form card
  */
 $('#input-variables-card').on('change', function() {
-    console.log('ACAB');
     let empty = $('#input-variables-card').find('input').filter(function() {
         return this.value === '';
     });
@@ -192,19 +191,6 @@ $('#movement').on('change', function() {
                 $('#max_x').val(maxValues[0]);
                 $('#max_y').val(maxValues[1]);
 
-                // check for duplicate entries
-                let seen = new Set();
-                let hasDuplicates = results.data.some(function(current) {
-                    return seen.size === seen.add(JSON.stringify({
-                        pk1: current['time'],
-                        pk2: current['animal_id']
-                    })).size;
-                });
-                if (hasDuplicates) {
-                    // TODO change this to ignore or output the specific line
-                    appendAlertWarning('Movement File', 'There are duplicate values in your csv file');
-                    return;
-                }
                 // great success
                 $('#file-alerts').empty();
                 inputFilesBool = true;
@@ -300,16 +286,6 @@ $('#metadata').on('change', function() {
                         }
 
                     }
-                }
-                // check for duplicate entries
-                let seen = new Set();
-                let hasDuplicates = results.data.some(function(current) {
-                    return seen.size === seen.add(current['animal_id']).size;
-                });
-                if (hasDuplicates) {
-                    // TODO improve this warning with more information or ignore it
-                    appendAlertWarning('Reference File', 'The file has some duplicate rows');
-                    return;
                 }
 
                 // great success

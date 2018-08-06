@@ -26,6 +26,7 @@ MarkupSafe==1.0
 menuinst==1.4.11
 numpy==1.14.2
 packaging==16.8
+pandas==0.23.0
 passlib==1.7.1
 psutil==5.4.5
 psycopg2==2.7.4

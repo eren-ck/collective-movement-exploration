@@ -149,7 +149,7 @@ def upload_new():
             except Exception as ex:
                 flash(gettext('Failed to save file: %(error)s', error=ex), 'error')
         else:
-            movement_file_filename = ' '
+            metadata_file_filename = ''
         print('Hello world!', file=sys.stderr)
         print('Would start without metadata', file=sys.stderr)
         # call the on file upload method
