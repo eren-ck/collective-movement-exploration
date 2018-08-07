@@ -5,6 +5,7 @@ import pandas as pd
 from multiprocessing import Pool
 from geoalchemy2 import functions
 import numpy as np
+from collections import OrderedDict
 
 from db import *
 from model.dataset_model import Dataset
@@ -37,8 +38,30 @@ def calculate_absolute_features(id):
                           functions.ST_X(Movement_data.position), functions.ST_Y(Movement_data.position)) \
         .filter_by(dataset_id=id).order_by('time')
     df = pd.read_sql(query.statement, query.session.bind)
+    df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
     grouped_df = df.groupby(['animal_id'])
-    absolute_feature_worker_2(grouped_df)
+    df = absolute_feature_worker_2(grouped_df, dataset[0].fps)
+    try:
+        for index, row in df.iterrows():
+            query = Movement_data(dataset_id=id, **OrderedDict(row))
+            session.merge(query)
+
+        # change the progress bar
+        dataset[0].progress = 50
+        # add the data to the database
+        session.commit()
+
+    except Exception as e:
+        # Something went wrong when calculating absolute features
+        print(e)
+        session.rollback()
+        dataset[0].status = 'Error - calculating absolute features ' + str(e)[0:200]
+        dataset[0].error = True
+        session.commit()
+        pass
+
+    session.remove()
+    print("Performance " + str(datetime.datetime.utcnow() - t0) + " secs")
 
     # tmp = session.query(Movement_data) \
     #     .filter_by(dataset_id=id) \
@@ -65,28 +88,29 @@ def calculate_absolute_features(id):
     # # wait until all processes are finished
     # pool.join()
 
-    session.remove()
-    print("Performance " + str(datetime.datetime.utcnow() - t0) + " secs")
 
-
-def absolute_feature_worker_2(grouped_df):
+def absolute_feature_worker_2(grouped_df, fps):
     """ Calculate absolute features for one animal. This is called by a pool.
 
        Keyword arguments:
        grouped_df - grouped pandas table data frame
+       fps - frames per second needed for e.g. speed calculation
 
        """
+    appended_data = []
     # for key, item in grouped_df:
-    for key, group in grouped_df:
-        print(grouped_df.get_group(key), "\n\n")
-        df = grouped_df.get_group(key)
+    for key, df in grouped_df:
+        # compute metric distance
         df = calculate_metric_distance_2(df)
-        print(df)
-        # df['x'] = to_shape(df['position']).x
-        # df['y'] = to_shape(df['position']).y
-        # print(df[['x', 'y']])
-        # [to_shape(self.position).x, to_shape(self.position).y]
-        # df['metric_distance'] = df[['lat', 'long']].sub(np.array(L1)).pow(2).sum(1).pow(0.5)
+        # compute speed
+        df = calculate_speed_2(df, fps)
+        # # compute acceleration
+        df = calculate_acceleration_2(df, fps)
+        # compute direction
+        df = calculate_direction_2(df)
+        appended_data.append(df)
+    appended_data = pd.concat(appended_data, axis=0)
+    return appended_data
 
 
 def calculate_metric_distance_2(df):
@@ -96,7 +120,44 @@ def calculate_metric_distance_2(df):
     df -- panda dataframe for one animal
     """
     df['metric_distance'] = np.sqrt(
-        (df['ST_X_1'] - df['ST_X_1'].shift()) ** 2 + (df['ST_Y_1'] - df['ST_Y_1'].shift()) ** 2)
+        (df['x'] - df['x'].shift()) ** 2 + (df['y'] - df['y'].shift()) ** 2)
+    return df.fillna(0)
+
+
+def calculate_speed_2(df, fps):
+    """
+    Calculate the averaged speed of an animal
+
+    Keyword arguments:
+    df -- panda dataframe for one animal
+    fps -- frames per second needed to calculate the right speed per second
+    """
+    df['speed'] = df['metric_distance'].rolling(min_periods=1, window=fps, center=True).mean()
+    return df.fillna(0)
+
+
+def calculate_acceleration_2(df, fps):
+    """ Calculate the average Acceleration  of an animal .
+
+    Keyword arguments:
+    df -- panda dataframe for one animal
+    fps -- frames per second needed to calculate the right speed per second
+
+    """
+    df['acceleration'] = df['speed'].rolling(min_periods=1, window=fps, center=True).apply(lambda x: x[1] - x[0],
+                                                                                           raw=True)
+    return df.fillna(0)
+
+
+def calculate_direction_2(df):
+    """ Calculate the moving direction of the animal.
+
+    Keyword arguments:
+    animal -- dataset with all time moments
+
+    """
+    df['direction'] = np.rad2deg(np.arctan2(
+        (df['y'] - df['y'].shift()), (df['x'] - df['x'].shift())))
     return df.fillna(0)
 
 
