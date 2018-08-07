@@ -30,15 +30,12 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
     # Calculate the absolute features
     # Starts multiple processes to speed up the calculation
     calculate_absolute_features(id)
-    #
     # # calculate swarm features
-    # calculate_swarm_features(id)
-    #
+    calculate_swarm_features(id)
     # # calculate percentiles
-    # calculate_percentiles(id)
-    #
+    calculate_percentiles(id)
     # # calculate several basic networks for each dataset automatically with the upload
-    # calculate_basic_networks(id)
+    calculate_basic_networks(id)
 
 
 def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
@@ -150,7 +147,7 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         # save the group data
         # build the query
         for elem in group_time:
-            query = Group_data(id, elem)
+            query = Group_data(id, {'time': elem})
             session.merge(query)
             session.flush()
         # execute the query

@@ -30,9 +30,9 @@ class Group_data(db.Model):
     delaunay_triangulation = (db.Column(Geometry('MultiLineString')))
     voronoi_polygons = deferred(db.Column(Geometry('GeometryCollection')))
 
-    def __init__(self, dataset_id, time):
+    def __init__(self, dataset_id, **kwargs):
         self.dataset_id = dataset_id
-        self.time = time
+        self.__dict__.update(kwargs)
 
     def __repr__(self):
         return '(' + str(self.time) + ')'
