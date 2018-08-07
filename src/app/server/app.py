@@ -8,6 +8,7 @@ from flask_admin import helpers as admin_helpers
 
 from view.center_view import MyCenterView
 from view.upload_view import upload_page
+from view.dataset_view import dataset_page
 
 # from view.admin_view import MyAdminView
 # from view.file_view import MyFileAdminView
@@ -140,6 +141,8 @@ app.add_url_rule('/center/', view_func=MyCenterView.as_view('center_view'))
 
 # Register Blueprints
 app.register_blueprint(upload_page)
+app.register_blueprint(dataset_page)
+
 
 @app.errorhandler(404)
 def page_not_found(error):

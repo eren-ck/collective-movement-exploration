@@ -2,7 +2,6 @@ from model.dataset_model import Dataset
 from model.group_data_model import Group_data
 from db import create_session
 
-import math
 from geoalchemy2 import functions
 import pandas as pd
 import numpy as np
