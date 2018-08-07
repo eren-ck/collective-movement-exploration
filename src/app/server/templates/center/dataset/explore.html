@@ -1,5 +1,4 @@
-{% extends 'admin/master.html' %}
-{% import 'admin/lib.html' as lib with context %}
+{% extends 'layout.html' %}
 
 {% block head_css %}
 {{ super() }}
@@ -11,10 +10,6 @@
 {% block body %}
 <script>
     var parameters = {{ parameters | tojson}}
-
-
-
-
 
 </script>
 {{dataset}}

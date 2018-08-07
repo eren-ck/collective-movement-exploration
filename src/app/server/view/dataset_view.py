@@ -2,7 +2,7 @@ import sys
 import os
 import time
 
-from flask import Blueprint, render_template, request, redirect, abort, flash
+from flask import Blueprint, render_template, request, redirect, abort, flash, url_for
 from flask_admin.contrib import sqla
 from flask_security import current_user
 from flask_admin.base import expose
@@ -22,16 +22,6 @@ from helpers.auth import user_required
 
 dataset_page = Blueprint('dataset', __name__, url_prefix='/center/dataset')
 
-# Templates
-# Default list view template
-list_template = 'view/dataset_list.html'
-
-# Default details view template
-explore_template = 'view/dataset_explore.html'
-
-# Default edit template
-edit_template = 'view/dataset_edit.html'
-
 
 class EditForm(FlaskForm):
     """
@@ -48,14 +38,16 @@ class EditForm(FlaskForm):
     inverted_y = BooleanField('Invert y-axis')
     background_image = FileField(u'Background image of the spatial view')
 
+
 @dataset_page.before_request
 @user_required
 def check_user():
     """ Protect to only logged in users of the admin endpoints. """
     pass
 
+
 @dataset_page.route('/')
-def upload_list():
+def dataset_list():
     """
         List the uploaded datasets
     """
@@ -63,107 +55,35 @@ def upload_list():
     return render_template('/center/dataset/list.html', datasets=datasets)
 
 
-
-def on_model_delete(self, model):
+@dataset_page.route('/delete/<dataset_id>')
+def dataset_delete(dataset_id):
     """
-        Perform some actions before a model is deleted.
-
-        Called from delete_model in the same transaction
-        (if it has any meaning for a store backend).
-
-        Only the user who has uploaded the dataset is able to delete it
+        Delete a dataset if the current user is also the owner of the dataset
     """
-    if not (current_user.id == model.user_id):
-        abort(403)
-    pass
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    if dataset is None or current_user.id != dataset.user_id:
+        abort(400, description="This is not your dataset")
+    db.session.delete(dataset)
+    db.session.commit()
+    flash(gettext('Dataset deleted'), 'success')
+    return redirect(url_for('.dataset_list'))
 
 
-def after_model_delete(self, model):
+@dataset_page.route('/edit/<dataset_id>', methods=('GET', 'POST'))
+def dataset_edit(dataset_id):
     """
-        Perform some actions after a model was deleted and
-        committed to the database.
-
-        Delete the csv files movement data and metadata
-
-        :param model:
-            Model that was deleted
+        Edit a dataset if the current user is also the owner of the dataset
     """
-    # get the path to the files folder
-    path_file = os.path.dirname(os.getcwd()) + '\\files\\' + str(current_user.id) + '\\'
-    # print(path_file + model.name + '.csv',
-    #  delete the movement file of the dataset
-    try:
-        os.remove(path_file + model.name + '.csv')
-    except OSError:
-        pass
-    # delete the metadata file of the dataset
-    try:
-        os.remove(path_file + model.name + '_metadata.csv')
-    except OSError:
-        pass
-    pass
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    if dataset is None or current_user.id != dataset.user_id:
+        abort(400, description="You can edit this dataset")
 
-
-@expose('/export/<id>/')
-def export(self, id):
-    """
-        Filter the datasets - only get current user datasets
-
-        :param id:
-        id of the dataset
-    """
-    return self.render('view/dataset_export.html', id=id)
-
-
-def get_query(self):
-    """
-    Filter the datasets - only get current user datasets
-    """
-    return self.session.query(self.model).filter(self.model.user_id == current_user.id)
-
-
-def get_count_query(self):
-    """
-    Number of datasets - only get current user datasets
-    """
-    return self.session.query(sqla.view.func.count('*')).filter(self.model.user_id == current_user.id)
-
-
-@expose('/details/')
-def details_view(self):
-    """
-        Details model view
-    """
-    template = self.details_template
-    id = request.args['id']
-    parameters = db.session.query(Dataset).filter_by(id=id)[0].as_dict()
-
-    return self.render(template, parameters=parameters)
-
-
-@expose('/edit/', methods=('GET', 'POST'))
-def edit_view(self):
-    """
-        Edit model view
-    """
-    return_url = get_redirect_target() or self.get_url('.index_view')
-
-    # if not editable
-    if not self.can_edit:
-        return redirect(return_url)
-
-    # get the requested id
-    id = request.args.get('id')
-    if id is None:
-        return redirect(return_url)
-    # get the dataset of the id
-    dataset = db.session.query(Dataset).filter_by(id=id)[0]
     model = dataset.as_dict()
 
     # empty record
     if model is None:
         flash(gettext('Record does not exist.'), 'error')
-        return redirect(return_url)
+        return redirect(url_for('.dataset_list'))
 
     form = EditForm()
 
@@ -180,19 +100,15 @@ def edit_view(self):
         form.inverted_y.data = model['inverted_y']
         form.background_image.filename = model['background_image']
 
-    if not hasattr(form, '_validated_ruleset') or not form._validated_ruleset:
-        self._validate_form_instance(ruleset=self._form_edit_rules, form=form)
-
     # if post get the data and save it
     if request.method == 'POST':
         form = EditForm(request.form)
 
         if not form.validate():
             flash(form.errors, 'error')
-            return redirect(request.url)
+            return redirect(url_for('.dataset_list'))
 
         # check if background image has the right extension
-        # print('Hello world!', file=sys.stderr)
 
         if request.files['background_image']:
             file = request.files['background_image']
@@ -213,21 +129,36 @@ def edit_view(self):
         db.session.commit()
         # feedback for user
         flash(gettext('Record was successfully saved.'), 'success')
-        if '_add_another' in request.form:
-            return redirect(self.get_url('.create_view', url=return_url))
-        elif '_continue_editing' in request.form:
-            return redirect(request.url)
-        else:
-            # save button
-            return redirect(self.get_save_return_url(model, is_created=False))
+        # save button
+        flash(gettext('Dataset edited'), 'success')
+        return redirect(url_for('.dataset_list'))
 
-    form_opts = FormOpts(widget_args=self.form_widget_args,
-                         form_rules=self._form_edit_rules)
+    return render_template('/center/dataset/edit.html',
+                           model=model,
+                           form=form)
 
-    template = self.edit_template
 
-    return self.render(template,
-                       model=model,
-                       form=form,
-                       form_opts=form_opts,
-                       return_url=return_url)
+@dataset_page.route('/export/<dataset_id>/')
+def dataset_export(dataset_id):
+    """
+        Export the dataset - only get current user datasets
+
+        :param id:
+        id of the dataset
+    """
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    if dataset is None or current_user.id != dataset.user_id:
+        abort(400, description="You can export this dataset")
+    return render_template('/center/dataset/export.html', id=dataset_id)
+
+
+@dataset_page.route('/explore/<dataset_id>/')
+def dataset_explore(dataset_id):
+    """
+        Explore the datasets - only get current user datasets
+
+        :param id:
+        id of the dataset
+    """
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    return render_template('/center/dataset/explore.html', parameters=dataset.as_dict())

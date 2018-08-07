@@ -24,7 +24,7 @@ $(document).ready(function() {
             'Accept': JSONAPI_MIMETYPE
         },
         success: function(data) {
-            $('#export-title').text('Dataset: ' + data[0].name);
+            $('#export-title').text('Export: ' + data[0].name);
         }
     });
 });
@@ -35,7 +35,7 @@ $(document).ready(function() {
  */
 $('#download-movement-data').click(function() {
     // change the button text and icon (loading)
-    $('#download-movement-data').html('Loading... <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>');
+    $('#download-movement-data').html('Loading...></span>');
     $('#download-movement-data').prop('disabled', true);
     $('#download-group-data').prop('disabled', true);
 
@@ -340,7 +340,7 @@ $('#download-group-data').click(function() {
         //download the csv file
         link.click();
         // activate the buttons and change the text again
-        $('#download-group-data').html('Download <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>');
+        $('#download-group-data').html('Download');
         $('#download-movement-data').prop('disabled', false);
         $('#download-group-data').prop('disabled', false);
 

@@ -42,47 +42,11 @@
 }
 
 .material-switch>input[type="checkbox"]:checked+label::after {
+    background: #31a354 !important;
     background: inherit;
     left: 20px;
 }
 
-.border-between>[class*='col-']:before {
-    background: #e3e3e3;
-    bottom: 0;
-    content: " ";
-    left: 0;
-    position: absolute;
-    width: 1px;
-    top: 0;
-}
-
-.border-between>[class*='col-']:first-child:before {
-    display: none;
-}
-
 .hidden {
     display: none;
-}
-
-.glyphicon-refresh-animate {
-    -animation: spin .7s infinite linear;
-    -webkit-animation: spin2 .7s infinite linear;
-}
-
-@-webkit-keyframes spin2 {
-    from {
-        -webkit-transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-    }
-}
-
-@keyframes spin {
-    from {
-        transform: scale(1) rotate(0deg);
-    }
-    to {
-        transform: scale(1) rotate(360deg);
-    }
 }

@@ -48,14 +48,14 @@
         <nav class="my-2 my-md-0 mr-md-3">
             <a class="p-2 text-dark" href="/center/network">Network</a>
         </nav>
-            {% if  current_user.has_role('admin') %}
-            <nav class="my-2 my-md-0 mr-md-3">
-                <a class="p-2 text-dark" href="/center/role">Role</a>
-            </nav>
-            <nav class="my-2 my-md-0 mr-md-3">
-                <a class="p-2 text-dark" href="/center/user">User</a>
-            </nav>
-            {% endif %}
+        {% if current_user.has_role('admin') %}
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/role">Role</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/user">User</a>
+        </nav>
+        {% endif %}
         {% endif %}
 
         <nav class="my-2 my-md-0 mr-md-3">
@@ -73,6 +73,18 @@
 
     </div>
     {% block messages %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <!-- <strong>Title</strong> --> {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
     {% endblock %}
 
     {% block body %}{% endblock %}

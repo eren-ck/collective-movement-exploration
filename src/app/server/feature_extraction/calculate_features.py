@@ -3,6 +3,8 @@ import os
 import sys
 import chardet
 import codecs
+from collections import OrderedDict
+
 from db import create_session
 
 from model.movement_data_model import Movement_data
@@ -35,7 +37,7 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
     # # calculate percentiles
     calculate_percentiles(id)
     # # calculate several basic networks for each dataset automatically with the upload
-    calculate_basic_networks(id)
+    # calculate_basic_networks(id)
 
 
 def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
@@ -147,7 +149,7 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         # save the group data
         # build the query
         for elem in group_time:
-            query = Group_data(id, {'time': elem})
+            query = Group_data(id, **OrderedDict({'time': elem}))
             session.merge(query)
             session.flush()
         # execute the query

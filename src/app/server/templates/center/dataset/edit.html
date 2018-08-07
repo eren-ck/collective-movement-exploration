@@ -1,6 +1,4 @@
-{% extends 'admin/master.html' %}
-{% import 'admin/lib.html' as lib with context %}
-{% from 'admin/lib.html' import extra with context %} {# backward compatible #}
+{% extends 'layout.html' %}
 {% from "formhelpers.html" import render_field %}
 
 {% block head %}
@@ -9,74 +7,114 @@
 {% endblock %}
 
 {% block body %}
-{% block navlinks %}
-<ul class="nav nav-tabs">
-    <li>
-        <a href="{{ return_url }}">{{ _gettext('List') }}</a>
-    </li>
-</ul>
-{% endblock %}
 
-{% block edit_form %}
-
-<form action="" method="POST" role="form" class="admin-form form-horizontal" enctype="multipart/form-data">
-
-    <br>
+<div class="container main-container">
     <div class="row">
-        <div class="col-md-12">
-            {{ render_field(form.name) }}
-        </div>
+        <section>
+            <div class="upload-wizard">
+                <h3>Edit Dataset</h3>
+                <hr>
 
-        <div class="col-md-3">
-            <strong>Origin</strong>
-            <br>
-            {{ render_field(form.origin_x, required="required") }}
-            {{ render_field(form.origin_y, required="required")}}
-        </div>
-        <div class="col-md-3">
-            <strong>Min</strong>
-            <br>
-            {{ render_field(form.min_x, required="required") }}
-            {{ render_field(form.min_y, required="required")}}
-        </div>
-        <div class="col-md-3">
-            <strong>Max</strong>
-            <br>
-            {{ render_field(form.max_x, required="required")}}
-            {{ render_field(form.max_y, required="required")}}
-        </div>
-        <div class="col-md-3">
-            <strong>Invert Coordinate System</strong>
-            <br>
-            {{ render_field(form.inverted_x) }}
-            {{ render_field(form.inverted_y) }}
-        </div>
+                <form action="" method="POST" role="form" class="admin-form form-horizontal" id="upload-form"
+                      enctype="multipart/form-data">
 
-    </div>
+                    <div class="row">
+                        <!--Input variables -->
+                        <div class="col-md-12">
+                            <div class="card" id="input-variables-card">
+                                <h5 class="card-header">
+                                    Input Variables
+                                </h5>
 
-    <div class="row">
-        <div class="col-md-6">
-            {{ render_field(form.background_image) }}
-        </div>
-    </div>
-    {{form.hidden_tag()}}
+                                <div class="card-body">
+                                    {{ render_field(form.name, placeholder='Dataset name', required="required") }}
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Origin</strong>
+                                            <br>
+                                            {{ render_field(form.origin_x, placeholder='0.0', required="required") }}
+                                            {{ render_field(form.origin_y, placeholder='0.0', required="required")}}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Min</strong>
+                                            <br>
+                                            {{ render_field(form.min_x, placeholder='0.0', required="required") }}
+                                            {{ render_field(form.min_y, placeholder='0.0', required="required")}}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Max</strong>
+                                            <br>
+                                            {{ render_field(form.max_x, placeholder='0.0', required="required")}}
+                                            {{ render_field(form.max_y, placeholder='0.0', required="required")}}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Invert Coordinate System</strong>
+                                            <br>
+                                            {{ render_field(form.inverted_x) }}
+                                            {{ render_field(form.inverted_y) }}
+                                        </div>
 
-    <hr>
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10 submit-row">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
 
-            <div class="form-group pull-right">
-                <input class="btn btn-primary" value="Save" type="submit">
-                <a href="/admin/dataset/" class="btn btn-danger" role="button">Cancel</a>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card" id="input-files-card">
+                                <h5 class="card-header">
+                                    Input Files
+                                </h5>
+                                <div class="card-body">
 
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="card" id="background-image-card">
+                                                <h5 class="card-header">
+                                                    <i>Optional Background Image</i>
+                                                </h5>
+                                                <div class="card-body">
+                                                    <p class="card-text"> {{ form.background_image }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12" id="file-alerts">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <hr>
+
+                    {{form.hidden_tag()}}
+
+                    <div class="form-group">
+                        <div class="col-md-offset-2 col-md-10 submit-row">
+
+                            <div class="form-group pull-right">
+                                <input class="btn btn-primary" value="Save" type="submit">
+                                <a href="/center/dataset/" class="btn btn-danger" role="button">Cancel</a>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                </form>
             </div>
-        </div>
+        </section>
     </div>
+</div>
 
-</form>
 
-
-{% endblock %}
 {% endblock %}
 
 {% block tail %}

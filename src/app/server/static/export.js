@@ -78,6 +78,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 
+console.log(dataset_id);
 // result data array for absolute feature movement ajax query
 let resultMovement = [];
 // result data array for group feature ajax query
@@ -97,7 +98,7 @@ $(document).ready(function() {
             'Accept': JSONAPI_MIMETYPE
         },
         success: function(data) {
-            $('#export-title').text('Dataset: ' + data[0].name);
+            $('#export-title').text('Export: ' + data[0].name);
         }
     });
 });
@@ -420,7 +421,6 @@ $('#download-group-data').click(function() {
     });
 });
 
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -461,7 +461,7 @@ exports = module.exports = __webpack_require__(3)(undefined);
 
 
 // module
-exports.push([module.i, ".material-switch>input[type=\"checkbox\"] {\r\n    display: none;\r\n}\r\n\r\n.material-switch>label {\r\n    cursor: pointer;\r\n    height: 0px;\r\n    position: relative;\r\n    width: 40px;\r\n}\r\n\r\n.material-switch>label::before {\r\n    background: rgb(0, 0, 0);\r\n    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 8px;\r\n    content: '';\r\n    height: 16px;\r\n    margin-top: -8px;\r\n    position: absolute;\r\n    opacity: 0.3;\r\n    transition: all 0.4s ease-in-out;\r\n    width: 40px;\r\n}\r\n\r\n.material-switch>label::after {\r\n    background: rgb(255, 255, 255);\r\n    border-radius: 16px;\r\n    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);\r\n    content: '';\r\n    height: 24px;\r\n    left: -4px;\r\n    margin-top: -8px;\r\n    position: absolute;\r\n    top: -4px;\r\n    transition: all 0.3s ease-in-out;\r\n    width: 24px;\r\n}\r\n\r\n.material-switch>input[type=\"checkbox\"]:checked+label::before {\r\n    background: inherit;\r\n    opacity: 0.5;\r\n}\r\n\r\n.material-switch>input[type=\"checkbox\"]:checked+label::after {\r\n    background: inherit;\r\n    left: 20px;\r\n}\r\n\r\n.border-between>[class*='col-']:before {\r\n    background: #e3e3e3;\r\n    bottom: 0;\r\n    content: \" \";\r\n    left: 0;\r\n    position: absolute;\r\n    width: 1px;\r\n    top: 0;\r\n}\r\n\r\n.border-between>[class*='col-']:first-child:before {\r\n    display: none;\r\n}\r\n\r\n.hidden {\r\n    display: none;\r\n}\r\n\r\n.glyphicon-refresh-animate {\r\n    -animation: spin .7s infinite linear;\r\n    -webkit-animation: spin2 .7s infinite linear;\r\n}\r\n\r\n@-webkit-keyframes spin2 {\r\n    from {\r\n        -webkit-transform: rotate(0deg);\r\n    }\r\n    to {\r\n        -webkit-transform: rotate(360deg);\r\n    }\r\n}\r\n\r\n@keyframes spin {\r\n    from {\r\n        transform: scale(1) rotate(0deg);\r\n    }\r\n    to {\r\n        transform: scale(1) rotate(360deg);\r\n    }\r\n}\r\n", ""]);
+exports.push([module.i, ".material-switch>input[type=\"checkbox\"] {\r\n    display: none;\r\n}\r\n\r\n.material-switch>label {\r\n    cursor: pointer;\r\n    height: 0px;\r\n    position: relative;\r\n    width: 40px;\r\n}\r\n\r\n.material-switch>label::before {\r\n    background: rgb(0, 0, 0);\r\n    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 8px;\r\n    content: '';\r\n    height: 16px;\r\n    margin-top: -8px;\r\n    position: absolute;\r\n    opacity: 0.3;\r\n    transition: all 0.4s ease-in-out;\r\n    width: 40px;\r\n}\r\n\r\n.material-switch>label::after {\r\n    background: rgb(255, 255, 255);\r\n    border-radius: 16px;\r\n    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);\r\n    content: '';\r\n    height: 24px;\r\n    left: -4px;\r\n    margin-top: -8px;\r\n    position: absolute;\r\n    top: -4px;\r\n    transition: all 0.3s ease-in-out;\r\n    width: 24px;\r\n}\r\n\r\n.material-switch>input[type=\"checkbox\"]:checked+label::before {\r\n    background: inherit;\r\n    opacity: 0.5;\r\n}\r\n\r\n.material-switch>input[type=\"checkbox\"]:checked+label::after {\r\n    background: #31a354 !important;\r\n    background: inherit;\r\n    left: 20px;\r\n}\r\n\r\n.border-between>[class*='col-']:before {\r\n    background: #e3e3e3;\r\n    bottom: 0;\r\n    content: \" \";\r\n    left: 0;\r\n    position: absolute;\r\n    width: 1px;\r\n    top: 0;\r\n}\r\n\r\n.border-between>[class*='col-']:first-child:before {\r\n    display: none;\r\n}\r\n\r\n.hidden {\r\n    display: none;\r\n}\r\n\r\n.glyphicon-refresh-animate {\r\n    -animation: spin .7s infinite linear;\r\n    -webkit-animation: spin2 .7s infinite linear;\r\n}\r\n\r\n@-webkit-keyframes spin2 {\r\n    from {\r\n        -webkit-transform: rotate(0deg);\r\n    }\r\n    to {\r\n        -webkit-transform: rotate(360deg);\r\n    }\r\n}\r\n\r\n@keyframes spin {\r\n    from {\r\n        transform: scale(1) rotate(0deg);\r\n    }\r\n    to {\r\n        transform: scale(1) rotate(360deg);\r\n    }\r\n}", ""]);
 
 // exports
 
