@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+{% from "formhelpers.html" import render_field %}
+
+{% block body %}
+
+<form method="POST" role="form" class="admin-form form-horizontal" enctype="multipart/form-data">
+    <fieldset>
+
+        <div class="card">
+            <h5 class="card-header">New User</h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ render_field(form.first_name, required="required") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.last_name, required="required") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.email, required="required") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.password, required="required") }}
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    {{form.hidden_tag()}}
+                    <div class="col-md-12">
+                        <div class="float-right">
+                            {{render_field(form.submit, class="btn btn-success btn-lg submit", value="Add" )}}
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </fieldset>
+</form>
+{% endblock %}
+
+
+{% block tail %}
+{{ super() }}
+<script src="{{url_for('static', filename='network_create.js')}}"></script>
+
+{% endblock %}

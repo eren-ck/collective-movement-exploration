@@ -1,5 +1,4 @@
 import os
-import os.path as op
 import time
 import sys
 
@@ -11,8 +10,7 @@ from model.dataset_model import Dataset
 from model.user_role_model import *
 
 from flask_security import current_user
-from flask import url_for, redirect, request, abort
-from flask_admin.babel import gettext
+from flask import url_for, redirect
 from flask import flash, render_template
 from flask import Blueprint
 from flask_wtf import FlaskForm
@@ -25,7 +23,7 @@ upload_page = Blueprint('upload', __name__, url_prefix='/center/upload')
 
 # Variables
 # Create directory for file fields to use
-file_path = op.join(os.path.dirname(__file__), '../files')
+file_path = os.path.join(os.path.dirname(__file__), '../files')
 # Create img dir if it does not exist
 img_path = os.path.join('static', 'img')
 try:
@@ -97,7 +95,7 @@ def upload_new():
             ALLOWED_IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
             # if wrong return l
             if not ('.' in image_name and image_name.rsplit('.', 1)[-1] in ALLOWED_IMAGE_EXTENSIONS):
-                flash(gettext('Wrong Filetype, you can upload only png,jpg,jpeg files'), 'error')
+                flash('Wrong Filetype, you can upload only png,jpg,jpeg files', 'error')
                 return render_template(template, form=form)
             current_milli_time = int(round(time.time() * 1000))
             image_name = str(current_milli_time) + '.' + image_name.rsplit('.', 1)[-1]
@@ -113,7 +111,7 @@ def upload_new():
         movement_file_filename = os.path.join(directory, secure_filename(form.movement.data.filename))
         # Check if the movement file is csv
         if not check_csv_file(form.movement.data.filename):
-            flash(gettext('Animal Movement file is not CSV !'), 'error')
+            flash('Animal Movement file is not CSV !', 'error')
             return render_template(template, form=form)
         # if the file already exists delete it
         if os.path.exists(movement_file_filename):
@@ -123,11 +121,10 @@ def upload_new():
             # save
             form.movement.data.save(movement_file_filename)
             #  Flash message successfully
-            flash(gettext('Successfully saved file: %(name)s',
-                          name=form.movement.data.filename), 'success')
+            flash('Successfully saved file', 'success')
 
         except Exception as ex:
-            flash(gettext('Failed to save file: %(error)s', error=ex), 'error')
+            flash('Failed to save file', 'error')
 
         # get the request metadata file
         if form.metadata.data:
@@ -137,7 +134,7 @@ def upload_new():
             metadata_file_filename = os.path.join(directory, secure_filename(form.metadata.data.filename))
             # Check if the metadata file is csv
             if not check_csv_file(form.metadata.data.filename):
-                flash(gettext('Metadata file is not CSV !'), 'error')
+                flash('Metadata file is not CSV !', 'error')
                 return render_template(template, form=form)
             # if the file already exists delete it
             if os.path.exists(metadata_file_filename):
@@ -147,11 +144,9 @@ def upload_new():
                 # save
                 form.metadata.data.save(metadata_file_filename)
             except Exception as ex:
-                flash(gettext('Failed to save file: %(error)s', error=ex), 'error')
+                flash('Failed to save file', 'error')
         else:
             metadata_file_filename = ''
-        print('Hello world!', file=sys.stderr)
-        print('Would start without metadata', file=sys.stderr)
         # call the on file upload method
         start_upload(form, movement_file_filename, metadata_file_filename, image_name)
         # redirect to the upload list

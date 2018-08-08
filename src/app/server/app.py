@@ -2,20 +2,15 @@ import os
 import os.path as op
 import atexit
 
-from flask import Flask, render_template, url_for, redirect, request
-from flask_security import Security, SQLAlchemyUserDatastore
-from flask_admin import helpers as admin_helpers
+from flask import Flask, render_template, request
+from flask_security import SQLAlchemyUserDatastore, Security
 
 from view.center_view import MyCenterView
 from view.upload_view import upload_page
 from view.dataset_view import dataset_page
+from view.network_view import network_page
+from view.user_view import user_page, RegistrationForm
 
-# from view.admin_view import MyAdminView
-# from view.file_view import MyFileAdminView
-# from view.dataset_view import MyDatasetView
-# from view.network_view import MyNetworkView
-
-from model.network_model import Network
 from model.user_role_model import *
 
 from helpers.restless import *
@@ -27,7 +22,7 @@ db.init_app(app)
 
 # Setup Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-security = Security(app, user_datastore)
+Security(app, user_datastore, register_form=RegistrationForm)
 
 path = op.join(op.dirname(__file__), 'files')
 
@@ -107,41 +102,14 @@ def get_dataset_suggested_parameters(dataset_id):
     return api_get_dataset_suggested_parameters(dataset_id, tracked_data)
 
 
-# Create view
-# admin = Admin(
-#     app,
-#     name='Collective Movement Exploration',
-#     index_view=MyHomeView(name='Info'),
-#     base_template='my_master.html',
-#     template_mode='bootstrap3'
-# )
-#
-# # Add model views
-# admin.add_view(MyFileAdminView(path, '/files/', name='Upload'))
-# admin.add_view(MyDatasetView(Dataset, db.session, name='Explore'))
-# admin.add_view(MyNetworkView(Network, db.session))
-# admin.add_view(MyAdminView(Role, db.session))
-# admin.add_view(MyAdminView(User, db.session))
-
-
-# define a context processor for merging flask-view's template context into the
-# flask-security views.
-# @security.context_processor
-# def security_context_processor():
-#     return dict(
-#         admin_base_template=admin.base_template,
-#         admin_view=admin.index_view,
-#         h=admin_helpers,
-#         get_url=url_for
-#     )
-
-
 # Class based views
 app.add_url_rule('/center/', view_func=MyCenterView.as_view('center_view'))
 
 # Register Blueprints
 app.register_blueprint(upload_page)
 app.register_blueprint(dataset_page)
+app.register_blueprint(network_page)
+app.register_blueprint(user_page)
 
 
 @app.errorhandler(404)

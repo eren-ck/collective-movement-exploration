@@ -60,7 +60,7 @@ def calculate_absolute_features(id):
         dataset[0].status = 'Error - calculating absolute features ' + str(e)[0:200]
         dataset[0].error = True
         session.commit()
-        pass
+        session.remove()
 
     session.remove()
     # print("Performance " + str(datetime.datetime.utcnow() - t0) + " secs")

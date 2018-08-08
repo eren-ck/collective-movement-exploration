@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+{% from "formhelpers.html" import render_field %}
+
+{% block body %}
+
+<form method="POST" role="form" class="admin-form form-horizontal" enctype="multipart/form-data">
+    <fieldset>
+
+        <div class="card">
+            <h5 class="card-header">New Network</h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-5">
+                        {{ render_field(form.dataset_id, required="required") }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ render_field(form.name, required="required") }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ render_field(form.metric_distance, placeholder='0', required="required",
+                                spinner=True) }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ render_field(form.speed, placeholder='0', required="required", spinner=True) }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ render_field(form.acceleration, placeholder='0', required="required",
+                                spinner=True) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ render_field(form.distance_centroid, placeholder='0', required="required",
+                                spinner=True) }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ render_field(form.direction, placeholder='0', required="required", spinner=True)
+                                }}
+                            </div>
+                            <div class="col-md-12">
+
+                                {{ render_field(form.euclidean_distance, placeholder='0', required="required",
+                                spinner=True) }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="row">
+
+                    {{form.hidden_tag()}}
+                    <div class="col-md-12">
+                        <button class="btn btn-default btn-lg" type="button" id="suggest" data-toggle="tooltip"
+                                data-placement="top" title="Let the server suggest interesting parameters">
+                            Suggest Parameters
+                        </button>
+
+                        <div class="float-right">
+                                {{render_field(form.submit, class="btn btn-success btn-lg submit", value="Create" )}}
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </fieldset>
+</form>
+{% endblock %}
+
+
+{% block tail %}
+{{ super() }}
+<script src="{{url_for('static', filename='network_create.js')}}"></script>
+
+{% endblock %}

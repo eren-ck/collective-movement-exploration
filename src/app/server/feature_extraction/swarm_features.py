@@ -56,7 +56,8 @@ def calculate_swarm_features(id):
         session.rollback()
         dataset[0].status = 'Error - calculating swarm features: ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
     # commit the changes
     session.commit()
 

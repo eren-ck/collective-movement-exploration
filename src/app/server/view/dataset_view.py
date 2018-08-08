@@ -3,17 +3,11 @@ import os
 import time
 
 from flask import Blueprint, render_template, request, redirect, abort, flash, url_for
-from flask_admin.contrib import sqla
 from flask_security import current_user
-from flask_admin.base import expose
 from flask_wtf import FlaskForm
+
 from wtforms import DecimalField, BooleanField, StringField, FileField
 from wtforms.validators import InputRequired
-
-from flask_admin.helpers import get_redirect_target
-from flask_admin.babel import gettext
-from flask_admin.form import FormOpts
-
 from werkzeug import secure_filename
 
 from db import db
@@ -65,7 +59,7 @@ def dataset_delete(dataset_id):
         abort(400, description="This is not your dataset")
     db.session.delete(dataset)
     db.session.commit()
-    flash(gettext('Dataset deleted'), 'success')
+    flash('Dataset deleted', 'success')
     return redirect(url_for('.dataset_list'))
 
 
@@ -82,7 +76,7 @@ def dataset_edit(dataset_id):
 
     # empty record
     if model is None:
-        flash(gettext('Record does not exist.'), 'error')
+        flash('Record does not exist.', 'error')
         return redirect(url_for('.dataset_list'))
 
     form = EditForm()
@@ -115,7 +109,7 @@ def dataset_edit(dataset_id):
             image_name = file.filename.lower()
             ALLOWED_IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
             if not ('.' in image_name and image_name.rsplit('.', 1)[-1] in ALLOWED_IMAGE_EXTENSIONS):
-                flash(gettext('Wrong Filetype, you can upload only png,jpg,jpeg files'), 'error')
+                flash('Wrong Filetype, you can upload only png,jpg,jpeg files', 'error')
                 return redirect(request.url)
             current_milli_time = int(round(time.time() * 1000))
             image_name = str(current_milli_time) + '.' + image_name.rsplit('.', 1)[-1]
@@ -128,9 +122,9 @@ def dataset_edit(dataset_id):
         dataset.edit_update(form, image_name)
         db.session.commit()
         # feedback for user
-        flash(gettext('Record was successfully saved.'), 'success')
+        flash('Record was successfully saved.', 'success')
         # save button
-        flash(gettext('Dataset edited'), 'success')
+        flash('Dataset edited', 'success')
         return redirect(url_for('.dataset_list'))
 
     return render_template('/center/dataset/edit.html',

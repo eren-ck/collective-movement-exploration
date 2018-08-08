@@ -109,7 +109,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         session.rollback()
         dataset[0].status = 'Error - uploading movement file to db ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
 
     if metadata_file_filename:
         ## Save the metadata file in the database
@@ -139,7 +140,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
             session.rollback()
             dataset[0].status = 'Error - Uploading and saving reference file ' + str(e)[0:200]
             dataset[0].error = True
-            pass
+            session.commit()
+            session.remove()
 
     # save the image path in the db
     if image_name:
@@ -159,7 +161,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         session.rollback()
         dataset[0].status = 'Error - creating swarm feature table ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
 
     # get set values that the dataset is uploaded
     dataset[0].status = 'Dataset is uploaded - starting feature extraction'
@@ -221,7 +224,8 @@ def calculate_percentiles(id):
         session.rollback()
         dataset[0].status = 'Error - calculating percentiles ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
 
     session.commit()
     session.remove()

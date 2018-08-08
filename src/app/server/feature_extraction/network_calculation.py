@@ -121,7 +121,7 @@ def calculate_network(dataset_id, network_id):
         network_model.status = 'Error - ' + str(e)[0:200]
         network_model.error = True
         session.commit()
-        pass
+        session.remove()
 
     session.remove()
 
@@ -270,7 +270,6 @@ def calculate_basic_networks(dataset_id):
         network1_model.error = True
         session.commit()
         pass
-
 
     # network  2 - distance - direction
     try:
