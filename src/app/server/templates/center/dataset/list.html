@@ -26,23 +26,22 @@
         </td>
         <td class="text-center">
             <a href="/center/dataset/delete/{{ data.id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/trashcan.svg')}}"></img>
+                <i class="mdi mdi-delete"></i>
             </a>
         </td>
         <td class="text-center">
             <a href="/center/dataset/edit/{{ data.id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/pencil.svg')}}"></img>
+                <i class="mdi mdi-pencil"></i>
             </a>
         </td>
         <td class="text-center">
             <a href="/center/dataset/export/{{ data.id }}">
-                <img width="16px" height="16px"
-                     src="{{url_for('static', filename='icons/desktop-download.svg')}}"></img>
+                  <i class="mdi mdi-progress-download"></i>
             </a>
         </td>
         <td class="text-center">
             <a href="/center/dataset/explore/{{ data.id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/search.svg')}}"></img>
+                  <i class="mdi mdi-fish"></i>
             </a>
         </td>
         {% endblock %}

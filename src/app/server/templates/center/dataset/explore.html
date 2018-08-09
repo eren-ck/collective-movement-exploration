@@ -12,17 +12,6 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
-
-
-
-
-
-
-
-
-
-
-
 </script>
 {{dataset}}
 </div>
@@ -31,128 +20,128 @@
     <div class="row">
 
         <div class="col-md-2">
-            <div class="card">
-                <h5 class="card-header">Features</h5>
-                <div class="card-body">
 
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="feature-check-box">
-                                <!-- Draw swarm features -->
+            <table class="table table-bordered table-sm">
+                <thead class="table-secondary">
+                <tr>
+                    <th scope="col">Features</th>
+                </tr>
 
-                                <table class="table table-bordered table-hover table-sm">
-                                    <thead class="thead-light">
-                                    <tr>
-                                        <th scope="col">Swarm Features</th>
-                                    </tr>
-                                    </thead>
+                <tbody>
+                <tr>
+                    <th>
+                        <!-- Draw swarm features -->
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Swarm Features</th>
+                            </tr>
+                            </thead>
 
-                                    <tbody>
-                                    <tr>
-                                        <th>
-                                            <div class="pretty p-switch p-fill p-bigger">
-                                                <input type="checkbox" id="draw-centroid"/>
-                                                <div class="state">
-                                                    <label>Centroid</label>
-                                                </div>
-                                            </div>
-                                        </th>
-
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <div class="pretty p-switch p-fill p-bigger">
-                                                <input type="checkbox" id="draw-medoid"/>
-                                                <div class="state">
-                                                    <label>Medoid</label>
-                                                </div>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <div class="pretty p-switch p-fill p-bigger">
-                                                <input type="checkbox" id="draw-convex-hull"/>
-                                                <div class="state">
-                                                    <label>Convex Hull</label>
-                                                </div>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <div class="pretty p-switch p-fill p-bigger">
-                                                <input type="checkbox" id="draw-triangulation"/>
-                                                <div class="state">
-                                                    <label>Triangulation Hull</label>
-                                                </div>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <div class="pretty p-switch p-fill p-bigger">
-                                                <input type="checkbox" id="draw-voronoi"/>
-                                                <div class="state">
-                                                    <label>Voronoi Diagram</label>
-                                                </div>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <div class="pretty p-switch p-fill p-bigger">
-                                                <input type="checkbox" id="draw-direction"/>
-                                                <div class="state">
-                                                    <label>Direction</label>
-                                                </div>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                    </tbody>
-                                </table>
-
-                                <table class="table table-bordered table-hover table-sm">
-                                    <thead class="thead-light">
-                                    <tr>
-                                        <th scope="col">Absolute Features</th>
-                                    </tr>
-                                    </thead>
-
-                                    <tbody id="absolute-feature-checkboxes">
-                                    </tbody>
-                                </table>
-
-                                <!-- Draw Line chart  -->
-                                <table class="table table-bordered table-hover table-sm">
-                                    <thead class="thead-light">
-                                    <tr>
-                                        <th scope="col">Line Chart</th>
-                                    </tr>
-                                    </thead>
-
-                                    <tbody id="line-chart-feature-checkboxes">
-                                    </tbody>
-                                </table>
-
-
-                            </div>
-
-
+                            <tbody>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-centroid"/>
+                                        <div class="state">
+                                            <label>Centroid</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-medoid"/>
+                                        <div class="state">
+                                            <label>Medoid</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-convex-hull"/>
+                                        <div class="state">
+                                            <label>Convex Hull</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-triangulation"/>
+                                        <div class="state">
+                                            <label>Triangulation Hull</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-voronoi"/>
+                                        <div class="state">
+                                            <label>Voronoi Diagram</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-direction"/>
+                                        <div class="state">
+                                            <label>Direction</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Absolute Features</th>
+                            </tr>
+                            </thead>
+                            <tbody id="absolute-feature-checkboxes">
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <!-- Draw Line chart  -->
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Line Chart</th>
+                            </tr>
+                            </thead>
+                            <tbody id="line-chart-feature-checkboxes">
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <div class="text-center">
+                            <button type="button" id="network-button" class="btn btn-secondary" data-toggle="modal"
+                                    data-target="#network-modal">
+                                Networks and Hierarchies
+                            </button>
                         </div>
-                    </div>
-
-                </div>
-
-                <div class="card-footer">
-                    <div class="text-center">
-                        <button type="button" id="network-button" class="btn btn-secondary" data-toggle="modal"
-                                data-target="#network-div">
-                            Networks and Hierarchies
-                        </button>
-                    </div>
-                </div>
-            </div>
+                    </th>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="col-md-10">
@@ -167,6 +156,18 @@
                             <div class="row">
 
                                 <div class="col-md-2">
+                                    <div class="pretty p-icon p-toggle p-plain">
+                                        <input type="checkbox"/>
+                                        <div class="state p-warning-o p-off">
+                                            <i class="icon mdi mdi-play"></i>
+                                            <label>Playing...</label>
+                                        </div>
+                                        <div class="state p-on">
+                                            <i class="icon mdi mdi-pause"></i>
+                                            <label>Paused</label>
+                                        </div>
+                                    </div>
+
                                     <button type="button" id="play-button" class="btn btn-default active"
                                             data-toggle="button" aria-pressed="true" autocomplete="off">
                                         <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
@@ -266,8 +267,9 @@
 
                         <div class="col-md-12" id="main-vis-div">
                             <!-- loading gif -->
+                            <!--TODO change the loading icon to d3 spinner remove gif -->
                             <div id="loading">
-                                <img src="{{url_for('static', filename='loading.gif')}}"/>
+                                <i class="mdi mdi-48px mdi-spin mdi-loading"></i>
                             </div>
                             <!-- The div for the svg  -->
                             <div class="row">
@@ -277,9 +279,9 @@
 
                             <div class="row">
                                 <div class="col-md-12">
-                                    <div id="hierarchy-legend-div" class="pull-left">
+                                    <div id="hierarchy-legend-div" class="float-left">
                                     </div>
-                                    <div id="main-vis-legend-div" class="pull-right">
+                                    <div id="main-vis-legend-div" class="float-right">
                                     </div>
                                 </div>
                             </div>
@@ -682,48 +684,39 @@
 
 
 <!--Modal for Network data  -->
-<div class="modal fade" id="network-div" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="network-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-
             <div class="modal-header">
-
-                <div class="mod-list">
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">Close</span>
-                    </button>
-                    <div class="t2">
-                        <div class="mod-head text-center">
-                            <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
-                            <h2>Networks & Hierarchies</h2>
-                        </div>
-                    </div>
+                <div class="mx-auto">
+                    <h4 class="modal-title">Networks & Hierarchies</h4>
                 </div>
 
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
 
             <!-- Modal Body-->
             <div class="modal-body">
-
                 <div class="row">
                     <div class="col-md-12">
                         <div id="networks-modal-body">
-                            <div class="table-container">
-                                <table class="table table-condensed" id="networks-hierarchies-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Networks ID</th>
-                                        <th>Hierarchies</th>
-                                        <th>Network in Hierarchy</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
 
+                            <table class="table table-striped table-hover table-bordered table-sm"
+                                   id="networks-hierarchies-table">
+                                <thead>
+                                <tr class="thead-light">
+                                    <th>Name</th>
+                                    <th>Networks ID</th>
+                                    <th>Hierarchies</th>
+                                    <th>Network in Hierarchy</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
 
                         </div>
                         <hr>

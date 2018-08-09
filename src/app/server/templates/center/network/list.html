@@ -22,9 +22,9 @@
 
     {% for network in networks %}
     <tr id="network{{network.id}}"
-    {% if network.error -%}
+        {% if network.error -%}
         class="table-danger"
-    {%- endif %}>
+        {%- endif %}>
         {% block list_row scoped %}
         <td>
             {{ network.dataset.name }}
@@ -34,12 +34,12 @@
         </td>
         <td class="text-center">
             <a href="/center/network/delete/{{ network.dataset_id }}/{{ network.network_id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/trashcan.svg')}}"></img>
+                <i class="mdi mdi-delete"></i>
             </a>
         </td>
         <td class="text-center">
             <a href="/center/network/details/{{ network.dataset_id }}/{{ network.network_id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/search.svg')}}"></img>
+                <i class="mdi mdi-table"></i>
             </a>
         </td>
         {% endblock %}

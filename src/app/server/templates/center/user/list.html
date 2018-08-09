@@ -36,12 +36,12 @@
         </td>
         <td class="text-center">
             <a href="/center/user/delete/{{ user.id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/trashcan.svg')}}"></img>
+                <i class="mdi mdi-delete"></i>
             </a>
         </td>
         <td class="text-center">
             <a href="/center/user/edit/{{ user.id }}">
-                <img width="16px" height="16px" src="{{url_for('static', filename='icons/pencil.svg')}}"></img>
+                <i class="mdi mdi-account-edit"></i>
             </a>
         </td>
         {% endblock %}
