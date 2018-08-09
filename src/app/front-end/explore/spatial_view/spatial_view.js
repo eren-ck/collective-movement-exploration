@@ -107,8 +107,8 @@ export function spatialViewInit() {
     });
 
     //reset all checkboxes
-    $('input[type=checkbox]')
-        .attr('checked', false);
+    $('input[type=checkbox]').prop('checked', false);
+    // .attr('checked', false);
     //set the color scale function to linear
     $('#color-scale-linear')
         .prop('checked', true);

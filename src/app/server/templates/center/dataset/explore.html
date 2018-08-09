@@ -3,6 +3,7 @@
 {% block head_css %}
 {{ super() }}
 <link href="{{url_for('static', filename='jquery-ui.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='pretty-checkbox.min.css')}}" rel="stylesheet">
 <link href="{{url_for('static', filename='theme.css')}}" rel="stylesheet">
 
 {% endblock %}
@@ -11,194 +12,255 @@
 <script>
     var parameters = {{ parameters | tojson}}
 
+
+
+
+
+
+
+
+
+
+
+
 </script>
 {{dataset}}
 </div>
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-2">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Features
-                    </h3>
-                </div>
 
-                <div class="panel-body">
+        <div class="col-md-2">
+            <div class="card">
+                <h5 class="card-header">Features</h5>
+                <div class="card-body">
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="feature-check-box">
                                 <!-- Draw swarm features -->
-                                <strong>Swarm Features</strong>
-                                <br>
-                                <div class="feature-check-box-default">
-                                    <input type="checkbox" id="draw-centroid"/>
-                                    <label for="draw-centroid">Centroid</label>
-                                </div>
-                                <div class="feature-check-box-default">
-                                    <input type="checkbox" id="draw-medoid"/>
-                                    <label for="draw-medoid">Medoid</label>
-                                </div>
-                                <div class="feature-check-box-default">
-                                    <input type="checkbox" id="draw-convex-hull"/>
-                                    <label for="draw-convex-hull">Convex Hull</label>
-                                </div>
-                                <div class="feature-check-box-default">
-                                    <input type="checkbox" id="draw-triangulation"/>
-                                    <label for="draw-triangulation">Triangulation</label>
-                                </div>
-                                <div class="feature-check-box-default">
-                                    <input type="checkbox" id="draw-voronoi"/>
-                                    <label for="draw-voronoi">Voronoi Diagram</label>
-                                </div>
-                                <div class="feature-check-box-default">
-                                    <input type="checkbox" id="draw-direction"/>
-                                    <label for="draw-direction">Direction</label>
-                                </div>
 
-                                <br>
-                                <strong>Absolute Features</strong>
-                                <br>
-                                <span id="absolute-feature-checkboxes" class="hidden"></span>
+                                <table class="table table-bordered table-hover table-sm">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Swarm Features</th>
+                                    </tr>
+                                    </thead>
 
-                                <!-- Draw swarm features -->
-                                <br>
-                                <strong>Line Chart AVG </strong>
-                                <br>
+                                    <tbody>
+                                    <tr>
+                                        <th>
+                                            <div class="pretty p-switch p-fill p-bigger">
+                                                <input type="checkbox" id="draw-centroid"/>
+                                                <div class="state">
+                                                    <label>Centroid</label>
+                                                </div>
+                                            </div>
+                                        </th>
+
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <div class="pretty p-switch p-fill p-bigger">
+                                                <input type="checkbox" id="draw-medoid"/>
+                                                <div class="state">
+                                                    <label>Medoid</label>
+                                                </div>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <div class="pretty p-switch p-fill p-bigger">
+                                                <input type="checkbox" id="draw-convex-hull"/>
+                                                <div class="state">
+                                                    <label>Convex Hull</label>
+                                                </div>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <div class="pretty p-switch p-fill p-bigger">
+                                                <input type="checkbox" id="draw-triangulation"/>
+                                                <div class="state">
+                                                    <label>Triangulation Hull</label>
+                                                </div>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <div class="pretty p-switch p-fill p-bigger">
+                                                <input type="checkbox" id="draw-voronoi"/>
+                                                <div class="state">
+                                                    <label>Voronoi Diagram</label>
+                                                </div>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <div class="pretty p-switch p-fill p-bigger">
+                                                <input type="checkbox" id="draw-direction"/>
+                                                <div class="state">
+                                                    <label>Direction</label>
+                                                </div>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                                <table class="table table-bordered table-hover table-sm">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Absolute Features</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody id="absolute-feature-checkboxes">
+                                    </tbody>
+                                </table>
+
+                                <!-- Draw Line chart  -->
+                                <table class="table table-bordered table-hover table-sm">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Line Chart</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody id="line-chart-feature-checkboxes">
+                                    </tbody>
+                                </table>
+
 
                             </div>
-                            <hr>
-                            <button type="button" id="network-button"
-                                    class="btn btn-default" data-toggle="modal"
-                                    data-target="#network-div">
-                                <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
-                                Networks&Hierarchies
-                            </button>
+
 
                         </div>
                     </div>
+
                 </div>
 
+                <div class="card-footer">
+                    <div class="text-center">
+                        <button type="button" id="network-button" class="btn btn-secondary" data-toggle="modal"
+                                data-target="#network-div">
+                            Networks and Hierarchies
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="col-md-10">
-            <div class="container-fluid">
-                <div class="row">
-                    <!-- Control Panel -->
-                    <div class="col-md-12">
-                        <div class="panel panel-primary">
+            <div class="row">
+                <div class="col-md-12">
 
-                            <div class="panel-heading">
-                                <a data-toggle="collapse" href="#collapse1">
-                                    <button type="button" class="close">
-                                        <span class="glyphicon glyphicon-resize-vertical" aria-hidden="true"></span>
+                    <div class="card">
+                        <h5 class="card-header">Control Panel</h5>
+                        <div class="card-body">
+
+                            <!-- Play button and next frame button -->
+                            <div class="row">
+
+                                <div class="col-md-2">
+                                    <button type="button" id="play-button" class="btn btn-default active"
+                                            data-toggle="button" aria-pressed="true" autocomplete="off">
+                                        <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
                                     </button>
-                                </a>
-                                <h3 class="panel-title">
-                                    Control Panel
-                                </h3>
-                            </div>
-
-                            <div class="panel-body">
-                                <div id="collapse1" class="panel-collapse collapse in">
-                                    <!-- Play button and next frame button -->
-                                    <div class="row">
-
-                                        <div class="col-md-2">
-                                            <button type="button" id="play-button" class="btn btn-default active"
-                                                    data-toggle="button" aria-pressed="true" autocomplete="off">
-                                                <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play
-                                            </button>
-                                            <button type="button" id="next-frame-button" class="btn btn-default">
+                                    <button type="button" id="next-frame-button" class="btn btn-default">
                                                 <span class="glyphicon glyphicon-step-forward"
                                                       aria-hidden="true"></span> Frame
-                                            </button>
+                                    </button>
+                                </div>
+
+                                <!-- Animation speed buttons -->
+                                <div class="col-md-3">
+                                    <fieldset id="group1">
+                                        <div class="btn-group" data-toggle="buttons">
+                                            <label class="btn btn-default">
+                                                <input type="radio" id="slow-speed" value="385" name="group1"
+                                                       autocomplete="off">
+                                                <span class="glyphicon glyphicon-play"
+                                                      aria-hidden="true"></span> Slow
+                                            </label>
+                                            <label class="btn btn-default active">
+                                                <input type="radio" id="normal-speed" value="25" name="group1"
+                                                       autocomplete="off" checked>
+                                                <span class="glyphicon glyphicon-forward"
+                                                      aria-hidden="true"></span>Normal
+                                            </label>
+                                            <label class="btn btn-default">
+                                                <input type="radio" id="fast-speed" value="4" name="group1"
+                                                       autocomplete="off">
+                                                <span class="glyphicon glyphicon-fast-forward"
+                                                      aria-hidden="true"></span> Fast
+                                            </label>
                                         </div>
+                                    </fieldset>
+                                </div>
 
-                                        <!-- Animation speed buttons -->
-                                        <div class="col-md-3">
-                                            <fieldset id="group1">
-                                                <div class="btn-group" data-toggle="buttons">
-                                                    <label class="btn btn-default">
-                                                        <input type="radio" id="slow-speed" value="385" name="group1"
-                                                               autocomplete="off">
-                                                        <span class="glyphicon glyphicon-play"
-                                                              aria-hidden="true"></span> Slow
-                                                    </label>
-                                                    <label class="btn btn-default active">
-                                                        <input type="radio" id="normal-speed" value="25" name="group1"
-                                                               autocomplete="off" checked>
-                                                        <span class="glyphicon glyphicon-forward"
-                                                              aria-hidden="true"></span>Normal
-                                                    </label>
-                                                    <label class="btn btn-default">
-                                                        <input type="radio" id="fast-speed" value="4" name="group1"
-                                                               autocomplete="off">
-                                                        <span class="glyphicon glyphicon-fast-forward"
-                                                              aria-hidden="true"></span> Fast
-                                                    </label>
-                                                </div>
-                                            </fieldset>
-                                        </div>
+                                <div class="col-md-5">
+                                    <button type="button" id="brushing-button" class="btn btn-default "
+                                            data-toggle="button" autocomplete="off">
+                                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Brush
+                                    </button>
+                                    <button type="button" id="visual-parameter-button" class="btn btn-default "
+                                            data-toggle="button" autocomplete="off" disabled>
+                                        <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
+                                        Track
+                                    </button>
+                                    <button type="button" id="calculate-parameter-button"
+                                            class="btn btn-default "
+                                            data-toggle="button" autocomplete="off" disabled data="0">
+                                        <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+                                        Calculate
+                                    </button>
+                                    <button type="button" id="remove-active-selected-button"
+                                            class="btn btn-default" data-toggle="button" autocomplete="off"
+                                            disabled>
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                        Unselect
+                                    </button>
+                                </div>
 
-                                        <div class="col-md-5">
-                                            <button type="button" id="brushing-button" class="btn btn-default "
-                                                    data-toggle="button" autocomplete="off">
-                                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Brush
-                                            </button>
-                                            <button type="button" id="visual-parameter-button" class="btn btn-default "
-                                                    data-toggle="button" autocomplete="off" disabled>
-                                                <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
-                                                Track
-                                            </button>
-                                            <button type="button" id="calculate-parameter-button"
-                                                    class="btn btn-default "
-                                                    data-toggle="button" autocomplete="off" disabled data="0">
-                                                <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
-                                                Calculate
-                                            </button>
-                                            <button type="button" id="remove-active-selected-button"
-                                                    class="btn btn-default" data-toggle="button" autocomplete="off"
-                                                    disabled>
-                                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                                Unselect
-                                            </button>
-                                        </div>
+                                <div class="col-md-1">
+                                    <button type="button" id="metadata-button"
+                                            class="btn btn-default pull-right" data-toggle="modal"
+                                            data-target="#metadata-div">
+                                        <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                        Metadata
+                                    </button>
+                                </div>
 
-                                        <div class="col-md-1">
-                                            <button type="button" id="metadata-button"
-                                                    class="btn btn-default pull-right" data-toggle="modal"
-                                                    data-target="#metadata-div">
-                                                <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
-                                                Metadata
-                                            </button>
-                                        </div>
+                                <!-- Button trigger settings -->
+                                <div class="col-md-1">
+                                    <button type="button" id="settings-button"
+                                            class="btn btn-default pull-right" data-toggle="modal"
+                                            data-target="#settings-div">
+                                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                                        Settings
+                                    </button>
+                                </div>
 
-                                        <!-- Button trigger settings -->
-                                        <div class="col-md-1">
-                                            <button type="button" id="settings-button"
-                                                    class="btn btn-default pull-right" data-toggle="modal"
-                                                    data-target="#settings-div">
-                                                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                                                Settings
-                                            </button>
-                                        </div>
+                            </div>
 
-                                    </div>
-
-                                    <!-- The time slider -->
-                                    <div class="row" style="padding: 1rem;">
-                                        <div class="col-sm-12">
-                                            <div id="slider"></div>
-                                        </div>
-                                    </div>
-
+                            <!-- The time slider -->
+                            <div class="row" style="padding: 1rem;">
+                                <div class="col-sm-12">
+                                    <div id="slider"></div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
+
+                </div>
+
+                <div class="col-md-12">
                     <div class="row">
 
 
@@ -214,16 +276,18 @@
                             </div>
 
                             <div class="row">
-                                <div id="hierarchy-legend-div" class="pull-left">
-                                </div>
-                                <div id="main-vis-legend-div" class="pull-right">
+                                <div class="col-md-12">
+                                    <div id="hierarchy-legend-div" class="pull-left">
+                                    </div>
+                                    <div id="main-vis-legend-div" class="pull-right">
+                                    </div>
                                 </div>
                             </div>
 
                         </div>
 
                         <div class="col-md-4">
-                            <div id="dendrogram-buttons-div" class="pull-right hidden">
+                            <div id="dendrogram-buttons-div" class="float-right" hidden>
 
                                 <div class="btn-group" data-toggle="buttons">
 
@@ -259,9 +323,6 @@
                                     Cluster Level <span id="dendrogram-panel-level-text">2</span>
                                     <div id="dendrogram-panel-level-slider" name="0"></div>
                                     <br>
-                                    <!--<div id="dendrogram-panel">-->
-
-                                    <!--</div>-->
                                 </div>
                             </div>
 
@@ -269,13 +330,14 @@
 
                     </div>
 
-                    <div class="col-md-12">
-                        <div id="swarm-vis">
-
-                        </div>
-                    </div>
-
                 </div>
+
+                <div class="col-md-12">
+                    <div id="swarm-vis">
+
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

@@ -96,11 +96,14 @@ export function addAbsoluteFeatureButtons(dataSetPercentile) {
             let capitalized_feature_string = key.split('_').join(' ');
             capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
             // add the button
-            $('#absolute-feature-checkboxes').after('<div class="feature-check-box-default"> <input type="checkbox" name="checkbox" id="draw-' + key +
-                '"/><label for="draw-' + key + '">' + capitalized_feature_string +
-                '<button type="button" id="draw-' + key +
-                '-details" class="btn btn-default pull-right hidden draw-details" data-toggle="button" aria-pressed="false" autocomplete="off">' +
-                '<span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button> </label> </div>');
+            $('#absolute-feature-checkboxes').append('<tr><th> <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" id="draw-' + key +
+                '"/><div class="state"><label>' + capitalized_feature_string + '</label></div></div></th></tr>');
+
+
+            // +'   <label for="draw-' + key + '">' +
+            // '<button type="button" id="draw-' + key +
+            // '-details" class="btn btn-default pull-right hidden draw-details" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            // '<span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button> </label> </div>');
 
         }
     }
@@ -142,7 +145,7 @@ export function standardDeviation(arr) {
 }
 
 /**
- * Move element in SVG into background done by moving it to first element 
+ * Move element in SVG into background done by moving it to first element
  */
 d3.selection.prototype.moveToBack = function() {
     return this.each(function() {

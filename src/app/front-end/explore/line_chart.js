@@ -56,13 +56,12 @@ export function lineChart() {
         let capitalized_feature_string = swarm_features[i].split('_').join(' ');
         capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
 
-        $('.feature-check-box').append(`<div class="feature-check-box-default line-chart-check-box">
-                                       <input id="drawSwarm` + swarm_features[i] + `" class="lineChartButton" type="checkbox">
-                                       <label for="drawSwarm` + swarm_features[i] + '">' + capitalized_feature_string + `</label>
-                     </div>`);
+        $('#line-chart-feature-checkboxes')
+            .append('<tr><th> <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" id="draw-' + swarm_features[i] +
+                '"/><div class="state"><label>' + capitalized_feature_string + '</label></div></div></th></tr>');
     }
     //check line chart draw all lines
-    $('.lineChartButton')
+    $('#line-chart-feature-checkboxes input[type=checkbox]')
         .prop('checked', true);
 
     let lineChartData = [];

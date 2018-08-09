@@ -26,7 +26,7 @@ class RegistrationForm(FlaskForm):
 @user_page.before_request
 @user_required
 def check_user():
-    # only the admin has access to the user creation 
+    # only the admin has access to the user creation
     if not current_user.has_role('admin'):
         abort(400, description="Only users with the role admin can access this page")
     pass
@@ -63,7 +63,7 @@ def network_edit(user_id):
     user = db.session.query(User).filter_by(id=user_id).first()
 
     if user is None:
-        flash('User not exist.', 'error')
+        flash('User does not exist.', 'error')
         return redirect(url_for('.user_list'))
     # edit
     if request.method == 'POST':
