@@ -362,7 +362,7 @@ export function lineChart() {
  */
 export function initTrendChartListener() {
     $('.draw-details').click(function() {
-        if (!$(this).hasClass('active')) {
+        if ($(this).find('input:checkbox').prop('checked')) {
             disableLineChart();
             addTrendChart(this);
         } else {

@@ -58,6 +58,7 @@ function isNumber(obj) {
  */
 $('#suggest').click(function() {
     // show the calculating button
+    // TODO change this to hide show 
     $(this).addClass('hidden');
     $('#calculating').removeClass('hidden');
     // get the data

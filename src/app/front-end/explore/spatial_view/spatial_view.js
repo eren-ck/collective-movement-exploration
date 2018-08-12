@@ -108,7 +108,6 @@ export function spatialViewInit() {
 
     //reset all checkboxes
     $('input[type=checkbox]').prop('checked', false);
-    // .attr('checked', false);
     //set the color scale function to linear
     $('#color-scale-linear')
         .prop('checked', true);
@@ -121,6 +120,11 @@ export function spatialViewInit() {
     //hide the loading gif
     $('#loading')
         .hide();
+    // needed due to jQuery incompatibility 
+    $('#play-loading').hide();
+    $('.mdi-play').hide();
+    $('#metadata-input').hide();
+    $('#dendrogram-buttons-div').hide();
 
     // get  number of distinct animal ids
     let num_animals = new Set();

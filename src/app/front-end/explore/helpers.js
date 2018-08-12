@@ -19,8 +19,10 @@ import {
 export function disablePlayButton() {
     setPlayBoolean(false);
     $('#play-button').removeClass('active');
-    $('#play-button').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
     $('#play-button').prop('disabled', true);
+    $('#play-icons').hide();
+    $('#play-loading').show();
+
 }
 
 /**
@@ -29,8 +31,9 @@ export function disablePlayButton() {
 export function enablePlayButton() {
     setPlayBoolean(true);
     $('#play-button').addClass('active');
-    $('#play-button').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
     $('#play-button').prop('disabled', false);
+    $('#play-loading').hide();
+    $('#play-icons').show();
     draw();
 }
 
@@ -96,17 +99,19 @@ export function addAbsoluteFeatureButtons(dataSetPercentile) {
             let capitalized_feature_string = key.split('_').join(' ');
             capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
             // add the button
-            $('#absolute-feature-checkboxes').append('<tr><th> <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" id="draw-' + key +
-                '"/><div class="state"><label>' + capitalized_feature_string + '</label></div></div></th></tr>');
-
-
-            // +'   <label for="draw-' + key + '">' +
-            // '<button type="button" id="draw-' + key +
-            // '-details" class="btn btn-default pull-right hidden draw-details" data-toggle="button" aria-pressed="false" autocomplete="off">' +
-            // '<span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button> </label> </div>');
+            $('#absolute-feature-checkboxes').append('<tr><th>' +
+                ' <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" id="draw-' + key +
+                '"/><div class="state"><label>' + capitalized_feature_string + '</label></div></div>' +
+                // quantile graph
+                '<div class="float-right draw-details" id="draw-' + key + '-details"><div class="pretty p-icon p-toggle p-plain"><input type="checkbox" id="draw-' + key + '-input" />' +
+                '<div class="state p-success-o p-on"><i class="mdi mdi-image-area"></i><label></label></div>' +
+                '<div class="state p-off"><i class="mdi mdi-image-off"></i><label></label></div>' +
+                '</div></div></th></tr>');
 
         }
     }
+    // hide the elements
+    $('.draw-details').hide();
     // init the listerners
     initTrendChartListener();
 
