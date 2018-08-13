@@ -120,11 +120,12 @@ export function spatialViewInit() {
     //hide the loading gif
     $('#loading')
         .hide();
-    // needed due to jQuery incompatibility 
+    // needed due to jQuery incompatibility
     $('#play-loading').hide();
     $('.mdi-play').hide();
     $('#metadata-input').hide();
     $('#dendrogram-buttons-div').hide();
+
 
     // get  number of distinct animal ids
     let num_animals = new Set();
@@ -231,7 +232,7 @@ export function spatialViewInit() {
     tank.append('g')
         .attr('id', 'g-centroid')
         .append('circle')
-        .attr('class', 'centroid hidden')
+        .attr('class', 'centroid')
         .attr('r', 6)
         .attr('cx', 0)
         .attr('cy', 0);
@@ -255,6 +256,7 @@ export function spatialViewInit() {
         .attr('id', 'centroid-line')
         .attr('marker-end', 'url(#centroid-arrow)');
 
+    $('#g-centroid').hide();
     //append network  group
     tank.append('g')
         .attr('id', 'networkGroup');
@@ -741,8 +743,7 @@ export function draw() {
                     });
             } else {
                 // hide the arrows
-                svgAnimals.select('line')
-                    .attr('class', 'arrow hidden');
+                $('.arrow').hide();
             }
 
             // EXIT - the groups

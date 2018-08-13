@@ -91,15 +91,14 @@ def get_dataset_network_data(dataset_id, network_id):
 
 @app.route('/api/dataset/network/hierarchy/<int:dataset_id>/<int:network_id>', methods=['GET'])
 def get_dataset_network_hierarchy_data(dataset_id, network_id):
-    return api_get_network_hierarchy_data(dataset_id, network_id) \
- \
-           @ app.route('/api/dataset/visual_parameter/<int:dataset_id>', methods=['POST'])
+    return api_get_network_hierarchy_data(dataset_id, network_id)
 
 
-def get_dataset_suggested_parameters(dataset_id):
+# @ app.route('/api/dataset/visual_parameter/<int:dataset_id>', methods=['POST'])
+# def get_dataset_suggested_parameters(dataset_id):
     # Get JSON object passed with Ajax request
-    tracked_data = request.json
-    return api_get_dataset_suggested_parameters(dataset_id, tracked_data)
+    # tracked_data = request.json
+    # return api_get_dataset_suggested_parameters(dataset_id, tracked_data)
 
 
 # Class based views

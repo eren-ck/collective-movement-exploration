@@ -737,12 +737,11 @@ function h_listeners() {
      * Load data or remove it
      */
     $('.hiearchy-checkbox').on('change', function() {
-        let checkbox = $(this).find('input:hidden');
+        let checkbox = $(this);
 
         let id = checkbox.attr('data');
         let name = checkbox.attr('name');
         let checked = checkbox.prop('checked');
-
 
         if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
             disablePlayButton();
@@ -793,19 +792,15 @@ function h_listeners() {
      */
     $('.network-hierarchy-checkbox').on('change', function() {
         // get the info for the clicked button
-        let checkbox = $(this).find('input:hidden');
-        let id = checkbox.attr('data');
-        let checked = checkbox.prop('checked');
+        let checkbox = $(this);
 
         // reset all the other active checkboxes
-        $('.network-hierarchy-checkbox').each(function(i, button) {
-            if ($(this).find('input:hidden').prop('checked') && $(this).find('input:hidden').prop('data') !== id) {
-                $(button).trigger('click');
-            }
-        });
-        if (checked) {
+        $('.network-hierarchy-checkbox').prop('checked', false);
+        checkbox.prop('checked', true);
+
+        if (checkbox.prop('checked')) {
             // set the network id
-            setNetworkHierarchy(id);
+            setNetworkHierarchy(checkbox.attr('data'));
         } else {
             setNetworkHierarchy(undefined);
         }

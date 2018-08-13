@@ -732,9 +732,10 @@ export function addHierarchyButton(id, name) {
     if ($('.show-dendrogram').length < maxNumberHierarchies) {
         $('#dendrogram-buttons-div').append('<button type="button" id="show-dendrogram-' + id + '" data=' + id + ' name=' + name +
             ' class="show-dendrogram btn btn-block" data-toggle="button" aria-pressed="false" autocomplete="off">' +
-            ' <span class="btn-label" id="btn-left"> <i class="glyphicon glyphicon-chevron-left"></i>&nbsp&nbsp Show ' + name + '</span>' +
-            '<span class="btn-label hidden" id="btn-right"> <i class="glyphicon glyphicon-chevron-right"></i>&nbsp&nbsp Hide ' + name + ' </span></button> <br>'
+            ' <span class="btn-label" id="btn-left"> <i class="mdi mdi-arrow-collapse-left"></i>&nbsp&nbsp Show ' + name + '</span>' +
+            '<span class="btn-label" id="btn-right"> <i class="mdi mdi-arrow-collapse-right"></i>&nbsp&nbsp Hide ' + name + ' </span></button> <br>'
         );
+        $('#show-dendrogram-' + id).find('#btn-right').hide();
     }
 }
 
