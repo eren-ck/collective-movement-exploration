@@ -338,10 +338,6 @@ div.tooltip table td:nth-child(2) {
     font-size: 1.5em;
 }
 
-.line-chart-check-box.disabled {
-    color: #ccc;
-}
-
 .upper-outer-area, .lower-outer-area {
     stroke-width: 1;
     fill: #74a9cf;

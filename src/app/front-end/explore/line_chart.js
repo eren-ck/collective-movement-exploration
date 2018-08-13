@@ -51,19 +51,6 @@ export function lineChart() {
     let index = swarm_features.indexOf('time');
     swarm_features.splice(index, 1);
 
-    // add the Line chart buttons to the feature panel
-    for (let i = 0; i < swarm_features.length; i++) {
-        let capitalized_feature_string = swarm_features[i].split('_').join(' ');
-        capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
-
-        $('#line-chart-feature-checkboxes')
-            .append('<tr><th> <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" id="draw-' + swarm_features[i] +
-                '"/><div class="state"><label>' + capitalized_feature_string + '</label></div></div></th></tr>');
-    }
-    //check line chart draw all lines
-    $('#line-chart-feature-checkboxes input[type=checkbox]')
-        .prop('checked', true);
-
     let lineChartData = [];
     // aggregate and average the swarm data to lineChartWidth points in the line chart
     if (swarmData.length > lineChartWidth) {
@@ -339,24 +326,38 @@ export function lineChart() {
         });
     $('#trendChartLegend').hide();
 
-    /**
-     * Draw line chart button listeners
-     */
-    for (let i = 0; i < swarm_features.length; i++) {
-        $(('#drawSwarm' + swarm_features[i])).click(function() {
-            if ($(('#drawSwarm' + swarm_features[i])).is(':checked')) {
-                $(('#' + swarm_features[i] + 'Line'))
-                    .attr('visibility', 'visible');
-            } else {
-                $(('#' + swarm_features[i] + 'Line'))
-                    .attr('visibility', 'hidden');
-            }
-
-        });
-    }
-
+    initLineChartButtons(swarm_features);
 
 }
+
+/**
+ * Init line chart button listeners
+ */
+function initLineChartButtons(swarm_features) {
+    // add the Line chart buttons to the feature panel
+    for (let i = 0; i < swarm_features.length; i++) {
+        let capitalized_feature_string = swarm_features[i].split('_').join(' ');
+        capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
+
+        $('#line-chart-feature-checkboxes')
+            .append('<tr><th> <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" class="line-chart-check-box" id="draw-' +
+                swarm_features[i] + '" data="#' + swarm_features[i] + 'Line" /><div class="state"><label>' +
+                capitalized_feature_string + '</label></div></div></th></tr>');
+    }
+    //check line chart draw all lines
+    $('#line-chart-feature-checkboxes input[type=checkbox]')
+        .prop('checked', true);
+
+    $('.line-chart-check-box').change(function() {
+        let checkbox = $(this);
+        if (checkbox.prop('checked')) {
+            $(checkbox.attr('data')).show();
+        } else {
+            $(checkbox.attr('data')).hide();
+        }
+    });
+}
+
 /**
  * Line chart details click listener
  */
@@ -377,7 +378,7 @@ export function initTrendChartListener() {
  */
 function disableLineChart() {
     $('.lineChartButton').prop('checked', false).prop('disabled', true);
-    $('.line-chart-check-box').addClass('disabled');
+    $('.line-chart-check-box').attr('disabled', true);
     $('.lineChartLine').attr('visibility', 'hidden');
 }
 
@@ -386,7 +387,7 @@ function disableLineChart() {
  */
 function enableLineChart() {
     $('.lineChartButton').prop('checked', true).prop('disabled', false);
-    $('.line-chart-check-box').removeClass('disabled');
+    $('.line-chart-check-box').attr('disabled', false);
     $('.lineChartLine').attr('visibility', 'visible');
 }
 

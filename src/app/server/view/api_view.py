@@ -1,146 +1,80 @@
+import decimal
+from flask import Blueprint, Response, jsonify, request
+from sqlalchemy import text
+
+from db import db, create_session
+
+from helpers.auth import user_required
 from model.dataset_model import Dataset
 from model.percentile_model import Percentile
 from model.metadata_model import Metadata
 from model.network_model import Network
 from feature_extraction.bayesian_optimization import calculate_parameters
-import sys
-import decimal
 
-from sqlalchemy import text
-
-from flask import Response, jsonify, abort, json
-from flask_security import current_user
-
-from db import db, create_session
+api_page = Blueprint('api', __name__, url_prefix='/api')
 
 
-# print('Hello world!', file=sys.stderr)
+@api_page.before_request
+@user_required
+def check_user():
+    """ Protect to only logged in users of the admin endpoints. """
+    pass
 
 
-def auth_func(*args, **kwargs):
+# Custom Rest API
+@api_page.route('/dataset', methods=['GET'])
+def get_dataset():
     """
-    Check if user is logged in for rest api
+        Return all datasets
     """
-    if not current_user.is_authenticated or not current_user.is_active:
-        # permission denied
-        abort(404)
-    else:
-        return True
-
-
-def api_get_dataset(id=None):
-    """
-        Return all datasets or a specific dataset
-
-        :param id:
-            id of the specific dataset
-    """
-    auth_func()
-    if not id:
-        datasets = db.session.query(Dataset).all()
-    else:
-        datasets = db.session.query(Dataset).filter_by(id=id)
+    datasets = db.session.query(Dataset).all()
     results = []
     for elem in datasets:
         results.append(elem.as_dict())
     return jsonify(results)
 
 
-def api_get_dataset_user(id=None):
+@api_page.route('/dataset/<int:id>', methods=['GET'])
+def get_dataset_id(id=None):
+    """
+        Return a specific dataset
+
+        :param id: id of the specific dataset
+    """
+    if not id:
+        return jsonify({})
+    datasets = db.session.query(Dataset).filter_by(id=id)
+    results = []
+    for elem in datasets:
+        results.append(elem.as_dict())
+    return jsonify(results)
+
+
+@api_page.route('/dataset/user/<int:user_id>', methods=['GET'])
+def get_dataset_user_id(user_id=None):
     """
         Return all datasets of a specific user
 
-        :param id:
-            id of the user
+        :param user_id: id of the user
     """
-    auth_func()
     if not id:
         datasets = db.session.query(Dataset).all()
     else:
-        datasets = db.session.query(Dataset).filter_by(user_id=id)
+        datasets = db.session.query(Dataset).filter_by(user_id=user_id)
     results = []
     for elem in datasets:
         results.append(elem.as_dict())
     return jsonify(results)
 
 
-def api_get_movment_only(id=None):
+@api_page.route('/dataset/<int:id>/<feature>', methods=['GET'])
+def get_feature(id=None, feature=None):
     """
-        Return all only the movement data of a specific dataset
+        Return a feature of a specific dataset
 
-        :param id:
-            id of the specific dataset
+        :param id : id of the specific dataset
+        :param feature: feature string
     """
-    auth_func()
-
-    def streaming_func():
-        session = create_session()
-        if id == None:
-            return jsonify({})
-        num_records = 1500
-        stmt = '''SELECT json_build_object('a', animal_id, 't', "time", 'p', ST_asGeoJSON(position)::json->'coordinates')::text
-                FROM movement_data
-                WHERE dataset_id = '%s'
-                ORDER BY "time", animal_id ;'''
-        result = session.connection().execution_options(stream_results=True).execute(stmt, (id))
-        while True:
-            rows = result.fetchmany(num_records)
-            if not rows:
-                break
-            tmp = 'data: ['
-            for elem in rows:
-                tmp += elem[0] + ','
-            tmp = tmp[:-1]
-            yield tmp + ']\n\n'
-
-        yield 'data: close\n\n'
-        session.remove()
-
-    return Response(streaming_func(), mimetype='text/event-stream')
-
-
-def api_get_percentile(id=None):
-    """
-        Return the percentiles of a datasets
-
-        :param id:
-            id of the specific dataset
-    """
-    auth_func()
-    if not id:
-        return jsonify({})
-    query = db.session.query(Percentile).filter_by(dataset_id=id)
-    result = []
-    for elem in query:
-        result.append(elem.as_dict())
-    return jsonify(result)
-
-
-def api_get_metadata(id=None):
-    """
-        Return the metadata information for the datasets
-
-        :param id:
-            id of the specific dataset
-    """
-    auth_func()
-    if not id:
-        return jsonify({})
-    query = db.session.query(Metadata).filter_by(dataset_id=id)
-    result = []
-    for elem in query:
-        result.append(elem.as_dict())
-    return jsonify(result)
-
-
-def api_get_feature(id=None, feature=None):
-    """
-        Return the percentiles of a datasets
-
-        :param id:
-            id of the specific dataset
-    """
-    auth_func()
     # not a valid feature
     if not id or not feature:
         return jsonify({})
@@ -219,14 +153,13 @@ def api_get_feature(id=None, feature=None):
     return jsonify({"id": id, "feature": feature})
 
 
-def api_get_vc(id=None):
+@api_page.route('/dataset/<int:id>/vc', methods=['GET'])
+def get_vc_feature(id=None):
     """
-        Return the variation coefficient of the feature
+           Return the variation coefficient of the feature
 
-        :param id:
-            id of the specific dataset
-    """
-    auth_func()
+           :param id: id of the specific dataset
+       """
     # not a valid feature
     if not id:
         return jsonify({})
@@ -262,14 +195,79 @@ def api_get_vc(id=None):
     return jsonify(result)
 
 
-def api_get_dataset_networks(id=None):
+@api_page.route('/movement_only/<int:id>', methods=['GET'])
+def get_movment_only(id=None):
+    """
+            Return all only the movement data of a specific dataset
+
+            :param id: id of the specific dataset
+        """
+
+    def streaming_func():
+        session = create_session()
+        if id == None:
+            return jsonify({})
+        num_records = 1500
+        stmt = '''SELECT json_build_object('a', animal_id, 't', "time", 'p', ST_asGeoJSON(position)::json->'coordinates')::text
+                FROM movement_data
+                WHERE dataset_id = '%s'
+                ORDER BY "time", animal_id ;'''
+        result = session.connection().execution_options(stream_results=True).execute(stmt, (id))
+        while True:
+            rows = result.fetchmany(num_records)
+            if not rows:
+                break
+            tmp = 'data: ['
+            for elem in rows:
+                tmp += elem[0] + ','
+            tmp = tmp[:-1]
+            yield tmp + ']\n\n'
+
+        yield 'data: close\n\n'
+        session.remove()
+
+    return Response(streaming_func(), mimetype='text/event-stream')
+
+
+@api_page.route('/percentile/<int:id>', methods=['GET'])
+def get_percentile(id=None):
+    """
+        Return the percentiles of a datasets
+
+        :param id: id of the specific dataset
+    """
+    if not id:
+        return jsonify({})
+    query = db.session.query(Percentile).filter_by(dataset_id=id)
+    result = []
+    for elem in query:
+        result.append(elem.as_dict())
+    return jsonify(result)
+
+
+@api_page.route('/metadata/<int:id>', methods=['GET'])
+def get_metadata(id=None):
+    """
+        Return the metadata information for the datasets
+
+        :param id: id of the specific dataset
+    """
+    if not id:
+        return jsonify({})
+    query = db.session.query(Metadata).filter_by(dataset_id=id)
+    result = []
+    for elem in query:
+        result.append(elem.as_dict())
+    return jsonify(result)
+
+
+@api_page.route('/dataset/networks/<int:id>', methods=['GET'])
+def get_dataset_networks(id=None):
     """
         Return all network information (not the data) of a specific dataset
 
-        :param id:
-            id of the specific dataset
+        :param id: id of the specific dataset
     """
-    auth_func()
     if not id:
         return jsonify({})
     query = db.session.query(Network).filter_by(dataset_id=id)
@@ -279,15 +277,14 @@ def api_get_dataset_networks(id=None):
     return jsonify(result)
 
 
-def api_get_network_data(dataset_id=None, network_id=None):
+@api_page.route('/dataset/network/<int:dataset_id>/<int:network_id>', methods=['GET'])
+def get_dataset_network_data(dataset_id=None, network_id=None):
     """
         Return a json of the network for a specific dataset
 
-        :param
-            dataset_id: id of the specific dataset
-            network_id: network id of the specific dataset
+        :param dataset_id: id of the specific dataset
+        :param network_id: network id of the specific dataset
     """
-    auth_func()
     if dataset_id is None or network_id is None:
         return jsonify({})
     query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)
@@ -297,15 +294,14 @@ def api_get_network_data(dataset_id=None, network_id=None):
     return jsonify(result)
 
 
-def api_get_network_hierarchy_data(dataset_id=None, network_id=None):
+@api_page.route('/dataset/network/hierarchy/<int:dataset_id>/<int:network_id>', methods=['GET'])
+def get_dataset_network_hierarchy_data(dataset_id=None, network_id=None):
     """
         Return a json of the network hierarchy for a specific dataset
 
-        :param
-            dataset_id: id of the specific dataset
-            network_id: network id of the specific dataset
+        :param dataset_id: id of the specific dataset
+        :param network_id: network id of the specific dataset
     """
-    auth_func()
     if dataset_id is None or network_id is None:
         return jsonify({})
     query = db.session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)
@@ -314,13 +310,15 @@ def api_get_network_hierarchy_data(dataset_id=None, network_id=None):
         result.append(elem.hierarchy_as_data_dict())
     return jsonify(result)
 
-
-def api_get_dataset_suggested_parameters(dataset_id=None, tracked_data=None):
-    """
-        Calculate the suggested parameters via a optimization method
-
-        :param
-            dataset_id: id of the specific dataset
-            tracked_data: JSON String of the tracked data
-    """
-    return jsonify(data=calculate_parameters(dataset_id, tracked_data))
+# @ api_page.route('/api/dataset/visual_parameter/<int:dataset_id>', methods=['POST'])
+# def get_dataset_suggested_parameters(dataset_id=None):
+#     """
+#         Calculate the suggested parameters via a optimization method
+#
+#         :param
+#             dataset_id: id of the specific dataset
+#             tracked_data: JSON String of the tracked data
+#     """
+#     # Get JSON object passed with Ajax request
+#     tracked_data = request.json
+#     return jsonify(data=calculate_parameters(dataset_id, tracked_data))

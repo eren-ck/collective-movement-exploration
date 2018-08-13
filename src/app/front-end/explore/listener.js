@@ -315,13 +315,12 @@ function sf_listeners() {
         if ($('#draw-centroid').is(':checked')) {
             if (!('centroid' in swarmData[0])) {
                 getSwarmDatasetFeature('centroid');
-
             }
-            // hide the centroid
-            $('circle.centroid').show();
-        } else {
             // display the centroid
-            $('circle.centroid').hide();
+            $('#g-centroid').show();
+        } else {
+            // hide the centroid
+            $('#g-centroid').hide();
         }
     });
 
