@@ -306,7 +306,7 @@ export function draw() {
     // let t0 = performance.now();
 
     //update time to wait aka speed of replay
-    let timeToWait = $('input[name=group1]:checked', '#group1')
+    let timeToWait = $('input[type="radio"].group-playback-rate:checked')
         .val();
     //scale the size by this number
     let animalScale = $('input[type="radio"].group-size:checked')

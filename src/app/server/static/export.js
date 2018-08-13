@@ -108,7 +108,7 @@ $(document).ready(function() {
  */
 $('#download-movement-data').click(function() {
     // change the button text and icon (loading)
-    $('#download-movement-data').html('Loading...></span>');
+    $('#download-movement-data').html('<i class="mdi mdi-spin mdi-loading"></i>Loading');
     $('#download-movement-data').prop('disabled', true);
     $('#download-group-data').prop('disabled', true);
 
@@ -270,7 +270,7 @@ $('#download-movement-data').click(function() {
         //download the csv file
         link.click();
         // activate the buttons and change the text again
-        $('#download-movement-data').html('Download <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>');
+        $('#download-movement-data').html('<i class="mdi mdi-cloud-download"></i> Download');
         $('#download-movement-data').prop('disabled', false);
         $('#download-group-data').prop('disabled', false);
     });
@@ -283,7 +283,7 @@ $('#download-movement-data').click(function() {
  */
 $('#download-group-data').click(function() {
     // change the button text and icon (loading)
-    $('#download-group-data').html('Loading... <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>');
+    $('#download-group-data').html('<i class="mdi mdi-spin mdi-loading"></i>Loading');
     $('#download-movement-data').prop('disabled', true);
     $('#download-group-data').prop('disabled', true);
 
@@ -413,7 +413,7 @@ $('#download-group-data').click(function() {
         //download the csv file
         link.click();
         // activate the buttons and change the text again
-        $('#download-group-data').html('Download');
+        $('#download-group-data').html('<i class="mdi mdi-cloud-download"></i>Download');
         $('#download-movement-data').prop('disabled', false);
         $('#download-group-data').prop('disabled', false);
 

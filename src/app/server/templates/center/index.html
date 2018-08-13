@@ -10,10 +10,12 @@
     <div class="row clearfix">
         <div class="col-md-12 column">
             <div class="alert alert-secondary" role="alert">
+                <i class="mdi mdi-hammer"></i>
                 This is a development version
             </div>
 
             <div class="alert alert-secondary" role="alert">
+                <i class="mdi mdi-server"></i>
                 <strong>Services: </strong>
                 <span class="badge badge-pill badge-success">Database Server</span>
                 <span class="badge badge-pill badge-success">Website</span>
@@ -27,6 +29,7 @@
             <div class="list-group">
                 <div class="list-group-item">
                     <h4 class="list-group-item-heading">
+                        <i class="mdi mdi-speedometer"></i>
                         CPU -
                         <small>12 Cores</small>
                     </h4>
@@ -41,6 +44,7 @@
                 </div>
                 <div class="list-group-item">
                     <h4 class="list-group-item-heading">
+                        <i class="mdi mdi-memory"></i>
                         RAM -
                         <small>32 GB</small>
                     </h4>
@@ -65,7 +69,10 @@
                 <div class="col-sm-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"><strong>{{num_datasets}}</strong></h5>
+                            <h5 class="card-title">
+                                <i class="mdi mdi-format-list-numbers"></i>
+                                <strong>{{num_datasets}}</strong>
+                            </h5>
                             <p class="card-text">Number of uploaded datasets.</p>
                         </div>
                     </div>
@@ -73,7 +80,10 @@
                 <div class="col-sm-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"><strong>{{num_users}}</strong></h5>
+                            <h5 class="card-title">
+                                <i class="mdi mdi-account-multiple"></i>
+                                <strong>{{num_users}}</strong>
+                            </h5>
                             <p class="card-text">Number of users.</p>
                         </div>
                     </div>
@@ -81,7 +91,10 @@
                 <div class="col-sm-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"><strong>{{db_size}}</strong></h5>
+                            <h5 class="card-title">
+                                <i class="mdi mdi-database-search"></i>
+                                <strong>{{db_size}}</strong>
+                            </h5>
                             <p class="card-text">Size of the database in MB.</p>
                         </div>
                     </div>
@@ -94,10 +107,20 @@
     <div class="row">
         <div class="col-sm-4">
             <div class="card">
-                <div class="card-header">Version 0.17</div>
+                <div class="card-header"><i class="mdi mdi-update"></i> v0.17</div>
                 <div class="card-body text-dark">
-                    <h5 class="card-title">Update</h5>
-                    <p class="card-text">Update etc...</p>
+                    <h5 class="card-title">Technology Update</h5>
+                    <p class="card-text">
+                    <ul>
+                        <li>Restructure code base</li>
+                        <li>Removed old plugins</li>
+                        <li>Feature extraction performance</li>
+                        <li>Bootstrap v4</li>
+                        <li>D3 v5</li>
+                        <li>Material Design</li>
+                        <li>Removed beta features</li>
+                    </ul>
+                    </p>
                 </div>
             </div>
         </div>

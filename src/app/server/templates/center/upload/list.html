@@ -5,6 +5,8 @@
 <script>
       var user_id = {{ current_user.id|tojson }};
 
+
+
 </script>
 
 
@@ -64,7 +66,11 @@
 
 <div class="row">
     <div class="col-md-2 offset-md-9">
-        <a class="btn btn-lg btn-success" href="/center/upload/new" role="button">Upload New Dataset</a>
+
+        <a class="btn btn-lg btn-success" href="/center/upload/new" role="button">
+            <i class="mdi mdi-cloud-upload"></i>
+            Upload New Dataset
+        </a>
     </div>
 </div>
 

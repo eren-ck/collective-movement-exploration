@@ -52,34 +52,28 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-
                 <div class="row">
-
                     {{form.hidden_tag()}}
                     <div class="col-md-12">
                         <button class="btn btn-default btn-lg" type="button" id="suggest" data-toggle="tooltip"
                                 data-placement="top" title="Let the server suggest interesting parameters">
+                            <i class="mdi mdi-file-chart"></i>
                             Suggest Parameters
                         </button>
 
                         <div class="float-right">
-                                {{render_field(form.submit, class="btn btn-success btn-lg submit", value="Create" )}}
+                            {{render_field(form.submit, class="btn btn-success btn-lg submit", value="Create" )}}
                         </div>
                     </div>
                 </div>
-
-
             </div>
         </div>
-
 
     </fieldset>
 </form>
 {% endblock %}
-
 
 {% block tail %}
 {{ super() }}

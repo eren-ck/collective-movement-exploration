@@ -1,3 +1,82 @@
+/* Icons for bootstrap 4 */
+
+.mdi::before {
+    font-size: 24px;
+    line-height: 14px;
+}
+
+.btn .mdi::before {
+    position: relative;
+    top: 4px;
+}
+
+.btn-xs .mdi::before {
+    font-size: 18px;
+    top: 3px;
+}
+
+.btn-sm .mdi::before {
+    font-size: 18px;
+    top: 3px;
+}
+
+.dropdown-menu .mdi {
+    width: 18px;
+}
+
+.dropdown-menu .mdi::before {
+    position: relative;
+    top: 4px;
+    left: -8px;
+}
+
+.nav .mdi::before {
+    position: relative;
+    top: 4px;
+}
+
+.navbar .navbar-toggle .mdi::before {
+    position: relative;
+    top: 4px;
+    color: #FFF;
+}
+
+.breadcrumb .mdi::before {
+    position: relative;
+    top: 4px;
+}
+
+.breadcrumb a:hover {
+    text-decoration: none;
+}
+
+.breadcrumb a:hover span {
+    text-decoration: underline;
+}
+
+.alert .mdi::before {
+    position: relative;
+    top: 4px;
+    margin-right: 2px;
+}
+
+.input-group-addon .mdi::before {
+    position: relative;
+    top: 3px;
+}
+
+.navbar-brand .mdi::before {
+    position: relative;
+    top: 2px;
+    margin-right: 2px;
+}
+
+.list-group-item .mdi::before {
+    position: relative;
+    top: 3px;
+    left: -3px
+}
+
 /* SVG elements and text */
 
 #main-vis {
@@ -105,7 +184,6 @@
     margin-bottom: 0;
     font-size: 2em;
     color: inherit;
-    font-family: inherit;
     font-weight: 500;
     line-height: 1.1;
 }
@@ -137,14 +215,12 @@
 .legend-text {
     font-size: 1.2em;
     color: inherit;
-    font-family: inherit;
     line-height: 1.1;
 }
 
 .line-chart-legend-text {
     font-size: 2em;
     color: inherit;
-    font-family: inherit;
     line-height: 1.1;
 }
 
@@ -186,29 +262,6 @@
     stroke-width: 2;
     stroke: #000;
     stroke-opacity: 0.4;
-}
-
-.glyphicon-refresh-animate {
-    -animation: spin .7s infinite linear;
-    -webkit-animation: spin2 .7s infinite linear;
-}
-
-@-webkit-keyframes spin2 {
-    from {
-        -webkit-transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-    }
-}
-
-@keyframes spin {
-    from {
-        transform: scale(1) rotate(0deg);
-    }
-    to {
-        transform: scale(1) rotate(360deg);
-    }
 }
 
 #background-color span.glyphicon {
@@ -323,7 +376,6 @@ div.tooltip table td:nth-child(2) {
 .x.axis-line-chart>g>text {
     font-size: 3em;
     color: inherit;
-    font-family: inherit;
     line-height: 1.1;
 }
 
@@ -411,59 +463,6 @@ div.tooltip table td:nth-child(2) {
     stroke-width: 5px;
 }
 
-.custom-checkbox {
-    min-height: 1rem;
-    padding-left: 0;
-    margin-right: 0;
-    cursor: pointer;
-}
-
-.custom-checkbox .custom-control-indicator {
-    content: "";
-    display: inline-block;
-    position: relative;
-    width: 30px;
-    height: 10px;
-    background-color: #818181;
-    border-radius: 15px;
-    margin-right: 10px;
-    -webkit-transition: background .3s ease;
-    transition: background .3s ease;
-    vertical-align: middle;
-    margin: 0 16px;
-    box-shadow: none;
-}
-
-.custom-checkbox .custom-control-indicator:after {
-    content: "";
-    position: absolute;
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    background-color: #f1f1f1;
-    border-radius: 21px;
-    box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.4);
-    left: -2px;
-    top: -4px;
-    -webkit-transition: left .3s ease, background .3s ease, box-shadow .1s ease;
-    transition: left .3s ease, background .3s ease, box-shadow .1s ease;
-}
-
-.custom-checkbox .custom-control-input:checked~.custom-control-indicator {
-    background-color: #84c7c1;
-    background-image: none;
-    box-shadow: none !important;
-}
-
-.custom-checkbox .custom-control-input:checked~.custom-control-indicator:after {
-    background-color: #84c7c1;
-    left: 15px;
-}
-
-.custom-checkbox .custom-control-input:focus~.custom-control-indicator {
-    box-shadow: none !important;
-}
-
 #active-network-name {
     font-weight: bold;
     color: #296292;
@@ -537,83 +536,4 @@ div.tooltip table td:nth-child(2) {
 
 .modal-lg {
     max-width: 80%;
-}
-
-/* Icons for bootstrap 4 */
-
-.mdi::before {
-    font-size: 24px;
-    line-height: 14px;
-}
-
-.btn .mdi::before {
-    position: relative;
-    top: 4px;
-}
-
-.btn-xs .mdi::before {
-    font-size: 18px;
-    top: 3px;
-}
-
-.btn-sm .mdi::before {
-    font-size: 18px;
-    top: 3px;
-}
-
-.dropdown-menu .mdi {
-    width: 18px;
-}
-
-.dropdown-menu .mdi::before {
-    position: relative;
-    top: 4px;
-    left: -8px;
-}
-
-.nav .mdi::before {
-    position: relative;
-    top: 4px;
-}
-
-.navbar .navbar-toggle .mdi::before {
-    position: relative;
-    top: 4px;
-    color: #FFF;
-}
-
-.breadcrumb .mdi::before {
-    position: relative;
-    top: 4px;
-}
-
-.breadcrumb a:hover {
-    text-decoration: none;
-}
-
-.breadcrumb a:hover span {
-    text-decoration: underline;
-}
-
-.alert .mdi::before {
-    position: relative;
-    top: 4px;
-    margin-right: 2px;
-}
-
-.input-group-addon .mdi::before {
-    position: relative;
-    top: 3px;
-}
-
-.navbar-brand .mdi::before {
-    position: relative;
-    top: 2px;
-    margin-right: 2px;
-}
-
-.list-group-item .mdi::before {
-    position: relative;
-    top: 3px;
-    left: -3px
 }

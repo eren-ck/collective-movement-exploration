@@ -5,7 +5,6 @@
 
 <form method="POST" role="form" class="admin-form form-horizontal" enctype="multipart/form-data">
     <fieldset>
-
         <div class="card">
             <h5 class="card-header"> {{ title }}</h5>
             <div class="card-body">
@@ -24,9 +23,7 @@
                     </div>
                 </div>
 
-
                 <div class="row">
-
                     {{form.hidden_tag()}}
                     <div class="col-md-12">
                         <div class="float-right">
@@ -35,15 +32,11 @@
                     </div>
                 </div>
 
-
             </div>
         </div>
-
-
     </fieldset>
 </form>
 {% endblock %}
-
 
 {% block tail %}
 {{ super() }}
