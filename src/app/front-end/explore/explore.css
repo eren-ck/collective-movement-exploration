@@ -264,30 +264,6 @@
     stroke-opacity: 0.4;
 }
 
-#background-color span.glyphicon {
-    opacity: 0;
-}
-
-#background-color .btn {
-    border-color: #bdbdbd;
-}
-
-#background-color .active span.glyphicon {
-    opacity: 1;
-}
-
-#btn-grey1 {
-    background: #d9d9d9;
-}
-
-#btn-grey2 {
-    background: #969696;
-}
-
-#btn-dark {
-    background: #4d4d4d;
-}
-
 /* Color brewer picker div */
 
 .palette {
