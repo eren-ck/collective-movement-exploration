@@ -1,13 +1,13 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $, parameters*/
 import {
-    setIndexTime,
-    animal_ids
+    setIndexTime
 } from './spatial_view/spatial_view.js';
 
 import {
     swarmData,
-    dataset
+    dataset,
+    animalIds
 } from './explore.js';
 
 import {
@@ -429,7 +429,7 @@ function addTrendChart(elem) {
     if (!$(('#' + feature + 'TrendChart')).length) {
         // get the data for the trend chart
         let trendChartData = [];
-        let num_animals = animal_ids.length;
+        let num_animals = animalIds.length;
         // calculate the percetiles for every time step
         for (let i = 0; i < swarmData.length; i++) {
             let tmp = [];

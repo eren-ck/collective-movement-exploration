@@ -24,7 +24,9 @@ import {
 } from '../line_chart';
 
 import {
-    percentiles
+    percentiles,
+    makeResizable,
+    defaultConfig
 } from '../helpers.js';
 
 import {
@@ -74,7 +76,6 @@ export let activeScale = 'black'; // can be speed, acceleration, .. and black (m
 export let medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
 export let activeAnimals = []; // active selected animals
 export let arrayAnimals; // array of animals for the specific time frame
-export let animal_ids; // array of unique animal ids
 
 let svgContainer; // svg container for the spatial view
 let tank; // svg group for the spatial view tank
@@ -93,50 +94,10 @@ export function spatialViewInit() {
     tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
 
     // make the view resizable
-    $(function() {
-        $('#main-vis')
-            .draggable({
-                containment: 'parent'
-            })
-            .resizable({
-                aspectRatio: true,
-                maxWidth: $('#main-vis-div').width()
-            })
-            .height(tankHeight * 0.6)
-            .width(tankWidth * 0.6);
-    });
+    makeResizable();
 
-    //reset all checkboxes
-    $('input[type=checkbox]').prop('checked', false);
-    //set the color scale function to linear
-    $('#color-scale-linear')
-        .prop('checked', true);
-    $('#group-size-m')
-        .prop('checked', true);
-    $('#background-white')
-        .prop('checked', true);
-    $('#settings-div input[type=checkbox]')
-        .prop('checked', true);
-    //hide the loading gif
-    $('#loading')
-        .hide();
-    // needed due to jQuery incompatibility
-    $('#play-loading').hide();
-    $('.mdi-play').hide();
-    $('#metadata-input').hide();
-    $('#dendrogram-buttons-div').hide();
-
-
-    // get  number of distinct animal ids
-    let num_animals = new Set();
-    for (let i = 0; i < dataset.length; i++) {
-        if (dataset[i]['t'] === dataset[0]['t']) {
-            num_animals.add(dataset[i]['a']);
-        } else {
-            i = dataset.length;
-        }
-    }
-    animal_ids = Array.from(num_animals).sort();
+    // reset all checkboxes and hide icons
+    defaultConfig();
 
     //X and Y axis
     let x = d3.scaleLinear()
@@ -313,8 +274,6 @@ export function draw() {
         .val();
 
     //get the next animals
-    // console.log(dataset);
-    // arrayAnimals = dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
     arrayAnimals = dataset.filter(function(d) {
         return d['t'] === indexTime;
     });

@@ -24,6 +24,7 @@ export let swarmData = []; // swarmdata for linechart and also other swarm featu
 export let dataSetPercentile = {}; // pecentiles needed for the color mapping
 export let networkData = {}; // network data
 export let networkHierarchy = {}; // network hierarchy data
+export let animalIds = {}; // distinct animal ids
 
 
 
@@ -41,6 +42,9 @@ $(document).ready(function() {
     // get the dataSetPercentile
     queries.getPercentile();
 
+    // get the distinct animal ids for the whole dataset
+    queries.getAnimalIds();
+
     // get the swarm features for the line chart
     queries.getSwarmFeatures();
 
@@ -49,7 +53,6 @@ $(document).ready(function() {
 
     // get the information if there are already networks created for this dastaset
     queries.getNetworkDataButton();
-
 });
 
 /************************************************
@@ -150,4 +153,12 @@ export function setHierarchyData(value, network_id) {
     } // too many elements cant be added
 
     changeHierarchyLegend();
+}
+
+/**
+ * Set animal ids dataset
+ * @param {array} ids - Array of all distinct animal ids
+ */
+export function setAnimalIds(value) {
+    animalIds = value;
 }

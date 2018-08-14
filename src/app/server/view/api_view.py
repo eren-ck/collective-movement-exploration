@@ -9,6 +9,7 @@ from model.dataset_model import Dataset
 from model.percentile_model import Percentile
 from model.metadata_model import Metadata
 from model.network_model import Network
+from model.movement_data_model import Movement_data
 from feature_extraction.bayesian_optimization import calculate_parameters
 
 api_page = Blueprint('api', __name__, url_prefix='/api')
@@ -308,6 +309,22 @@ def get_dataset_network_hierarchy_data(dataset_id=None, network_id=None):
     result = []
     for elem in query:
         result.append(elem.hierarchy_as_data_dict())
+    return jsonify(result)
+
+
+@api_page.route('/dataset/<int:id>/animal_ids', methods=['GET'])
+def get_animal_ids(id=None):
+    """
+        Return the distinct animal ids
+
+        :param id : id of the specific dataset
+    """
+    if id is None:
+        return jsonify({})
+    animal_ids = db.session.query(Movement_data.animal_id).filter_by(dataset_id=id).distinct(Movement_data.animal_id)
+    result = []
+    for elem in animal_ids:
+        result.append(elem[0])
     return jsonify(result)
 
 # @ api_page.route('/api/dataset/visual_parameter/<int:dataset_id>', methods=['POST'])

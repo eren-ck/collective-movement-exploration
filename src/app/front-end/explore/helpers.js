@@ -160,3 +160,46 @@ d3.selection.prototype.moveToBack = function() {
         }
     });
 };
+
+/**
+ * Make the main vis spatial view resizable
+ */
+export function makeResizable(height, width) {
+    $(function() {
+        $('#main-vis')
+            .draggable({
+                containment: 'parent'
+            })
+            .resizable({
+                aspectRatio: true,
+                maxWidth: $('#main-vis-div').width()
+            })
+            .height(height * 0.6)
+            .width(width * 0.6);
+    });
+}
+
+/**
+ * Reset the buttons and checkboxes
+ * Hide icons - needed because of bootstrap bug
+ */
+export function defaultConfig() {
+    $('input[type=checkbox]').prop('checked', false);
+    //set the color scale function to linear
+    $('#color-scale-linear')
+        .prop('checked', true);
+    $('#group-size-m')
+        .prop('checked', true);
+    $('#background-white')
+        .prop('checked', true);
+    $('#settings-div input[type=checkbox]')
+        .prop('checked', true);
+    //hide the loading gif
+    $('#loading')
+        .hide();
+    // needed due to jQuery incompatibility
+    $('#play-loading').hide();
+    $('.mdi-play').hide();
+    $('#metadata-input').hide();
+    $('#dendrogram-buttons-div').hide();
+}
