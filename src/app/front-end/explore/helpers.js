@@ -202,4 +202,5 @@ export function defaultConfig() {
     $('.mdi-play').hide();
     $('#metadata-input').hide();
     $('#dendrogram-buttons-div').hide();
+    $('#g-centroid').hide();
 }

@@ -1,5 +1,4 @@
 from flask_security import current_user
-from flask_security.registerable import register_user
 from flask import request, redirect, abort, flash, render_template, Blueprint, url_for
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, StringField, PasswordField

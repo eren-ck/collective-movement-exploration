@@ -509,3 +509,7 @@ div.tooltip table td:nth-child(2) {
 .modal-lg {
     max-width: 80%;
 }
+
+.background-image {
+    background: #fff;
+}

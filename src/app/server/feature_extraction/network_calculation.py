@@ -6,7 +6,6 @@ import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster.hierarchy import ward, to_tree
 from sklearn.preprocessing import MinMaxScaler
-import multiprocessing as mp
 import json
 from functools import reduce
 

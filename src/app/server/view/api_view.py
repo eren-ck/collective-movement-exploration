@@ -10,7 +10,6 @@ from model.percentile_model import Percentile
 from model.metadata_model import Metadata
 from model.network_model import Network
 from model.movement_data_model import Movement_data
-from feature_extraction.bayesian_optimization import calculate_parameters
 
 api_page = Blueprint('api', __name__, url_prefix='/api')
 

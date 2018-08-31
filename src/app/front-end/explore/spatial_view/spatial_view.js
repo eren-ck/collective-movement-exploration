@@ -92,13 +92,6 @@ export function spatialViewInit() {
     // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
     tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
     tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
-
-    // make the view resizable
-    makeResizable();
-
-    // reset all checkboxes and hide icons
-    defaultConfig();
-
     //X and Y axis
     let x = d3.scaleLinear()
         .domain([minPoint[0], maxPoint[0]])
@@ -119,7 +112,6 @@ export function spatialViewInit() {
         .tickPadding(5);
 
     // ZOOMING AND PANNING STUFF
-    // TODO remove this from here to interaction
     let zoomGroup;
     let zoom = d3.zoom()
         .scaleExtent([1, 6])
@@ -152,40 +144,30 @@ export function spatialViewInit() {
         .attr('id', 'main-vis-svg')
         .call(zoom);
 
-
-    /* depends on svg ratio, for  1240/1900 = 0.65 so padding-bottom = 65% */
+    /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
     let percentage = Math.ceil((tankHeight / tankWidth) * 100);
     $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
     zoomGroup = svgContainer.append('svg:g');
 
+    // Visualize the background image if it is uploaded
     if (parameters.background_image) {
         zoomGroup
             .append('image')
-            //  .attr('d',path)
             .attr('xlink:href', '/' + parameters.background_image)
-            .attr('class', 'backgroundImage')
+            .attr('class', 'background-image')
             .attr('height', tankHeight)
             .attr('width', tankWidth)
-            // while adding an image to an svg these are the coordinates i think of the top left
             .attr('x', '0')
-            .attr('y', '0')
-            .attr('background', '#fff');
-
+            .attr('y', '0');
     }
 
     //append the tank group with a transformation which rotates the y axis
     tank = zoomGroup.append('svg:g')
         .attr('class', 'tank')
         .attr('transform', function() {
-            let x = 1;
-            let y = 1;
-            if (parameters.inverted_x) {
-                x = -1;
-            }
-            if (parameters.inverted_y) {
-                y = -1;
-            }
+            let x = parameters.inverted_x ? -1 : 1;
+            let y = parameters.inverted_y ? -1 : 1;
             return 'scale(' + x + ',' + y + ')';
         });
 
@@ -217,10 +199,9 @@ export function spatialViewInit() {
         .attr('id', 'centroid-line')
         .attr('marker-end', 'url(#centroid-arrow)');
 
-    $('#g-centroid').hide();
     //append network  group
     tank.append('g')
-        .attr('id', 'networkGroup');
+        .attr('id', 'network-group');
 
     //append delaunay-triangulation group
     tank.append('g')
@@ -228,7 +209,7 @@ export function spatialViewInit() {
 
     //append voronoi group
     tank.append('g')
-        .attr('id', 'vornoiGroup');
+        .attr('id', 'vornoi-group');
 
     //append the frame time text
     svgContainer.append('text')
@@ -254,6 +235,8 @@ export function spatialViewInit() {
     lineChart();
     initListeners();
     initDendrogram();
+    makeResizable(tankHeight, tankWidth);
+    defaultConfig();
     // start the animation
     draw();
 }
@@ -301,7 +284,7 @@ export function draw() {
                 let network = [];
                 let tmp = networkData[indexTime];
                 // reset the group standard deviation for the hierarhcy
-                // needed for coloring of the dendrogram nodes (variacne )
+                // needed for coloring of the dendrogram nodes (variacne)
                 resethierarchyGroupStdev();
 
                 let tmp_index = 0;
@@ -363,7 +346,7 @@ export function draw() {
                     return d['val'] <= networkLimit;
                 });
                 // DATA JOIN
-                networkVis = tank.select('#networkGroup')
+                networkVis = tank.select('#network-group')
                     .selectAll('line.network-edges')
                     .data(network);
                 // UPDATE
@@ -467,7 +450,7 @@ export function draw() {
                         return d['stroke'] > networkBackgroundLimit;
                     });
 
-                    networkVisBak = tank.select('#networkGroup')
+                    networkVisBak = tank.select('#network-group')
                         .selectAll('line.network-background-edges')
                         .data(filteredData);
 
@@ -525,7 +508,7 @@ export function draw() {
                     //     return d['val'];
                     // });
                 } else {
-                    networkVisBak = tank.select('#networkGroup')
+                    networkVisBak = tank.select('#network-group')
                         .selectAll('line.network-background-edges')
                         .data([]);
                     networkBakData = {};
@@ -533,7 +516,7 @@ export function draw() {
             } else {
                 networkVis = tank.selectAll('line.network-edges')
                     .data([]);
-                networkVisBak = tank.select('#networkGroup')
+                networkVisBak = tank.select('#network-group')
                     .selectAll('line.network-background-edges')
                     .data([]);
                 networkBakData = {};
@@ -580,7 +563,7 @@ export function draw() {
                 .is(':checked')) {
                 //append the group for the voronoi paths
                 voronoi = tank
-                    .select('#vornoiGroup')
+                    .select('#vornoi-group')
                     .selectAll('path.voronoi')
                     .data(swarmData[indexTime]['voronoi'].split(';'));
 
@@ -597,7 +580,7 @@ export function draw() {
                         return d;
                     });
             } else {
-                voronoi = tank.select('#vornoiGroup')
+                voronoi = tank.select('#vornoi-group')
                     .selectAll('path.voronoi')
                     .data([]);
             }

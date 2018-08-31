@@ -12,9 +12,8 @@
     {% endblock %}
 
     {% block head_css %}
-    <link href="{{url_for('static', filename='bootstrap.min.css')}}" rel="stylesheet">
-    <link href="{{url_for('static', filename='bootstrap-theme.min.css')}}" rel="stylesheet">
-    <link href="{{url_for('static', filename='materialdesignicons.min.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='libs/bootstrap.min.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='libs/materialdesignicons.min.css')}}" rel="stylesheet">
 
     {% endblock %}
 
@@ -105,9 +104,9 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="{{url_for('static', filename='jquery.min.js')}}"></script>
-<script src="{{url_for('static', filename='popper.min.js')}}"></script>
-<script src="{{url_for('static', filename='bootstrap.min.js')}}"></script>
+<script src="{{url_for('static', filename='libs/jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='libs/popper.min.js')}}"></script>
+<script src="{{url_for('static', filename='libs/bootstrap.min.js')}}"></script>
 
 {% endblock %}
 
