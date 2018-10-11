@@ -1,0 +1,674 @@
+{% extends 'layout.html' %}
+
+{% block head_css %}
+{{ super() }}
+<link href="{{url_for('static', filename='jquery-ui.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='pretty-checkbox.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static', filename='theme.css')}}" rel="stylesheet">
+
+{% endblock %}
+
+{% block body %}
+<script>
+    var parameters = {{ parameters | tojson}}
+
+</script>
+{{dataset}}
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-2">
+
+            <table class="table table-bordered table-sm">
+                <thead class="table-secondary">
+                <tr>
+                    <th scope="col">Features</th>
+                </tr>
+
+                <tbody>
+                <tr>
+                    <th>
+                        <!-- Draw swarm features -->
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Swarm Features</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-centroid"/>
+                                        <div class="state">
+                                            <label>Centroid</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-medoid"/>
+                                        <div class="state">
+                                            <label>Medoid</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-convex-hull"/>
+                                        <div class="state">
+                                            <label>Convex Hull</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-triangulation"/>
+                                        <div class="state">
+                                            <label>Triangulation Hull</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-voronoi"/>
+                                        <div class="state">
+                                            <label>Voronoi Diagram</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <div class="pretty p-switch p-fill p-bigger">
+                                        <input type="checkbox" id="draw-direction"/>
+                                        <div class="state">
+                                            <label>Direction</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Absolute Features</th>
+                            </tr>
+                            </thead>
+                            <tbody id="absolute-feature-checkboxes">
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <!-- Draw Line chart  -->
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Line Chart</th>
+                            </tr>
+                            </thead>
+                            <tbody id="line-chart-feature-checkboxes">
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <div class="text-center">
+                            <button type="button" id="network-button" class="btn btn-secondary" data-toggle="modal"
+                                    data-target="#network-modal" data-toggle="tooltip" data-placement="top"
+                                    title="Networks and Hierarchies">
+                                Networks<i class="mdi mdi-graphql"></i> Hierarchies<i class="mdi mdi-file-tree"></i>
+                            </button>
+                        </div>
+                    </th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-10">
+            <div class="row">
+                <div class="col-md-12">
+
+                    <div class="card bg-light">
+                        <h5 class="card-header">Control Panel</h5>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <!-- Play button  -->
+                                    <button type="button" id="play-button" class="btn btn-secondary active"
+                                            data-toggle="button" aria-pressed="true" autocomplete="off"
+                                            data-toggle="tooltip" data-placement="top" title="Play/Pause">
+                                        <span id="play-icons">
+                                        <i class="mdi mdi-play"></i>
+                                        <i class="mdi mdi-pause"></i>
+                                            </span>
+                                        <span id="play-loading" class="mdi mdi-18px mdi-spin mdi-loading">Loading</span>
+                                    </button>
+                                    <!-- Animation speed buttons -->
+                                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                        <label class="btn btn-secondary" data-toggle="tooltip" data-placement="top"
+                                               title="Slow playback rate">
+                                            <input type="radio" id="slow-speed" value="385" class="group-playback-rate"
+                                                   name="group-playback-rate" autocomplete="off">
+                                            <i class="mdi mdi-skip-backward"></i>
+                                        </label>
+                                        <label class="btn btn-secondary active" data-toggle="tooltip"
+                                               data-placement="top" title="Normal playback rate">
+                                            <input type="radio" id="normal-speed" value="25" name="group-playback-rate"
+                                                   class="group-playback-rate" autocomplete="off" checked>
+                                            <i class="mdi mdi-animation-play"></i>
+                                        </label>
+                                        <label class="btn btn-secondary" data-toggle="tooltip" data-placement="top"
+                                               title="Fast playback rate">
+                                            <input type="radio" id="fast-speed" value="4" class="group-playback-rate"
+                                                   name="group-playback-rate" autocomplete="off">
+                                            <i class="mdi mdi-skip-forward"></i>
+                                        </label>
+                                    </div>
+                                    <!-- Next frame button -->
+                                    <button type="button" id="next-frame-button" class="btn btn-secondary"
+                                            data-toggle="tooltip" data-placement="top" title="Next frame">
+                                        <i class="mdi mdi-skip-next-circle-outline"></i>
+                                    </button>
+                                    <!--Brush button -->
+                                    <button type="button" id="brushing-button" class="btn btn-secondary"
+                                            data-toggle="button" autocomplete="off" data-toggle="tooltip"
+                                            data-placement="top" title="Brush">
+                                        <i class="mdi mdi-selection"></i>
+                                    </button>
+                                    <!--<button type="button" id="visual-parameter-button" class="btn btn-default "-->
+                                    <!--data-toggle="button" autocomplete="off" disabled>-->
+                                    <!--Track-->
+                                    <!--</button>-->
+                                    <!--<button type="button" id="calculate-parameter-button"-->
+                                    <!--class="btn btn-default "-->
+                                    <!--data-toggle="button" autocomplete="off" disabled data="0">-->
+                                    <!--Calculate-->
+                                    <!--</button>-->
+                                    <!--Unselect all button-->
+                                    <button type="button" id="remove-active-selected-button"
+                                            class="btn btn-secondary" data-toggle="button" autocomplete="off"
+                                            disabled data-toggle="tooltip" data-placement="top" title="Deselect all">
+                                        <i class="mdi mdi-selection-off"></i>
+                                    </button>
+                                    <!-- Button trigger metadata -->
+                                    <button type="button" id="metadata-button"
+                                            class="btn btn-secondary float-right ml-1" data-toggle="modal"
+                                            data-target="#metadata-div" data-toggle="tooltip"
+                                            data-placement="top" title="Visualize metadata">
+                                        <i class="mdi mdi-tooltip-text"></i>
+                                    </button>
+                                    <!-- Button trigger settings -->
+                                    <button type="button" id="settings-button"
+                                            class="btn btn-secondary float-right" data-toggle="modal"
+                                            data-target="#settings-div" data-toggle="tooltip"
+                                            data-placement="top" title="Change settings">
+                                        <i class="mdi mdi-settings"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- The time slider -->
+                            <div class="row" style="padding: 1rem;">
+                                <div class="col-sm-12">
+                                    <div id="slider"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-12" id="main-vis-div">
+                            <!-- loading gif -->
+                            <div id="loading">
+                                <i class="mdi mdi-48px mdi-spin mdi-loading"></i>
+                            </div>
+                            <!-- The div for the svg  -->
+                            <div class="row">
+                                <div id="main-vis">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="hierarchy-legend-div" class="float-left">
+                                    </div>
+                                    <div id="main-vis-legend-div" class="float-right">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="dendrogram-buttons-div" class="float-right">
+                                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                            <label class="btn btn-secondary active set-button">
+                                                <input type="radio" name="options" data="union" autocomplete="off">
+                                                <i class="mdi mdi-set-all"></i> Union
+                                            </label>
+                                            <label class="btn btn-secondary set-button">
+                                                <input type="radio" name="options" data="intersection"
+                                                       autocomplete="off">
+                                                <i class="mdi mdi-set-center"></i> Intersection
+                                            </label>
+                                        </div>
+                                        <br>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="card" id="dendrogram-panel">
+                                        <h5 class="card-header">Hierarchy:<span
+                                                id="dendrogram-panel-name"> Name</span></h5>
+                                        <div class="card-body">
+                                            Cluster Level <span id="dendrogram-panel-level-text">2</span>
+                                            <div id="dendrogram-panel-level-slider" name="0"></div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="swarm-vis">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip">
+    <div class="container-small">
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th><em>Feature</em></th>
+                <th lass="info">Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>
+                    Animal ID
+                </td>
+                <td id="tooltip-animal-id" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Species
+                </td>
+                <td id="tooltip-species" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Sex
+                </td>
+                <td id="tooltip-sex" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Size
+                </td>
+                <td id="tooltip-size" class="info"></td>
+            </tr>
+            <tr>
+                <td>
+                    Weight
+                </td>
+                <td id="tooltip-weight" class="info"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="dendrogram-tooltip">
+        <span class="tooltip-span">
+        </span>
+</div>
+
+<!--Modal for settings -->
+<div class="modal fade" id="settings-div" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Size of entities</strong>
+                        <br>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-secondary">
+                                <input id="group-size-s" type="radio" class="group-size" name="group-size" value="3">
+                                <i class="mdi mdi-18px mdi-checkbox-blank-circle-outline"></i>
+                            </label>
+                            <label class="btn btn-secondary active" checked>
+                                <input id="group-size-m" type="radio" class="group-size" name="group-size" value="6">
+                                <i class="mdi mdi-24px mdi-checkbox-blank-circle-outline"></i>
+                            </label>
+                            <label class="btn btn-secondary">
+                                <input id="group-size-l" type="radio" class="group-size" name="group-size" value="10">
+                                <i class="mdi mdi-36px mdi-checkbox-blank-circle-outline"></i>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>Background color</strong>
+                        <br>
+                        <div class="btn-group btn-group-toggle" id="background-color" data-toggle="buttons">
+                            <label class="btn btn-secondary" style="background-color: #fff; color: #000;" checked>
+                                <input type="radio" id="background-white" class="group-background"
+                                       name="group-background" autocomplete="off" value="#fff"
+                                       checked>
+                                <i class="mdi mdi-format-color-fill"></i>
+                            </label>
+                            <label class="btn btn-secondary" style="background-color: #d9d9d9; color: #000;">
+                                <input type="radio" class="group-background" name="group-background" autocomplete="off"
+                                       value="#d9d9d9">
+                                <i class="mdi mdi-format-color-fill"></i>
+                            </label>
+                            <label class="btn btn-secondary" style="background-color: #969696; color: #000;">
+                                <input type="radio" class="group-background" name="group-background" autocomplete="off"
+                                       value="#969696">
+                                <i class="mdi mdi-format-color-fill"></i>
+                            </label>
+                            <label class="btn btn-secondary" style="background-color: #4d4d4d; color: #000;">
+                                <input type="radio" class="group-background" name="group-background" autocomplete="off"
+                                       value="#4d4d4d">
+                                <i class="mdi mdi-format-color-fill"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                A color scheme picker based on colors from <a href="http://colorbrewer2.org/">ColorBrewer</a>.
+
+                <table class="table">
+                    <tr>
+                        <td>
+                            &nbsp&nbsp<span class="glyphicon glyphicon-hand-down" aria-hidden="true"></span> Click
+                            <div class="colors-body">
+                            </div>
+                        </td>
+                        <td>
+                            <strong>Scaling Function</strong>
+                            <form id="color-scale-radio-form">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="color-scale-radio" id="color-scale-linear"
+                                               value="Linear"
+                                               checked> Linear Scale
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="color-scale-radio" id="color-scale-threshold"
+                                               value="Threshold"> Threshold Scale
+                                    </label>
+                                </div>
+                            </form>
+
+                            <strong>Spatial View</strong>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="draw-axis"/> Show Axis
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="draw-time"/> Show Time
+                                </label>
+                            </div>
+
+                            <strong>Network Edges Smoothing</strong>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="checkbox" id="network-background"/> Edge Smoothing
+                                </label>
+                            </div>
+                            <label>
+                                Edges Frame Limit <br>
+                                <input type="number" id="network-background-limit" value="1"/>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--Modal for Meta data  -->
+<div class="modal fade" id="metadata-div" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Metadata</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <div class="float-right">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons" id="group-metadata">
+                                <label class="btn btn-secondary">
+                                    <input type="radio" id="metadata-sex" name="group-metadata" value="sex">Sex
+                                </label>
+                                <label class="btn btn-secondary">
+                                    <input type="radio" id="metadata-size" name="group-metadata" value="size">
+                                    Size
+                                </label>
+                                <label class="btn btn-secondary">
+                                    <input type="radio" id="metadata-weight" name="group-metadata" value="weight">Weight
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12" id="metadata-input">
+                        <div class="col-xs-4 col-xs-offset-2">
+                            Below Average
+                            <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn">-</button>
+                                    </span>
+                                <input type="text" class="form-control text-center" id="bl-avg" value="1" min="0">
+                                <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up">+</button>
+                                     </span>
+                            </div>
+                        </div>
+
+                        <div class="col-xs-4">
+                            Above Average
+                            <div class="input-group number-spinner">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="dwn">-</button>
+                                    </span>
+                                <input type="text" class="form-control text-center" id="ab-avg" value="1" min="0">
+                                <span class="input-group-btn">
+                                        <button class="btn btn-default" data-dir="up">+</button>
+                                     </span>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="col-md-12">
+                            <div class="float-right">
+                                <ul class="metadata-legend">
+                                    <li><span class="bl-avg"></span>
+                                        <br> &nbsp&nbsp <
+                                    </li>
+                                    <li><span class="avg"></span>
+                                        <br> AVG
+                                    </li>
+                                    <li><span class="ab-avg"></span>
+                                        <br> &nbsp&nbsp <
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <div class="table-container">
+                        <table class="table table-striped table-condensed" id="metadata-table">
+                            <thead>
+                            <tr>
+                                <th>Animal ID</th>
+                                <th>Species</th>
+                                <th>Sex</th>
+                                <th>Size</th>
+                                <th>Weight</th>
+                                <th>Color</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pull-right">
+                        <button type="button" class="btn btn-default" id="metadata-reset">
+                            Reset all
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<!--Modal for Network data  -->
+<div class="modal fade" id="network-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="mx-auto">
+                    <h4 class="modal-title">Networks & Hierarchies</h4>
+                </div>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body-->
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="networks-modal-body">
+                            <table class="table table-striped table-hover table-bordered table-sm"
+                                   id="networks-hierarchies-table">
+                                <thead>
+                                <tr class="thead-light">
+                                    <th>Name</th>
+                                    <th>Network</th>
+                                    <th>Hierarchies</th>
+                                    <th>Network in Hierarchy</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <hr>
+
+                        <strong>Active Network: </strong>
+                        <span id="active-network-name"></span>
+
+                        <button type="button" id="network-auto-suggest" class="btn btn-default pull-right"
+                                data-toggle="button" aria-pressed="false" autocomplete="off">
+                            <i class="mdi mdi-autorenew"></i>
+                            Auto parameter
+                        </button>
+
+                        <p id="network-limit-p">
+                            <label for="network-limit">Limit value for network edges</label>
+                            <input id="network-limit" readonly="" style="border:0; color:#f6931f; font-weight:bold;"
+                                   type="text">
+                        </p>
+                        <div id="network-slider"></div>
+
+                        <hr>
+                        <button type="button" id="network-remove" class="btn btn-default btn-lg">
+                            <i class="mdi mdi-cancel"></i>
+                            Remove network
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block tail_js %}
+{{ super() }}
+<!-- D3, jQuery ui libs loaded -->
+<script src="{{url_for('static', filename='d3.min.js')}}"></script>
+<script src="{{url_for('static', filename='jquery-ui.min.js')}}"></script>
+<script src="{{url_for('static', filename='colorbrewer.min.js')}}"></script>
+<script src="{{url_for('static', filename='polybool.min.js')}}"></script>
+
+<!-- Own js scripts -->
+<script src="{{url_for('static', filename='explore.js')}}"></script>
+{% endblock %}

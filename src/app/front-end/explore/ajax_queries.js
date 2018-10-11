@@ -11,7 +11,8 @@ import {
     setMetaData,
     setDatasetFeature,
     setNetworkData,
-    setHierarchyData
+    setHierarchyData,
+    setAnimalIds
 } from './explore.js';
 
 import {
@@ -29,9 +30,9 @@ import {
     spatialViewInit
 } from './spatial_view/spatial_view.js';
 
-import {
-    responseParameters
-} from './visual_parameter.js';
+// import {
+//     responseParameters
+// } from './visual_parameter.js';
 
 
 /**
@@ -93,7 +94,6 @@ export function getPercentile() {
             addAbsoluteFeatureButtons(dataSetPercentile);
         }
     });
-
 }
 
 /**
@@ -202,8 +202,6 @@ export function getSwarmDatasetFeature(feature) {
     });
 }
 
-
-
 /**
  * Get the network for the specific network_id
  * @param {String} network_id - unique network id of a dataset.
@@ -248,27 +246,43 @@ export function getNetworkHierarchyData(network_id) {
             enablePlayButton();
         }
     });
-
 }
 
-
 /**
- * Visual parameter suggestion ajax query
- * @param {Array} trackedData - tracked data with .
+ * Get the distinct animal ids for a specifc dataset
  */
-export function getSuggestedParameters(trackedData) {
+export function getAnimalIds() {
     $.ajax({
-        url: '/api/dataset/visual_parameter/' + parameters['id'],
+        url: '/api/dataset/' + parameters['id'] + '/animal_ids',
         dataType: 'json',
-        type: 'POST',
+        type: 'GET',
         contentType: 'application/json; charset=utf-8',
         headers: {
             'Accept': JSONAPI_MIMETYPE
         },
         success: function(data) {
-            responseParameters(data);
-        },
-        data: trackedData
+            setAnimalIds(data);
+        }
     });
-
 }
+
+// /**
+//  * Visual parameter suggestion ajax query
+//  * @param {Array} trackedData - tracked data with .
+//  */
+// export function getSuggestedParameters(trackedData) {
+//     $.ajax({
+//         url: '/api/dataset/visual_parameter/' + parameters['id'],
+//         dataType: 'json',
+//         type: 'POST',
+//         contentType: 'application/json; charset=utf-8',
+//         headers: {
+//             'Accept': JSONAPI_MIMETYPE
+//         },
+//         success: function(data) {
+//             responseParameters(data);
+//         },
+//         data: trackedData
+//     });
+//
+// }

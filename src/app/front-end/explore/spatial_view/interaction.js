@@ -2,7 +2,8 @@
 /*global window, d3, $*/
 import {
     datasetMetadata,
-    swarmData
+    swarmData,
+    animalIds
 } from '../explore.js';
 
 import * as SPV from './spatial_view.js';
@@ -21,7 +22,7 @@ export function brushend() {
     let activeAnimals = SPV.activeAnimals;
     var rect = d3.event.selection;
     //iterate over the 151 fish to check which are in the brush
-    for (var i = 0; i < SPV.animal_ids.length; i++) {
+    for (var i = 0; i < animalIds.length; i++) {
         var point = [arrayAnimals[i]['p'][0], arrayAnimals[i]['p'][1]];
         //check which fish are in  the brushed area
         if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
@@ -119,7 +120,7 @@ export function initSliders() {
                 $('#network-limit').val(ui.value);
             }
         });
-    // set text for the first initialization 
+    // set text for the first initialization
     $('#network-limit').val(0.5);
 
     // get the max from the slider this is needed to calculate the ticks

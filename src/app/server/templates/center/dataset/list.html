@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h3>
+    Explore Your Datasets
+</h3>
+
+<table class="table table-striped table-bordered model-list">
+    <thead class="thead-dark">
+    <tr class="text-center">
+        {% block list_header scoped %}
+        <th class="col-md-3">Name</th>
+        <th class="col-md-1">Delete</th>
+        <th class="col-md-1">Edit</th>
+        <th class="col-md-1">Export</th>
+        <th class="col-md-1">Explore</th>
+        {% endblock %}
+    </tr>
+    </thead>
+    {% for data in datasets %}
+    {% if not data.error -%}
+    <tr id="dataset{{data.id}}">
+        {% block list_row scoped %}
+        <td>
+            {{ data.name }}
+        </td>
+        <td class="text-center">
+            <a href="/center/dataset/delete/{{ data.id }}">
+                <i class="mdi mdi-delete"></i>
+            </a>
+        </td>
+        <td class="text-center">
+            <a href="/center/dataset/edit/{{ data.id }}">
+                <i class="mdi mdi-pencil"></i>
+            </a>
+        </td>
+        <td class="text-center">
+            <a href="/center/dataset/export/{{ data.id }}">
+                  <i class="mdi mdi-progress-download"></i>
+            </a>
+        </td>
+        <td class="text-center">
+            <a href="/center/dataset/explore/{{ data.id }}">
+                  <i class="mdi mdi-fish"></i>
+            </a>
+        </td>
+        {% endblock %}
+    </tr>
+    {%- endif %}
+    {% endfor %}
+</table>
+
+{% endblock %}

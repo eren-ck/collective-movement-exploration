@@ -76,32 +76,48 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+let inputVariablesBool = false;
+let inputFilesBool = false;
+
 //disable the submit button
-disableSubmitButton();
-$('#metadata').val('');
-$('#movement').val('');
+triggerSubmitButton();
+$('#upload-form').trigger('reset');
+
+/**
+ * Check input variables form card
+ */
+$('#input-variables-card').on('change', function() {
+    let empty = $('#input-variables-card').find('input').filter(function() {
+        return this.value === '';
+    });
+    // check if input is emtpy
+    if (empty.length) {
+        inputVariablesBool = false;
+        $('#input-variables-card').removeClass('border-success');
+        $('#input-variables-card').addClass('border-warning');
+    } else {
+        $('#input-variables-card').removeClass('border-warning');
+        $('#input-variables-card').addClass('border-success');
+        inputVariablesBool = true;
+    }
+    triggerSubmitButton();
+});
 
 /**
  * Upload form movement file
  */
 $('#movement').on('change', function() {
-    //reset the movement alert fields
-    changeAlertWarning('#movement-is-csv');
-    changeAlertWarning('#movement-correct-fields');
-    changeAlertWarning('#movement-file-correct');
-    changeAlertWarning('#movement-primary-key');
+    inputFilesBool = false;
+    $('#movement-file-card').removeClass('border-success');
+    $('#movement-file-card').addClass('border-warning');
+
     // allowed extensions
     let fileExtension = ['csv'];
     // check if extension is csv, if not make an alert
     if ($.inArray($(this).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
-        //disable the submit button
-        disableSubmitButton();
-        changeAlertDanger('#movement-is-csv');
+        appendAlertWarning('Movement File', 'The file extension is not csv');
         return;
     }
-
-    // Enable submit button
-    enableSubmitButton();
 
     //check if csv file input is correct
     $('#movement').parse({
@@ -117,8 +133,6 @@ $('#movement').on('change', function() {
                 if (results.meta.fields.length >= 4) {
                     //needed fields
                     let needed_fields = ['animal_id', 'time', 'x', 'y'];
-                    //optional fields
-                    let optional_fields = ['direction', 'midline_offset'];
                     //fields of the csv file
                     let fields = results.meta.fields;
                     // compare the fields - this is case insensitive
@@ -126,36 +140,23 @@ $('#movement').on('change', function() {
                         let query = needed_fields[i];
                         //if the field is missing
                         if (fields.findIndex(item => query === item) < 0) {
-                            alert('The Movement CSV file is missing the field: ' + query);
-                            disableSubmitButton();
-                            changeAlertDanger('#movement-correct-fields');
+                            appendAlertWarning('Movement File', 'The file is missing the the header field ' + query);
                             return;
                         }
                     }
-                    // check if there are any optional fields
-                    for (let i = 0; i < optional_fields.length; i++) {
-                        let query = optional_fields[i];
-                        if (fields.findIndex(item => query === item) > 0) {
-                            changeAlertSuccess('#movement-optional-fields');
-                        }
-                    }
-
                 } // not the correct number of fields in the csv file
                 else {
-                    changeAlertDanger('#movement-correct-fields');
-                    disableSubmitButton();
+                    appendAlertWarning('Movement File', 'The number of header fields is not correct');
                     return;
                 }
                 //check if there are errors
                 if (results.errors.length !== 0) {
-                    alert('ERROR:' + results.errors[0]['message']);
-                    disableSubmitButton();
+                    appendAlertWarning('Movement File', 'ERROR:' + results.errors[0]['message']);
                     return;
                 }
                 //check if empty
                 if (results.data.length === 0) {
-                    changeAlertDanger('#movement-is-csv');
-                    disableSubmitButton();
+                    appendAlertWarning('Movement File', 'File seems to be emtpy');
                     return;
                 }
 
@@ -163,9 +164,7 @@ $('#movement').on('change', function() {
                 // and if there are no empty values
                 for (let i = 0; i < results.data.length; i++) {
                     if (!isNumber(results.data[i])) {
-                        alert('Something is wrong in CSV line ' + (i + 2));
-                        disableSubmitButton();
-                        changeAlertDanger('#movement-file-correct');
+                        appendAlertWarning('Movement File', 'Something is wrong in CSV line ' + (i + 2));
                         return;
                     }
                 }
@@ -192,25 +191,13 @@ $('#movement').on('change', function() {
                 $('#max_x').val(maxValues[0]);
                 $('#max_y').val(maxValues[1]);
 
-                // check for duplicate entries
-                let seen = new Set();
-                let hasDuplicates = results.data.some(function(current) {
-                    return seen.size === seen.add(JSON.stringify({
-                        pk1: current['time'],
-                        pk2: current['animal_id']
-                    })).size;
-                });
-                if (hasDuplicates) {
-                    changeAlertDanger('#movement-primary-key');
-                    disableSubmitButton();
-                    return;
-                }
-
                 // great success
-                changeAlertSuccess('#movement-is-csv');
-                changeAlertSuccess('#movement-correct-fields');
-                changeAlertSuccess('#movement-file-correct');
-                changeAlertSuccess('#movement-primary-key');
+                $('#file-alerts').empty();
+                inputFilesBool = true;
+                $('#movement-file-card').removeClass('border-warning');
+                $('#movement-file-card').addClass('border-success');
+                $('#input-variables-card').change();
+                triggerSubmitButton();
             },
             beforeFirstChunk: function(chunk) {
                 //change the header to lowercase to make it case insensitive
@@ -228,24 +215,15 @@ $('#movement').on('change', function() {
  * Upload form metadata file
  */
 $('#metadata').on('change', function() {
-    //reset the movement alert fields
-    changeAlertWarning('#metadata-is-csv');
-    changeAlertWarning('#metadata-correct-fields');
-    changeAlertWarning('#metadata-file-correct');
-    changeAlertWarning('#metadata-primary-key');
+    $('#reference-file-card').removeClass('border-success');
+    $('#reference-file-card').addClass('border-warning');
+
     // allowed extensions
     let fileExtension = ['csv'];
     // check if extension is csv, if not make an alert
     if ($.inArray($(this).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
-        //disable the submit button
-        disableSubmitButton();
-        changeAlertDanger('#metadata-is-csv');
+        appendAlertWarning('Reference File', 'The file extension is not csv');
         return;
-    }
-
-    if ($('#movement').val()) {
-        // Enable submit button
-        enableSubmitButton();
     }
 
     //check if csv file input is correct
@@ -269,29 +247,24 @@ $('#metadata').on('change', function() {
                         let query = needed_fields[i];
                         //if the field is missing
                         if (fields.findIndex(item => query === item) < 0) {
-                            alert('The metadata CSV file is missing the field: ' + query);
-                            disableSubmitButton();
-                            changeAlertDanger('#metadata-correct-fields');
+                            appendAlertWarning('Reference File', 'The file is missing the header field: ' + query);
                             return;
                         }
                     }
 
                 } // not the correct number of fields in the csv file
                 else {
-                    changeAlertDanger('#metadata-correct-fields');
-                    disableSubmitButton();
+                    appendAlertWarning('Reference File', 'The file has not the correct number of header fields');
                     return;
                 }
                 //check if there are errors
                 if (results.errors.length !== 0) {
-                    alert('ERROR:' + results.errors[0]['message']);
-                    disableSubmitButton();
+                    appendAlertWarning('Reference File', 'ERROR:' + results.errors[0]['message']);
                     return;
                 }
                 //check if empty
                 if (results.data.length === 0) {
-                    changeAlertDanger('#metadata-is-csv');
-                    disableSubmitButton();
+                    appendAlertWarning('Reference File', 'The file seems to be empty');
                     return;
                 }
 
@@ -300,40 +273,26 @@ $('#metadata').on('change', function() {
                 for (let i = 0; i < results.data.length; i++) {
                     //check if the id is a number
                     if (!letIsNumber(results.data[i]['animal_id'])) {
-                        alert('Something is wrong in CSV line ' + (i + 2));
-                        disableSubmitButton();
-                        changeAlertDanger('#metadata-file-correct');
+                        appendAlertWarning('Reference File', 'Something is wrong in CSV line ' + (i + 2));
                         return;
                     }
                     //check if there are also no empty or null values
                     for (let key in results.data[i]) {
                         if (results.data[i].hasOwnProperty(key)) {
                             if (!results.data[i][key]) {
-                                alert('Something is wrong in CSV line ' + (i + 2));
-                                disableSubmitButton();
-                                changeAlertDanger('#metadata-file-correct');
+                                appendAlertWarning('Reference File', 'Something is wrong in CSV line ' + (i + 2));
                                 return;
                             }
                         }
 
                     }
                 }
-                // check for duplicate entries
-                let seen = new Set();
-                let hasDuplicates = results.data.some(function(current) {
-                    return seen.size === seen.add(current['animal_id']).size;
-                });
-                if (hasDuplicates) {
-                    changeAlertDanger('#metadata-primary-key');
-                    disableSubmitButton();
-                    return;
-                }
 
                 // great success
-                changeAlertSuccess('#metadata-is-csv');
-                changeAlertSuccess('#metadata-correct-fields');
-                changeAlertSuccess('#metadata-file-correct');
-                changeAlertSuccess('#metadata-primary-key');
+                $('#file-alerts').empty();
+                $('#reference-file-card').removeClass('border-warning');
+                $('#reference-file-card').addClass('border-success');
+                $('#input-variables-card').change();
             },
             beforeFirstChunk: function(chunk) {
                 //change the header to lowercase to make it case insensitive
@@ -347,17 +306,34 @@ $('#metadata').on('change', function() {
 });
 
 /**
- * Enable sumbit button
+ * Check if the image has the right img extension
  */
-function enableSubmitButton() {
-    $('input[type="submit"]').prop('disabled', false);
-}
+$('#background_image').on('change', function() {
+    $('#background-image-card').removeClass('border-success');
+    $('#background-image-card').addClass('border-warning');
+
+    let fileExtension = ['png', 'jpg', 'jpeg'];
+    if ($.inArray($(this).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
+        appendAlertWarning('Background image', 'Only formats are allowed : ' + fileExtension.join(', '));
+    } else {
+        $('#background-image-card').removeClass('border-warning');
+        $('#background-image-card').addClass('border-success');
+    }
+});
 
 /**
- * Enable sumbit button
+ * Trigger the sumbit button if all required inputs are correct
  */
-function disableSubmitButton() {
-    $('input[type="submit"]').prop('disabled', true);
+function triggerSubmitButton() {
+    if (inputVariablesBool && inputFilesBool) {
+        $('input[type="submit"]').prop('disabled', false);
+        $('input[type="submit"]').removeClass('btn-secondary');
+        $('input[type="submit"]').addClass('btn-success');
+    } else {
+        $('input[type="submit"]').prop('disabled', true);
+        $('input[type="submit"]').removeClass('btn-success');
+        $('input[type="submit"]').addClass('btn-secondary');
+    }
 }
 
 /**
@@ -380,79 +356,15 @@ function letIsNumber(obj) {
     return !isNaN(parseFloat(obj));
 }
 
-/**
- * Drag and drop effects - still minor issues
- * gets stuck sometimes
- */
-let dropCounter = 0;
-$('.drop').bind({
-    dragenter: function(ev) {
-        dropCounter++;
-        $(this).addClass('blue');
-        ev.preventDefault();
-    },
-
-    dragleave: function() {
-        dropCounter--;
-        if (dropCounter === 0) {
-            $(this).removeClass('blue');
-        }
-    },
-    drop: function() {
-        $(this).find('span').addClass('dropped');
-        dropCounter = 0;
-        $(this).removeClass('blue');
-    }
-});
 
 /**
- * Drag and drop movement input
+ * Append alert to the alert div
+ * @param {String} file - the file which contains the error
+ * @param {String} text - alert text
  */
-$('#movement').change(function() {
-    $('#movement-drop-text').text(this.files[0].name);
-    $('#movement + span').addClass('dropped');
-});
-
-
-/**
- * Drag and drop metadata input
- */
-$('#metadata').change(function() {
-    $('#metadata-drop-text').text(this.files[0].name);
-    $('#metadata + span').addClass('dropped');
-});
-
-/**
- * Change alert to Warning
- */
-function changeAlertWarning(sel) {
-    $(sel)
-        .removeClass(function(index, css) {
-            return (css.match(/(^|\s)alert-\S+/g) || []).join(' ');
-        })
-        .addClass('alert-warning');
-}
-
-/**
- * Change alert to danger
- */
-function changeAlertDanger(sel) {
-    $(sel)
-        .removeClass(function(index, css) {
-            return (css.match(/(^|\s)alert-\S+/g) || []).join(' ');
-        })
-        .addClass('alert-danger');
-}
-
-/**
- * Change alert to success
- */
-function changeAlertSuccess(sel) {
-    $(sel)
-        .removeClass(function(index, css) {
-            return (css.match(/(^|\s)alert-\S+/g) || []).join(' ');
-        })
-        .addClass('alert-success');
+function appendAlertWarning(file, text) {
+    $('#file-alerts').empty();
+    $('#file-alerts').append('<div class="alert alert-warning" role="alert"><strong>' + file + ' :</strong> ' + text + ' </div>');
 }
 
 /**
@@ -460,47 +372,8 @@ function changeAlertSuccess(sel) {
  */
 $('#submit').click(function() {
     $(this).hide();
-    $('#submit-button').removeClass('hidden');
+    $('.submit-row').append('Please wait - files are upoaded');
 });
-
-
-// upload from upload-wizard using tab
-$(document).ready(function() {
-    //Initialize tooltips
-    $('.nav-tabs > li a[title]').tooltip();
-
-    //upload-wizard
-    $('a[data-toggle="tab"]').on('show.bs.tab', function(e) {
-
-        let $target = $(e.target);
-
-        if ($target.parent().hasClass('disabled')) {
-            return false;
-        }
-    });
-
-    $('.next-step').click(function() {
-
-        let $active = $('.upload-wizard .nav-tabs li.active');
-        $active.next().removeClass('disabled');
-        nextTab($active);
-
-    });
-    $('.prev-step').click(function() {
-
-        let $active = $('.upload-wizard .nav-tabs li.active');
-        prevTab($active);
-
-    });
-});
-
-function nextTab(elem) {
-    $(elem).next().find('a[data-toggle="tab"]').click();
-}
-
-function prevTab(elem) {
-    $(elem).prev().find('a[data-toggle="tab"]').click();
-}
 
 /***/ }),
 /* 1 */
@@ -542,7 +415,7 @@ exports = module.exports = __webpack_require__(3)(undefined);
 
 
 // module
-exports.push([module.i, "    /* Drag and drop upload */\r\n\r\n    .drop {\r\n        position: relative;\r\n        width: 300px;\r\n        height: 200px;\r\n        border: 4px dashed #E0E0E0;\r\n    }\r\n\r\n    .drop:hover {\r\n        box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.1);\r\n        border: 4px dashed #737373;\r\n    }\r\n\r\n    .drop p {\r\n        width: 100%;\r\n        text-align: center;\r\n        line-height: 130px;\r\n        color: #333;\r\n    }\r\n\r\n    .drop span {\r\n        top: 50px;\r\n        width: 100%;\r\n        font-size: 2.5em;\r\n        text-align: center;\r\n        color: #D9D9D9;\r\n    }\r\n\r\n    .drop input {\r\n        position: absolute;\r\n        margin: 0;\r\n        padding: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        outline: none;\r\n        opacity: 0;\r\n    }\r\n\r\n    .blue {\r\n        box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.1);\r\n        border: 4px dashed #337ab7;\r\n    }\r\n\r\n    .dropped {\r\n        color: #333 !important;\r\n    }\r\n\r\n    .panel-heading .accordion-toggle:after {\r\n        font-family: 'Glyphicons Halflings';\r\n        content: \"\\E114\";\r\n        float: right;\r\n        color: grey;\r\n    }\r\n\r\n    .panel-heading .accordion-toggle.collapsed:after {\r\n        content: \"\\E080\";\r\n    }\r\n\r\n    .required:after {\r\n        content: \"*\";\r\n        color: #cb181d;\r\n    }\r\n\r\n    .upload-wizard {\r\n        margin: 20px auto;\r\n        background: #fff;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs {\r\n        position: relative;\r\n        margin: 40px auto;\r\n        margin-bottom: 0;\r\n        border-bottom-color: #e0e0e0;\r\n    }\r\n\r\n    .upload-wizard>div.upload-wizard-inner {\r\n        position: relative;\r\n    }\r\n\r\n    .connecting-line {\r\n        height: 2px;\r\n        background: #e0e0e0;\r\n        position: absolute;\r\n        width: 80%;\r\n        margin: 0 auto;\r\n        left: 0;\r\n        right: 0;\r\n        top: 50%;\r\n        z-index: 1;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li.active>a, .upload-wizard .nav-tabs>li.active>a:hover, .upload-wizard .nav-tabs>li.active>a:focus {\r\n        color: #555555;\r\n        cursor: default;\r\n        border: 0;\r\n        border-bottom-color: transparent;\r\n    }\r\n\r\n    span.round-tab {\r\n        width: 70px;\r\n        height: 70px;\r\n        line-height: 70px;\r\n        display: inline-block;\r\n        border-radius: 100px;\r\n        background: #fff;\r\n        border: 2px solid #e0e0e0;\r\n        z-index: 2;\r\n        position: absolute;\r\n        left: 0;\r\n        text-align: center;\r\n        font-size: 25px;\r\n    }\r\n\r\n    span.round-tab i {\r\n        color: #555555;\r\n    }\r\n\r\n    .upload-wizard li.active span.round-tab {\r\n        background: #fff;\r\n        border: 2px solid #337ab7;\r\n    }\r\n\r\n    .upload-wizard li.active span.round-tab i {\r\n        color: #337ab7;\r\n    }\r\n\r\n    span.round-tab:hover {\r\n        color: #333;\r\n        border: 2px solid #333;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li {\r\n        width: 25%;\r\n    }\r\n\r\n    .upload-wizard li:after {\r\n        content: \" \";\r\n        position: absolute;\r\n        left: 46%;\r\n        opacity: 0;\r\n        margin: 0 auto;\r\n        bottom: 0px;\r\n        border: 5px solid transparent;\r\n        border-bottom-color: #337ab7;\r\n        transition: 0.1s ease-in-out;\r\n    }\r\n\r\n    .upload-wizard li.active:after {\r\n        content: \" \";\r\n        position: absolute;\r\n        left: 46%;\r\n        opacity: 1;\r\n        margin: 0 auto;\r\n        bottom: 0px;\r\n        border: 10px solid transparent;\r\n        border-bottom-color: #337ab7;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li a {\r\n        width: 70px;\r\n        height: 70px;\r\n        margin: 20px auto;\r\n        border-radius: 100%;\r\n        padding: 0;\r\n    }\r\n\r\n    .upload-wizard .nav-tabs>li a:hover {\r\n        background: transparent;\r\n    }\r\n\r\n    .upload-wizard .tab-pane {\r\n        position: relative;\r\n        padding-top: 50px;\r\n        border: 1px solid #ccc;\r\n        border-radius: 5px;\r\n        padding: 50px;\r\n    }\r\n\r\n    .upload-wizard h3 {\r\n        margin-top: 0;\r\n    }\r\n\r\n    @media( max-width: 585px) {\r\n        .upload-wizard {\r\n            width: 90%;\r\n            height: auto !important;\r\n        }\r\n        span.round-tab {\r\n            font-size: 16px;\r\n            width: 50px;\r\n            height: 50px;\r\n            line-height: 50px;\r\n        }\r\n        .upload-wizard .nav-tabs>li a {\r\n            width: 50px;\r\n            height: 50px;\r\n            line-height: 50px;\r\n        }\r\n        .upload-wizard li.active:after {\r\n            content: \" \";\r\n            position: absolute;\r\n            left: 35%;\r\n        }\r\n    }\r\n\r\n    body.modal-open .main-container {\r\n        filter: blur(3px);\r\n        -webkit-filter: blur(3px);\r\n        -ms-filter: blur(3px);\r\n        filter: url(\"data:image/svg+xml;utf9,<svg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'><filter%20id='blur'><feGaussianBlur%20stdDeviation='3'%20/></filter></svg>#blur\");\r\n        filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');\r\n    }\r\n\r\n    .glyphicon-refresh-animate {\r\n        -animation: spin .7s infinite linear;\r\n        -webkit-animation: spin2 .7s infinite linear;\r\n    }\r\n\r\n    @-webkit-keyframes spin2 {\r\n        from {\r\n            -webkit-transform: rotate(0deg);\r\n        }\r\n        to {\r\n            -webkit-transform: rotate(360deg);\r\n        }\r\n    }\r\n\r\n    @keyframes spin {\r\n        from {\r\n            transform: scale(1) rotate(0deg);\r\n        }\r\n        to {\r\n            transform: scale(1) rotate(360deg);\r\n        }\r\n    }\r\n", ""]);
+exports.push([module.i, ".required:after {\r\n    content: \"*\";\r\n    color: #cb181d;\r\n}", ""]);
 
 // exports
 

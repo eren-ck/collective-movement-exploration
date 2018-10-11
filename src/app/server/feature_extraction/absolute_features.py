@@ -1,9 +1,10 @@
-import math
 import datetime, sys
-import itertools
-from db import *
-from multiprocessing import Pool
+import pandas as pd
+from geoalchemy2 import functions
+import numpy as np
+from collections import OrderedDict
 
+from db import *
 from model.dataset_model import Dataset
 from model.movement_data_model import Movement_data
 
@@ -17,9 +18,8 @@ def calculate_absolute_features(id):
     id -- id of the dataset
 
     """
-    # print('Absolute features started', file=sys.stderr)
-    # print(datetime.datetime.utcnow(), file=sys.stderr)
-
+    # increasing performance of these computations
+    # t0 = datetime.datetime.utcnow()
     # create new db session
     session = create_session()
     # get the dataset row from the db
@@ -31,162 +31,108 @@ def calculate_absolute_features(id):
     session.commit()
 
     # tmp query to get all distinct animal ids from the dataset
-    tmp = session.query(Movement_data) \
-        .filter_by(dataset_id=id) \
-        .distinct(Movement_data.animal_id)
-
-    # list for the distinct animal ids of the dataset
-    animal_ids = []
-    # save the ids in the list
-    for data in tmp:
-        animal_ids.append(data.animal_id)
-
-    # progress per animal in the loop
-    # this is added to the progress bar after an animal absolute features calculation are finished
-    progress_per_animal = 45 / (len(animal_ids) + 1)
-
-    # Multiprocessing
-    pool_size = 10  # 5 parallel processes
-    pool = Pool(pool_size)
-    # call the absolute_feature_worker method with the needed parameters
-    pool.map(absolute_feature_worker,
-             zip((range(0, len(animal_ids))), itertools.repeat(id), itertools.repeat(animal_ids),
-                 itertools.repeat(progress_per_animal), ))
-    pool.close()
-    # wait until all processes are finished
-    pool.join()
-
-    session.remove()
-    # print('Absolute features finished', file=sys.stderr)
-    # print(datetime.datetime.utcnow(), file=sys.stderr)
-
-
-def absolute_feature_worker(tmp):
-    """ Calculate absolute features for one animal. This is called by a pool.
-
-    Keyword arguments:
-    tmp - list of parameters
-    tmp[0] - parameter i needed for animal_ids
-    tmp[1] - id of the dataset
-    tmp[2] - list of all animal_ids is used with parameter tmp[0]
-    tmp[3] - progress_per_animal, this value is added to the progess bar after the calculation is finished
-
-    """
-    # create a new threaded db session
-    session = create_session()
-    # rewrite the tmp values to make it easier
-    i = tmp[0]
-    id = tmp[1]
-    animal_ids = tmp[2]
-    progress_per_animal = tmp[3]
-    # get the dataset
-    dataset = session.query(Dataset).filter_by(id=id)
-    # needed for speed and acceleration calculation
-    fps = dataset[0].fps
-
-    # and extract the absolute features
+    query = session.query(Movement_data.time, Movement_data.animal_id,
+                          functions.ST_X(Movement_data.position), functions.ST_Y(Movement_data.position)) \
+        .filter_by(dataset_id=id).order_by('time')
+    # read into pandas frame for faster calculation
+    df = pd.read_sql(query.statement, query.session.bind)
+    # rename a column
+    df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
+    # groupby animal id for the feature extraction
+    grouped_df = df.groupby(['animal_id'])
+    # extract the features
+    df = absolute_feature_worker_2(grouped_df, dataset[0].fps)
+    # upload the dataset
     try:
-        # query the movement data of the animal
-        animal = session.query(Movement_data) \
-            .filter_by(dataset_id=id, animal_id=animal_ids[i]) \
-            .order_by(Movement_data.time)
-        # print('Animal ' + str(i), file=sys.stderr)
-
-        # calculate the metric distance
-        calculate_metric_distance(animal)
-        # calculate the speed feature
-        calculate_speed(animal, fps)
-        # calculate the acceleration feature
-        calculate_acceleration(animal, fps)
-        # calculate the direction of the moving entity
-        calculate_direction(animal)
+        for index, row in df.iterrows():
+            query = Movement_data(dataset_id=id, **OrderedDict(row))
+            session.merge(query)
 
         # change the progress bar
-        dataset[0].progress += progress_per_animal
+        dataset[0].progress = 50
         # add the data to the database
         session.commit()
 
     except Exception as e:
         # Something went wrong when calculating absolute features
+        print(e)
         session.rollback()
         dataset[0].status = 'Error - calculating absolute features ' + str(e)[0:200]
         dataset[0].error = True
         session.commit()
-        pass
-    # remove the session
+        session.remove()
+
     session.remove()
+    # print("Performance " + str(datetime.datetime.utcnow() - t0) + " secs")
 
 
-def calculate_metric_distance(animal):
-    """ Calculate the metric distance between the frame.
+def absolute_feature_worker_2(grouped_df, fps):
+    """ Calculate absolute features for one animal. This is called by a pool.
+
+       Keyword arguments:
+       grouped_df - grouped pandas table data frame
+       fps - frames per second needed for e.g. speed calculation
+
+       """
+    appended_data = []
+    # for key, item in grouped_df:
+    for key, df in grouped_df:
+        # compute metric distance
+        df = calculate_metric_distance(df)
+        # compute speed
+        df = calculate_speed(df, fps)
+        # # compute acceleration
+        df = calculate_acceleration(df, fps)
+        # compute direction
+        df = calculate_direction(df)
+        appended_data.append(df)
+    appended_data = pd.concat(appended_data, axis=0)
+    return appended_data
+
+
+def calculate_metric_distance(df):
+    """ Calculate the metric distance between two consecutive frames.
 
     Keyword arguments:
-    animal -- dataset with all time moments
-
+    df -- panda dataframe for one animal
     """
-    animal[0].metric_distance = 0
-    number_elem = animal.count()
-    for i in range(1, number_elem):
-        dist = math.hypot(animal[i].get_x() - animal[i - 1].get_x(),
-                          animal[i].get_y() - animal[i - 1].get_y())
-        animal[i].metric_distance = dist
+    df['metric_distance'] = np.sqrt(
+        (df['x'] - df['x'].shift()) ** 2 + (df['y'] - df['y'].shift()) ** 2)
+    return df.fillna(0)
 
 
-def calculate_speed(animal, fps):
+def calculate_speed(df, fps):
     """
     Calculate the averaged speed of an animal
-    #ToDo Change this right now in 25 frames per second calculation
 
     Keyword arguments:
-    animal -- a animal with all frames
+    df -- panda dataframe for one animal
     fps -- frames per second needed to calculate the right speed per second
-
     """
-    # fps divide by 2 and round down, idea is to take the first (fps/2) and the following (fps/2)
-    # to calculate the averaged speed
-    fps = math.floor(fps / 2) or 1
-    number_elem = animal.count()
-    for i in range(0, number_elem):
-        sum_dist = 0
-        for j in range(i - fps, i + fps + 1):
-            if j >= 0 and j < number_elem:
-                sum_dist = sum_dist + animal[j].metric_distance
-        animal[i].speed = sum_dist
+    df['speed'] = df['metric_distance'].rolling(min_periods=1, window=fps, center=True).mean()
+    return df.fillna(0)
 
 
-def calculate_acceleration(animal, fps):
+def calculate_acceleration(df, fps):
     """ Calculate the average Acceleration  of an animal .
 
     Keyword arguments:
-    animal -- animal with all frames
+    df -- panda dataframe for one animal
     fps -- frames per second needed to calculate the right speed per second
 
     """
-    # fps divide by 2 and round down, idea is to take the first (fps/2) and the following (fps/2)
-    # to calculate the averaged speed
-    fps = math.floor(fps / 2) or 1
-    number_elem = animal.count()
-    for i in range(0, number_elem):
-        array_speed = []
-        for j in range(i - fps, i + fps + 1):
-            if j >= 0 and j < number_elem:
-                array_speed.append(animal[j].speed)
-        sum_change = sum([array_speed[j + 1] - array_speed[j] for j in range(len(array_speed) - 1)])
-        animal[i].acceleration = sum_change
+    df['acceleration'] = df['speed'].rolling(min_periods=1, window=fps, center=True).apply(lambda x: x[1] - x[0],
+                                                                                           raw=True)
+    return df.fillna(0)
 
 
-def calculate_direction(animal):
+def calculate_direction(df):
     """ Calculate the moving direction of the animal.
 
     Keyword arguments:
     animal -- dataset with all time moments
 
     """
-    if not animal[0].direction:
-        animal[0].direction = 0
-        number_elem = animal.count()
-        for i in range(1, number_elem):
-            angle = math.atan2((animal[i].get_y() - animal[i - 1].get_y()), (animal[i].get_x() - animal[i - 1].get_x()))
-
-            angle = round(math.degrees(angle), 2)
-            animal[i].direction = angle
+    df['direction'] = np.rad2deg(np.arctan2(
+        (df['y'] - df['y'].shift()), (df['x'] - df['x'].shift())))
+    return df.fillna(0)

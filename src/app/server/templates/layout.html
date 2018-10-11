@@ -12,9 +12,8 @@
     {% endblock %}
 
     {% block head_css %}
-    <link href="{{url_for('static', filename='bootstrap.min.css')}}" rel="stylesheet">
-    <link href="{{url_for('static', filename='bootstrap-theme.min.css')}}" rel="stylesheet">
-    <link href="{{url_for('static', filename='admin.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='libs/bootstrap.min.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='libs/materialdesignicons.min.css')}}" rel="stylesheet">
 
     {% endblock %}
 
@@ -29,67 +28,63 @@
 <body>
 {% block page_body %}
 <div class="container">
-    <nav class="navbar navbar-default" role="navigation">
 
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#admin-navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            {% block brand %}
-            <a class="navbar-brand" href="/">Collective Movement Exploration</a>
-            {% endblock %}
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+        <h5 class="my-0 mr-md-auto font-weight-normal">
+            <a class="text-dark" href="/">Collective Movement Exploration</a>
+        </h5>
 
-        </div>
+        {% if current_user.is_authenticated %}
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/">Info</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/upload">Upload</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/dataset">Explore</a>
+        </nav>
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/network">Network</a>
+        </nav>
+        {% if current_user.has_role('admin') %}
+        <!--<nav class="my-2 my-md-0 mr-md-3">-->
+            <!--<a class="p-2 text-dark" href="/center/role">Role</a>-->
+        <!--</nav>-->
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/center/user">User</a>
+        </nav>
+        {% endif %}
+        {% endif %}
 
-        <!-- navbar content -->
-        <div class="collapse navbar-collapse" id="admin-navbar-collapse">
+        <nav class="my-2 my-md-0 mr-md-3">
+            <a class="p-2 text-dark" href="/contact">Contact</a>
+        </nav>
 
-            <ul class="nav navbar-nav">
-                <!--<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"-->
-                <!--aria-haspopup="true" aria-expanded="false"> Explore <span class="caret"></span></a>-->
-                <!--<ul class="dropdown-menu">-->
-                <!--<li><a href="#">Golden Shiners</a></li>-->
-                <!--<li role="separator" class="divider"></li>-->
-                <!--<li><a href="#">Animal 2</a></li>-->
-                <!--<li role="separator" class="divider"></li>-->
-                <!--<li><a href="#">Animal 3</a></li>-->
-                <!--</ul>-->
-                <!--</li>-->
-                <li><a href="/contact">Contact</a></li>
-            </ul>
 
-            <div class="navbar-text btn-group pull-right">
-                {% if current_user.is_authenticated %}
+        {% if current_user.is_authenticated %}
 
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                    {% if current_user.first_name -%}
-                    {{ current_user.first_name }}
-                    {% else -%}
-                    {{ current_user.email }}
-                    {%- endif %}<span class="caret"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="/admin">My Area</a></li>
-                    <li><a href="{{ url_for('security.logout') }}">Log out</a></li>
-                </ul>
+        <a class="btn btn-light btn-sm" href="{{ url_for('security.logout' )}}">Log out</a>
 
-                {% else %}
-                <a class="btn btn-primary btn-sm" href="{{ url_for('security.login') }}">login</a>
-                {% endif %}
-            </div>
+        {% else %}
+        <a class="btn btn-primary btn-sm" href="{{ url_for('security.login' )}}">Login</a>
+        {% endif %}
 
-            {% block access_control %}
-            {% endblock %}
-        </div>
-    </nav>
-
+    </div>
     {% block messages %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <!-- <strong>Title</strong> --> {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
     {% endblock %}
-
 
     {% block body %}{% endblock %}
 </div>
@@ -99,7 +94,7 @@
     {% block footer %}
     <div class="container">
         <hr>
-        <p>© 2017</p>
+        <p>© 2018</p>
     </div>
     {% endblock %}
 
@@ -109,11 +104,9 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="{{url_for('static', filename='jquery.min.js')}}"></script>
-<script src="{{url_for('static', filename='bootstrap.min.js')}}"></script>
-<script>
-
-</script>
+<script src="{{url_for('static', filename='libs/jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='libs/popper.min.js')}}"></script>
+<script src="{{url_for('static', filename='libs/bootstrap.min.js')}}"></script>
 
 {% endblock %}
 

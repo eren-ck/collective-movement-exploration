@@ -1,9 +1,11 @@
 import sys
 import os
+import pandas as pd
+from geoalchemy2 import functions
 import numpy as np
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, squareform
 from scipy.cluster.hierarchy import ward, to_tree
-import multiprocessing as mp
+from sklearn.preprocessing import MinMaxScaler
 import json
 from functools import reduce
 
@@ -12,147 +14,111 @@ from db import create_session
 from model.network_model import Network
 from model.movement_data_model import Movement_data
 
+# max number of network edges per frame
+CONST_NETWORK_EDGES = 500
+
 
 def calculate_network(dataset_id, network_id):
     """ Calculate the dynamic network for the dataset and the chosen weighted features
 
     Keyword arguments:
-    id -- dataset id
     dataset_id -- id of the dataset
     network_id -- in combination with the dataset_id the primary key
-
     """
     # create new db session for the new spanned process
     session = create_session()
 
     try:
-        network_model = session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id)[0]
+        network_model = session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id).first()
 
         # numpy array of the input weights
         weights = np.array([network_model.metric_distance, network_model.speed, network_model.acceleration,
                             network_model.distance_centroid, network_model.direction, network_model.euclidean_distance,
                             network_model.euclidean_distance])
 
-        # # get min max of all features
-        min_max = {}
-        # get min max from the database for the movement features
-        query = '''SELECT  min(metric_distance) as min_metric_distance, max(metric_distance) as max_metric_distance,
-                           min(speed) as min_speed, max(speed) as max_speed,
-                           min(acceleration) as min_acceleration, max(acceleration) as max_acceleration,
-                           min(distance_centroid) as min_distance_centroid, max(distance_centroid) as max_distance_centroid,
-                           min(direction) as min_direction, max(direction) as max_direction,
-                           min(ST_X("position")) as min_position_x, max(ST_X("position")) as max_position_x,
-                           min(ST_Y("position")) as min_position_y, max(ST_Y("position")) as max_position_y
-            FROM movement_data
-            WHERE dataset_id = :id; '''
-        tmp = session.execute(query, {'id': dataset_id})
-        row = tmp.fetchone()
-        keys = tmp.keys()
-        # add it to the dict
-        for elem in keys:
-            min_max[elem] = float(row[elem])
-
+        # new way to compute the distance matrix
         # get the movement data
-        movement_data = session.query(Movement_data).filter_by(dataset_id=dataset_id) \
-            .order_by(Movement_data.time, Movement_data.animal_id)
-        # get the unique animal ids from the dataset needed for the labeling of the hierarchy
-        animal_ids = session.query(Movement_data.animal_id).filter_by(dataset_id=dataset_id) \
-            .order_by(Movement_data.animal_id).distinct()
-        animal_ids = [d[0] for d in animal_ids]
-        labels = dict(zip(range(len(animal_ids)), animal_ids))
+        query = session.query(Movement_data.time, Movement_data.animal_id, Movement_data.metric_distance,
+                              Movement_data.speed, Movement_data.acceleration, Movement_data.distance_centroid,
+                              Movement_data.direction,
+                              functions.ST_X(Movement_data.position), functions.ST_Y(Movement_data.position)) \
+            .filter_by(dataset_id=dataset_id).order_by('time', 'animal_id')
 
-        # object of  ndarray of feature vectors - e.g. {1:array[(...)], 2:array[(...)]}
-        # attributes of the object are the time steps
-        feature_matrices = {}
-        # normalize the vectors and add them to the feature_matrices
-        for elem in movement_data:
-            if str(elem.time) not in feature_matrices:
-                feature_matrices[str(elem.time)] = []
-            v_normed = np.array([
-                normalize(elem.metric_distance, min_max['min_metric_distance'], min_max['max_metric_distance']),
-                normalize(elem.speed, min_max['min_speed'], min_max['max_speed']),
-                normalize(elem.acceleration, min_max['min_acceleration'], min_max['max_acceleration']),
-                normalize(elem.distance_centroid, min_max['min_distance_centroid'], min_max['max_distance_centroid']),
-                normalize(elem.direction, min_max['min_direction'], min_max['max_direction']),
-                normalize(elem.get_x(), min_max['min_position_x'], min_max['max_position_x']),
-                normalize(elem.get_y(), min_max['min_position_y'], min_max['max_position_y']),
-            ])
-            feature_matrices[str(elem.time)].append(v_normed)
+        # read into pandas frame for faster calculation
+        df = pd.read_sql(query.statement, query.session.bind)
+        df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
+        # normalize the columns
+        scaler = MinMaxScaler()
+        df[['metric_distance', 'speed', 'acceleration', 'distance_centroid', 'direction', 'x',
+            'y']] = scaler.fit_transform(
+            df[['metric_distance', 'speed', 'acceleration', 'distance_centroid', 'direction', 'x',
+                'y']])
 
-        ### Multiprocessing
-        pool_size = 10  # 5 parallel processes
-        # create the pool
-        pool = mp.Pool(pool_size)
-        # pack the input arguments together
-        arglist = [[i, feature_matrices, 'wminkowski', 2, weights] for i in feature_matrices.keys()]
-        # start the calculation function for each time step
-        results = pool.map(distance_calculation, arglist)
+        # results
+        result_network = {}
+        result_hclust = {}
 
-        # hierarchical clustering (ward clustering)
-        arglist = [[d, labels] for d in results]
-        result_hclust = pool.map(hierarchical_clustering, arglist)
-
-        pool.close()
-        # wait until all processes are finished
-        pool.join()
-        # convert the results in a format which can be converted to json
-        tmp = {}
-        for res in results:
-            for t in res:
-                tmp[t] = res[t].round(2).tolist()
-        results = tmp
-
-        # convert the hierarchical clustering in a form which can be converted to json
-        tmp = {}
-        for data in result_hclust:
-            for key, value in data.items():
-                tmp[key] = value;
-
-        result_hclust = tmp;
+        # group by time for the network computation for each time frame
+        grouped_df = df.groupby(['time'])  # .apply(lambda g: pd.Series(distance.pdist(g), index=["D1", "D2", "D3"]))
+        # compute network and hierarhcy
+        for key, group in grouped_df:
+            # set index to animal id
+            group.set_index('animal_id', inplace=True)
+            # remove the time column - this is stored in key
+            group.drop('time', 1, inplace=True)
+            # compute the pairwise distance - weighted euclidean distance
+            res = pdist(group, 'wminkowski', p=2, w=weights)
+            # transform into squared matrix
+            network_df = pd.DataFrame(squareform(res), index=group.index, columns=group.index)
+            # rename column and index name needed - for duplicate error warning
+            network_df.columns.name = None
+            network_df.index.name = None
+            # get the upper triangular matrix of the pandas dataframe
+            network_df = network_df.where(np.triu(np.ones(network_df.shape)).astype(np.bool))
+            network_df = network_df.stack().reset_index()
+            # start end value
+            network_df.columns = ['s', 'e', 'v']
+            # remove rows with the value zero
+            network_df = network_df[network_df.v != 0]
+            # sort and pick the n largest values
+            network_df = network_df.nlargest(CONST_NETWORK_EDGES, 'v')
+            # filtered network round
+            network_df = network_df.round({'v': 4}).to_dict('records')
+            result_network[key] = network_df
+            # ** Hierarchy
+            # hierarchical clustering (ward clustering)
+            hierarchy = hierarchical_clustering(res, group.index.tolist())
+            result_hclust[key] = hierarchy
 
         # save the results in the database
-        network_model.network = json.dumps(results)
+        network_model.network = json.dumps(result_network)
         network_model.hierarchy = json.dumps(result_hclust, separators=(',', ':'))
         network_model.finished = True
         session.commit()
     except Exception as e:
         # Something went wrong while calculating the network
+        print('Error - ' + str(e)[0:200])
         session.rollback()
         network_model.status = 'Error - ' + str(e)[0:200]
         network_model.error = True
         session.commit()
-        pass
+        session.remove()
 
     session.remove()
 
 
-def distance_calculation(args):
-    """
-        Return the pairwise distance between the observations in the n-dimensional space
-
-        :param id:
-            args: (["index","feature_matrix","metric","p-norm","weight vector"]
-    """
-    # return squareform(pdist(X, metric, p, w))
-    i, X, metric, p, w = args
-    return {i: pdist(X[i], metric, p, w)}
-
-
-def hierarchical_clustering(args):
+def hierarchical_clustering(data, labels):
     """
         Return the hierarchical clustering encoded as a linkage matrix
         Perform Ward’s linkage on a condensed distance matrix.
 
-        :param args: ([{time:condensed matrix}, labels])
+        :param data: condensed matrix
+        :param labels:  labels
     """
     # args
-    data, labels = args
-    time = -1
     # cluster and transform to a tree object
-    for key, value in data.items():
-        clusters = ward(value)
-        tree = to_tree(clusters, rd=False)
-        time = key
+    clusters = ward(data)
+    tree = to_tree(clusters, rd=False)
 
     def add_node(node, parent):
         """
@@ -194,18 +160,7 @@ def hierarchical_clustering(args):
     # label the leafs of the tree
     label_tree(dendro['children'][0])
 
-    return {time: dendro}
-
-
-def normalize(value, min, max):
-    """ Min max normalization
-
-        Keyword arguments:
-            value -- value
-            min -- minimum
-            max -- maximum
-        """
-    return (value - min) / (max - min)
+    return dendro
 
 
 def calculate_basic_networks(dataset_id):
@@ -270,7 +225,6 @@ def calculate_basic_networks(dataset_id):
         network1_model.error = True
         session.commit()
         pass
-
 
     # network  2 - distance - direction
     try:

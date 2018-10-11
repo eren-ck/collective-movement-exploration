@@ -92,8 +92,12 @@ function cp_listener() {
     $('#play-button').click(function() {
         if ($('#play-button').hasClass('active') === true) {
             playBoolean = false;
+            $('.mdi-pause').hide();
+            $('.mdi-play').show();
         } else {
             playBoolean = true;
+            $('.mdi-play').hide();
+            $('.mdi-pause').show();
             SPV.setIndexTime(slider.slider('value'));
             $('.brush').remove();
             SPV.draw();
@@ -270,11 +274,9 @@ function sf_listeners() {
                 // ajax query to get direction data
                 getDatasetFeature('direction');
             }
-            d3.selectAll('.arrow')
-                .classed('hidden', false);
+            $('.arrow').show();
         } else {
-            d3.selectAll('.arrow')
-                .classed('hidden', true);
+            $('.arrow').hide();
         }
         if (!$('#play-button').hasClass('active')) {
             //go back one second and draw the next frame
@@ -313,15 +315,12 @@ function sf_listeners() {
         if ($('#draw-centroid').is(':checked')) {
             if (!('centroid' in swarmData[0])) {
                 getSwarmDatasetFeature('centroid');
-
             }
-            // hide the centroid
-            d3.select('circle.centroid')
-                .classed('hidden', false);
-        } else {
             // display the centroid
-            d3.select('circle.centroid')
-                .classed('hidden', true);
+            $('#g-centroid').show();
+        } else {
+            // hide the centroid
+            $('#g-centroid').hide();
         }
     });
 
@@ -388,6 +387,8 @@ function af_listeners() {
      * Draw Speed button
      */
     $('#draw-speed').click(function() {
+        $('.draw-details').hide()
+            .find('input:checkbox').prop('checked', true).click();
         if ($('#draw-speed').is(':checked')) {
             // load absolute feature speed data once
             if (!('speed' in dataset[0])) {
@@ -395,17 +396,16 @@ function af_listeners() {
                 // ajax query to get the absolute feature speed
                 getDatasetFeature('speed');
             }
-            $('.draw-details').addClass('hidden');
-            $('#draw-speed-details').removeClass('hidden');
+            // $('.draw-details').hide();
+            $('#draw-speed-details').show();
             $('#draw-acceleration').prop('checked', false);
             $('#draw-distance_centroid').prop('checked', false);
             $('#draw-midline_offset').prop('checked', false);
             SPV.setActiveScale('speed');
         } else {
-            $('#draw-speed-details').addClass('hidden');
+            $('#draw-speed-details').hide();
             SPV.setActiveScale('black');
         }
-        $('.draw-details.active').click();
         //change color legend
         d3.selectAll('.colorLegend *').remove();
         changeLegend();
@@ -422,6 +422,8 @@ function af_listeners() {
      * Draw acceleration button
      */
     $('#draw-acceleration').click(function() {
+        $('.draw-details').hide()
+            .find('input:checkbox').prop('checked', true).click();
         if ($('#draw-acceleration').is(':checked')) {
             // load absolute feature acceleration data once
             if (!('acceleration' in dataset[0])) {
@@ -429,14 +431,13 @@ function af_listeners() {
                 // ajax query to get the absolute feature acceleration
                 getDatasetFeature('acceleration');
             }
-            $('.draw-details').addClass('hidden');
-            $('#draw-acceleration-details').removeClass('hidden');
+            $('#draw-acceleration-details').show();
             $('#draw-speed').prop('checked', false);
             $('#draw-distance_centroid').prop('checked', false);
             $('#draw-midline_offset').prop('checked', false);
             SPV.setActiveScale('acceleration');
         } else {
-            $('#draw-acceleration-details').addClass('hidden');
+            $('#draw-acceleration-details').hide();
             SPV.setActiveScale('black');
         }
         $('.draw-details.active').click();
@@ -456,6 +457,8 @@ function af_listeners() {
      * Draw distance to centroid button
      */
     $('#draw-distance_centroid').click(function() {
+        $('.draw-details').hide()
+            .find('input:checkbox').prop('checked', true).click();
         if ($('#draw-distance_centroid').is(':checked')) {
             // load absolute feature distance_centroid data once
             if (!('distance_centroid' in dataset[0])) {
@@ -463,14 +466,13 @@ function af_listeners() {
                 // ajax query to get the absolute feature distance_centroid
                 getDatasetFeature('distance_centroid');
             }
-            $('.draw-details').addClass('hidden');
-            $('#draw-distance_centroid-details').removeClass('hidden');
+            $('#draw-distance_centroid-details').show();
             $('#draw-speed').prop('checked', false);
             $('#draw-acceleration').prop('checked', false);
             $('#draw-midline_offset').prop('checked', false);
             SPV.setActiveScale('distance_centroid');
         } else {
-            $('#draw-distance_centroid-details').addClass('hidden');
+            $('#draw-distance_centroid-details').hide();
             SPV.setActiveScale('black');
         }
         $('.draw-details.active').click();
@@ -490,6 +492,8 @@ function af_listeners() {
      * Draw midline offset
      */
     $('#draw-midline_offset').click(function() {
+        $('.draw-details').hide()
+            .find('input:checkbox').prop('checked', true).click();
         if ($('#draw-midline_offset').is(':checked')) {
             // load absolute feature draw-midline_offset data once
             if (!('draw-midline_offset' in dataset[0])) {
@@ -497,14 +501,12 @@ function af_listeners() {
                 // ajax query to get the absolute feature midline_offset
                 getDatasetFeature('midline_offset');
             }
-            $('.draw-details').addClass('hidden');
-            $('#draw-midline_offset-details').removeClass('hidden');
+            $('#draw-midline_offset-details').show();
             $('#draw-speed').prop('checked', false);
             $('#draw-acceleration').prop('checked', false);
             $('#draw-distance_centroid').prop('checked', false);
             SPV.setActiveScale('midline_offset');
         } else {
-            $('#draw-midline_offset-details').addClass('hidden');
             SPV.setActiveScale('black');
         }
         $('.draw-details.active').click();
@@ -626,9 +628,9 @@ function md_listeners() {
                     }
                 }
             }
-            $('#metadata-input').addClass('hidden');
+            $('#metadata-input').hide();
         } else {
-            $('#metadata-input').removeClass('hidden');
+            $('#metadata-input').show();
             // set values of inputs
             // here are automatically input values calculated
             // .25 and .75 percentiles are used
@@ -680,7 +682,7 @@ function md_listeners() {
      * Reset all metadata input parameters
      */
     $('#metadata-reset').click(function() {
-        $('#metadata-input').addClass('hidden');
+        $('#metadata-input').hide();
         resetIndividualMetadata();
     });
 
@@ -701,15 +703,15 @@ function h_listeners() {
                 // active found button
                 if ($(button).attr('id') === clickedButtonID && $(button).hasClass('btn-primary') === false) {
                     $(button).addClass('btn-primary');
-                    $(button).find('#btn-left').addClass('hidden');
-                    $(button).find('#btn-right').removeClass('hidden');
+                    $(button).find('#btn-left').hide();
+                    $(button).find('#btn-right').show();
                     // TODO add here a resize of the main vis
                     // $('#dendrogram-panel').insertAfter($(this));
                 } // remove highlight
                 else {
                     $(button).removeClass('btn-primary');
-                    $(button).find('#btn-left').removeClass('hidden');
-                    $(button).find('#btn-right').addClass('hidden');
+                    $(button).find('#btn-left').show();
+                    $(button).find('#btn-right').hide();
                 }
             });
 
@@ -734,12 +736,11 @@ function h_listeners() {
      * Load data or remove it
      */
     $('.hiearchy-checkbox').on('change', function() {
-        let checkbox = $(this).find('input:hidden');
+        let checkbox = $(this);
 
         let id = checkbox.attr('data');
         let name = checkbox.attr('name');
         let checked = checkbox.prop('checked');
-
 
         if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
             disablePlayButton();
@@ -747,7 +748,7 @@ function h_listeners() {
 
             addHierarchyButton(id, name);
             initShowDendrogramListener(id);
-            $('#dendrogram-buttons-div').removeClass('hidden');
+            $('#dendrogram-buttons-div').show();
         }
         // else if ($('.show-dendrogram').length === maxNumberHierarchies) {
         // console.log('Max number of hierarchies is: ' + maxNumberHierarchies);
@@ -771,7 +772,7 @@ function h_listeners() {
                 $('#dendrogram-panel').hide();
             }
             if ($('.show-dendrogram').length === 0) {
-                $('#dendrogram-buttons-div').addClass('hidden');
+                $('#dendrogram-buttons-div').hide();
             }
 
         }
@@ -790,19 +791,15 @@ function h_listeners() {
      */
     $('.network-hierarchy-checkbox').on('change', function() {
         // get the info for the clicked button
-        let checkbox = $(this).find('input:hidden');
-        let id = checkbox.attr('data');
-        let checked = checkbox.prop('checked');
+        let checkbox = $(this);
 
         // reset all the other active checkboxes
-        $('.network-hierarchy-checkbox').each(function(i, button) {
-            if ($(this).find('input:hidden').prop('checked') && $(this).find('input:hidden').prop('data') !== id) {
-                $(button).trigger('click');
-            }
-        });
-        if (checked) {
+        $('.network-hierarchy-checkbox').prop('checked', false);
+        checkbox.prop('checked', true);
+
+        if (checkbox.prop('checked')) {
             // set the network id
-            setNetworkHierarchy(id);
+            setNetworkHierarchy(checkbox.attr('data'));
         } else {
             setNetworkHierarchy(undefined);
         }

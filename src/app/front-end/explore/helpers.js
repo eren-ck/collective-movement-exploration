@@ -19,8 +19,10 @@ import {
 export function disablePlayButton() {
     setPlayBoolean(false);
     $('#play-button').removeClass('active');
-    $('#play-button').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Loading');
     $('#play-button').prop('disabled', true);
+    $('#play-icons').hide();
+    $('#play-loading').show();
+
 }
 
 /**
@@ -29,8 +31,9 @@ export function disablePlayButton() {
 export function enablePlayButton() {
     setPlayBoolean(true);
     $('#play-button').addClass('active');
-    $('#play-button').html('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>Play');
     $('#play-button').prop('disabled', false);
+    $('#play-loading').hide();
+    $('#play-icons').show();
     draw();
 }
 
@@ -96,14 +99,19 @@ export function addAbsoluteFeatureButtons(dataSetPercentile) {
             let capitalized_feature_string = key.split('_').join(' ');
             capitalized_feature_string = capitalized_feature_string.charAt(0).toUpperCase() + capitalized_feature_string.slice(1);
             // add the button
-            $('#absolute-feature-checkboxes').after('<div class="feature-check-box-default"> <input type="checkbox" name="checkbox" id="draw-' + key +
-                '"/><label for="draw-' + key + '">' + capitalized_feature_string +
-                '<button type="button" id="draw-' + key +
-                '-details" class="btn btn-default pull-right hidden draw-details" data-toggle="button" aria-pressed="false" autocomplete="off">' +
-                '<span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button> </label> </div>');
+            $('#absolute-feature-checkboxes').append('<tr><th>' +
+                ' <div class="pretty p-switch p-fill p-bigger"><input type="checkbox" id="draw-' + key +
+                '"/><div class="state"><label>' + capitalized_feature_string + '</label></div></div>' +
+                // quantile graph
+                '<div class="float-right draw-details" id="draw-' + key + '-details"><div class="pretty p-icon p-toggle p-plain"><input type="checkbox" id="draw-' + key + '-input" />' +
+                '<div class="state p-success-o p-on"><i class="mdi mdi-image-area"></i><label></label></div>' +
+                '<div class="state p-off"><i class="mdi mdi-image-off"></i><label></label></div>' +
+                '</div></div></th></tr>');
 
         }
     }
+    // hide the elements
+    $('.draw-details').hide();
     // init the listerners
     initTrendChartListener();
 
@@ -142,7 +150,7 @@ export function standardDeviation(arr) {
 }
 
 /**
- * Move element in SVG into background done by moving it to first element 
+ * Move element in SVG into background done by moving it to first element
  */
 d3.selection.prototype.moveToBack = function() {
     return this.each(function() {
@@ -152,3 +160,47 @@ d3.selection.prototype.moveToBack = function() {
         }
     });
 };
+
+/**
+ * Make the main vis spatial view resizable
+ */
+export function makeResizable(height, width) {
+    $(function() {
+        $('#main-vis')
+            .draggable({
+                containment: 'parent'
+            })
+            .resizable({
+                aspectRatio: true,
+                maxWidth: $('#main-vis-div').width()
+            })
+            .height(height * 0.6)
+            .width(width * 0.6);
+    });
+}
+
+/**
+ * Reset the buttons and checkboxes
+ * Hide icons - needed because of bootstrap bug
+ */
+export function defaultConfig() {
+    $('input[type=checkbox]').prop('checked', false);
+    //set the color scale function to linear
+    $('#color-scale-linear')
+        .prop('checked', true);
+    $('#group-size-m')
+        .prop('checked', true);
+    $('#background-white')
+        .prop('checked', true);
+    $('#settings-div input[type=checkbox]')
+        .prop('checked', true);
+    //hide the loading gif
+    $('#loading')
+        .hide();
+    // needed due to jQuery incompatibility
+    $('#play-loading').hide();
+    $('.mdi-play').hide();
+    $('#metadata-input').hide();
+    $('#dendrogram-buttons-div').hide();
+    $('#g-centroid').hide();
+}

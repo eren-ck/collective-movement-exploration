@@ -2,8 +2,10 @@ from model.dataset_model import Dataset
 from model.group_data_model import Group_data
 from db import create_session
 
-import math
-import sys
+from geoalchemy2 import functions
+import pandas as pd
+import numpy as np
+from collections import OrderedDict
 
 
 def calculate_swarm_features(id):
@@ -46,7 +48,7 @@ def calculate_swarm_features(id):
         calculate_mean_distance_centroid(id, session)
         #  calculate the polarisation for the whole swarm
         calculate_polarisation(id, session)
-        # ToDO change this here sometime
+        # complete
         dataset[0].status = 'Complete'
         dataset[0].progress = 100
     except Exception as e:
@@ -54,7 +56,8 @@ def calculate_swarm_features(id):
         session.rollback()
         dataset[0].status = 'Error - calculating swarm features: ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
     # commit the changes
     session.commit()
 
@@ -260,16 +263,20 @@ def calculate_centroid_direction(id, session):
     id - id of the dataset
     session - db session
     """
-    group_data = session.query(Group_data).filter_by(dataset_id=id)
-
-    group_data[0].direction = 0
-    number_elem = group_data.count()
-    for i in range(1, number_elem):
-        angle = math.atan2((group_data[i].get_centroid_y() - group_data[i - 1].get_centroid_y()),
-                           (group_data[i].get_centroid_x() - group_data[i - 1].get_centroid_x()))
-        angle = round(math.degrees(angle), 2)
-
-        group_data[i].direction = angle
+    query = session.query(Group_data.time, functions.ST_X(Group_data.centroid),
+                          functions.ST_Y(Group_data.centroid)).filter_by(dataset_id=id)
+    df = pd.read_sql(query.statement, query.session.bind)
+    # rename a column
+    df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
+    df['direction'] = np.rad2deg(np.arctan2(np.float64(
+        (df['y'] - df['y'].shift())), np.float64((df['x'] - df['x'].shift()))))
+    df = df.fillna(0)
+    # write to db
+    for index, row in df.iterrows():
+        query = Group_data(dataset_id=id, **OrderedDict(row))
+        session.merge(query)
+    # commit
+    session.commit()
 
 
 def calculate_polarisation(id, session):

@@ -12,120 +12,124 @@
     <div class="row">
         <div class="col-md-12">
             <div class="bg-overlay">
-                <div class="row text-center">
+
+                <div class="bg-overlay-front">
                     <h1>
                         Collective Movement Exploration
                     </h1>
                     <h4>
                         Explore and Analyse Collective Animal Behaviour
                     </h4>
-                    <br><br>
-                    <a class="btn btn-primary btn-lg" href="/admin/">Get Started</a>
+                    <a class="btn btn-primary btn-lg" href="/center/">Get Started</a>
+                </div>
+
+            </div>
+
+            <br>
+            <h2 class="text-center">How does it work?</h2>
+            <hr>
+
+            <div class="row align-items-center how-it-works d-flex">
+                <div class="col-2 text-center bottom d-inline-flex justify-content-center align-items-center">
+                    <div class="circle font-weight-bold"><i class="mdi mdi-cloud-upload"></i></div>
+                </div>
+                <div class="col-8">
+                    <h4>Upload Your Datasets</h4>
+                    <p> Upload your animal movement dataset</p>
                 </div>
             </div>
-            <hr>
-            <h2 class="text-center">How does it work?</h2>
-            <ul class="timeline">
-                <li>
-                    <div class="timeline-image">
-                        <img class="img-circle img-responsive"
-                             src="{{url_for('static', filename='csv_upload.png')}}" alt="">
+
+            <div class="row timeline">
+                <div class="col-2">
+                    <div class="corner top-right"></div>
+                </div>
+                <div class="col-8">
+                    <hr/>
+                </div>
+                <div class="col-2">
+                    <div class="corner left-bottom"></div>
+                </div>
+            </div>
+
+            <div class="row align-items-center justify-content-end how-it-works d-flex">
+                <div class="col-8 text-right">
+                    <h4>Feature Extraction Process</h4>
+                    <p>From your dataset various features are extracted and calculated (e.g speed,
+                        triangulation,...)</p>
+                </div>
+                <div class="col-2 text-center full d-inline-flex justify-content-center align-items-center">
+                    <div class="circle font-weight-bold"><i class="mdi mdi-server-network"></i></div>
+                </div>
+            </div>
+
+            <div class="row timeline">
+                <div class="col-2">
+                    <div class="corner right-bottom"></div>
+                </div>
+                <div class="col-8">
+                    <hr/>
+                </div>
+                <div class="col-2">
+                    <div class="corner top-left"></div>
+                </div>
+            </div>
+
+            <div class="row align-items-center how-it-works d-flex">
+                <div class="col-2 text-center top d-inline-flex justify-content-center align-items-center">
+                    <div class="col-2 text-center bottom d-inline-flex justify-content-center align-items-center">
+                        <div class="circle font-weight-bold"><i class="mdi mdi-fish"></i></div>
                     </div>
-                    <div class="timeline-panel">
-                        <div class="timeline-heading">
-                            <h4>Step One</h4>
-                            <h4 class="subheading">Upload</h4>
-                        </div>
-                        <div class="timeline-body col-md-offset-6">
-                            <p class="text-justify">
-                                To upload your dataset you have to be registered.
-                                Prepare your files in the supported CSV file format.
-                                Upload your own animal movement dataset.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="line"></div>
-                </li>
-                <li class="timeline-inverted">
-                    <div class="timeline-image">
-                        <img class="img-circle img-responsive"
-                             src="{{url_for('static', filename='feature_extraction.png')}}" alt="">
-                    </div>
-                    <div class="timeline-panel">
-                        <div class="timeline-heading">
-                            <h4>Step Two</h4>
-                            <h4 class="subheading">Feature Extraction
-                            </h4>
-                        </div>
-                        <div class="timeline-body">
-                            <p class="text-justify" style="width:50%">
-                                From your dataset various features are extracted and calculated.
-                                For instance speed of each animal, convex hull of the animal group
-                                or the triangulation of the swarm.
-                                This step takes some time.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="line"></div>
-                </li>
-                <li>
-                    <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="{{url_for('static', filename='explore.gif')}}"
-                             alt="">
-                    </div>
-                    <div class="timeline-panel">
-                        <div class="timeline-heading">
-                            <h4>Step Three</h4>
-                            <h4 class="subheading">
-                                Explore
-                            </h4>
-                        </div>
-                        <div class="timeline-body col-md-offset-6">
-                            <p class="text-justify">
-                                Visualize the movement dataset and the extracted features in multiple views.
-                                Easily explore the collective animal behaviour.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="line"></div>
-                </li>
-                <li class="timeline-inverted">
-                    <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="{{url_for('static', filename='export.png')}}"
-                             alt="">
-                    </div>
-                    <div class="timeline-panel">
-                        <div class="timeline-heading">
-                            <h4>Step Four</h4>
-                            <h4 class="subheading">Export</h4>
-                        </div>
-                        <div class="timeline-body">
-                            <p class="text-justify" style="width:50%">
-                                Download your dataset with the extracted features in .csv format for further analysis.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="line"></div>
-                </li>
-                <li>
-                    <div class="timeline-image">
-                        <img class="img-circle img-responsive" src="{{url_for('static', filename='think.png')}}"
-                             alt="">
-                    </div>
-                    <div class="timeline-panel">
-                        <div class="timeline-heading">
-                            <h4>Last Step</h4>
-                            <h4 class="subheading">Hypotheses & Knowledge</h4>
-                        </div>
-                        <div class="timeline-body col-md-offset-6">
-                            <p class="text-justify">
-                                Generate new hypotheses and knowledge from different visualizations and extracted
-                                features.
-                            </p>
-                        </div>
-                    </div>
-                </li>
-            </ul>
+                </div>
+
+                <div class="col-8">
+                    <h4>Explore Your Datasets</h4>
+                    <p>Visually explore and analyze collective animal behaviour in multiple views.</p>
+                </div>
+            </div>
+
+            <div class="row timeline">
+                <div class="col-2">
+                    <div class="corner top-right"></div>
+                </div>
+                <div class="col-8">
+                    <hr/>
+                </div>
+                <div class="col-2">
+                    <div class="corner left-bottom"></div>
+                </div>
+            </div>
+
+            <div class="row align-items-center justify-content-end how-it-works d-flex">
+                <div class="col-8 text-right">
+                    <h4>Export</h4>
+                    <p>Download your dataset with the extracted features in .csv format for further analysis</p>
+                </div>
+                <div class="col-2 text-center full d-inline-flex justify-content-center align-items-center">
+                    <div class="circle font-weight-bold"><i class="mdi mdi-cloud-download"></i></div>
+                </div>
+            </div>
+
+            <div class="row timeline">
+                <div class="col-2">
+                    <div class="corner right-bottom"></div>
+                </div>
+                <div class="col-8">
+                    <hr/>
+                </div>
+                <div class="col-2">
+                    <div class="corner top-left"></div>
+                </div>
+            </div>
+
+            <div class="row align-items-center how-it-works d-flex">
+                <div class="col-2 text-center top d-inline-flex justify-content-center align-items-center">
+                    <div class="circle font-weight-bold"><i class="mdi mdi-lightbulb-on"></i></div>
+                </div>
+                <div class="col-8">
+                    <h4>Hypotheses & Knowledge Generation</h4>
+                    <p>Generate new hypotheses and knowledge from different visualizations and extracted features.</p>
+                </div>
+            </div>
         </div>
     </div>
     <br>

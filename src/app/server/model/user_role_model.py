@@ -1,6 +1,7 @@
 from flask_security import UserMixin, RoleMixin, utils
 from db import db
 
+
 class Role(db.Model, RoleMixin):
     """
     User Role Class
@@ -37,7 +38,13 @@ class User(db.Model, UserMixin):
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        self.password = utils.encrypt_password(self.password)
+        self.password = utils.hash_password(self.password)
+
+    def edit_update(self, form):
+        self.first_name = form.first_name.data
+        self.last_name = form.last_name.data
+        self.email = form.email.data
+        self.password = utils.hash_password(form.password.data)
 
     def __str__(self):
         return self.email

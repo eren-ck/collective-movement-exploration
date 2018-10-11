@@ -24,7 +24,9 @@ import {
 } from '../line_chart';
 
 import {
-    percentiles
+    percentiles,
+    makeResizable,
+    defaultConfig
 } from '../helpers.js';
 
 import {
@@ -74,7 +76,6 @@ export let activeScale = 'black'; // can be speed, acceleration, .. and black (m
 export let medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
 export let activeAnimals = []; // active selected animals
 export let arrayAnimals; // array of animals for the specific time frame
-export let animal_ids; // array of unique animal ids
 
 let svgContainer; // svg container for the spatial view
 let tank; // svg group for the spatial view tank
@@ -91,48 +92,6 @@ export function spatialViewInit() {
     // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
     tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
     tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
-
-    // make the view resizable
-    $(function() {
-        $('#main-vis')
-            .draggable({
-                containment: 'parent'
-            })
-            .resizable({
-                aspectRatio: true,
-                maxWidth: $('#main-vis-div').width()
-            })
-            .height(tankHeight * 0.6)
-            .width(tankWidth * 0.6);
-    });
-
-    //reset all checkboxes
-    $('input[type=checkbox]')
-        .attr('checked', false);
-    //set the color scale function to linear
-    $('#color-scale-linear')
-        .prop('checked', true);
-    $('#group-size-m')
-        .prop('checked', true);
-    $('#background-white')
-        .prop('checked', true);
-    $('#settings-div input[type=checkbox]')
-        .prop('checked', true);
-    //hide the loading gif
-    $('#loading')
-        .hide();
-
-    // get  number of distinct animal ids
-    let num_animals = new Set();
-    for (let i = 0; i < dataset.length; i++) {
-        if (dataset[i]['t'] === dataset[0]['t']) {
-            num_animals.add(dataset[i]['a']);
-        } else {
-            i = dataset.length;
-        }
-    }
-    animal_ids = Array.from(num_animals).sort();
-
     //X and Y axis
     let x = d3.scaleLinear()
         .domain([minPoint[0], maxPoint[0]])
@@ -153,7 +112,6 @@ export function spatialViewInit() {
         .tickPadding(5);
 
     // ZOOMING AND PANNING STUFF
-    // TODO remove this from here to interaction
     let zoomGroup;
     let zoom = d3.zoom()
         .scaleExtent([1, 6])
@@ -186,40 +144,30 @@ export function spatialViewInit() {
         .attr('id', 'main-vis-svg')
         .call(zoom);
 
-
-    /* depends on svg ratio, for  1240/1900 = 0.65 so padding-bottom = 65% */
+    /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
     let percentage = Math.ceil((tankHeight / tankWidth) * 100);
     $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
     zoomGroup = svgContainer.append('svg:g');
 
+    // Visualize the background image if it is uploaded
     if (parameters.background_image) {
         zoomGroup
             .append('image')
-            //  .attr('d',path)
             .attr('xlink:href', '/' + parameters.background_image)
-            .attr('class', 'backgroundImage')
+            .attr('class', 'background-image')
             .attr('height', tankHeight)
             .attr('width', tankWidth)
-            // while adding an image to an svg these are the coordinates i think of the top left
             .attr('x', '0')
-            .attr('y', '0')
-            .attr('background', '#fff');
-
+            .attr('y', '0');
     }
 
     //append the tank group with a transformation which rotates the y axis
     tank = zoomGroup.append('svg:g')
         .attr('class', 'tank')
         .attr('transform', function() {
-            let x = 1;
-            let y = 1;
-            if (parameters.inverted_x) {
-                x = -1;
-            }
-            if (parameters.inverted_y) {
-                y = -1;
-            }
+            let x = parameters.inverted_x ? -1 : 1;
+            let y = parameters.inverted_y ? -1 : 1;
             return 'scale(' + x + ',' + y + ')';
         });
 
@@ -227,7 +175,7 @@ export function spatialViewInit() {
     tank.append('g')
         .attr('id', 'g-centroid')
         .append('circle')
-        .attr('class', 'centroid hidden')
+        .attr('class', 'centroid')
         .attr('r', 6)
         .attr('cx', 0)
         .attr('cy', 0);
@@ -253,7 +201,7 @@ export function spatialViewInit() {
 
     //append network  group
     tank.append('g')
-        .attr('id', 'networkGroup');
+        .attr('id', 'network-group');
 
     //append delaunay-triangulation group
     tank.append('g')
@@ -261,7 +209,7 @@ export function spatialViewInit() {
 
     //append voronoi group
     tank.append('g')
-        .attr('id', 'vornoiGroup');
+        .attr('id', 'vornoi-group');
 
     //append the frame time text
     svgContainer.append('text')
@@ -287,6 +235,8 @@ export function spatialViewInit() {
     lineChart();
     initListeners();
     initDendrogram();
+    makeResizable(tankHeight, tankWidth);
+    defaultConfig();
     // start the animation
     draw();
 }
@@ -300,15 +250,13 @@ export function draw() {
     // let t0 = performance.now();
 
     //update time to wait aka speed of replay
-    let timeToWait = $('input[name=group1]:checked', '#group1')
+    let timeToWait = $('input[type="radio"].group-playback-rate:checked')
         .val();
     //scale the size by this number
     let animalScale = $('input[type="radio"].group-size:checked')
         .val();
 
     //get the next animals
-    // console.log(dataset);
-    // arrayAnimals = dataset.slice(animal_ids.length * indexTime, animal_ids.length * indexTime + animal_ids.length);
     arrayAnimals = dataset.filter(function(d) {
         return d['t'] === indexTime;
     });
@@ -336,7 +284,7 @@ export function draw() {
                 let network = [];
                 let tmp = networkData[indexTime];
                 // reset the group standard deviation for the hierarhcy
-                // needed for coloring of the dendrogram nodes (variacne )
+                // needed for coloring of the dendrogram nodes (variacne)
                 resethierarchyGroupStdev();
 
                 let tmp_index = 0;
@@ -398,7 +346,7 @@ export function draw() {
                     return d['val'] <= networkLimit;
                 });
                 // DATA JOIN
-                networkVis = tank.select('#networkGroup')
+                networkVis = tank.select('#network-group')
                     .selectAll('line.network-edges')
                     .data(network);
                 // UPDATE
@@ -502,7 +450,7 @@ export function draw() {
                         return d['stroke'] > networkBackgroundLimit;
                     });
 
-                    networkVisBak = tank.select('#networkGroup')
+                    networkVisBak = tank.select('#network-group')
                         .selectAll('line.network-background-edges')
                         .data(filteredData);
 
@@ -560,7 +508,7 @@ export function draw() {
                     //     return d['val'];
                     // });
                 } else {
-                    networkVisBak = tank.select('#networkGroup')
+                    networkVisBak = tank.select('#network-group')
                         .selectAll('line.network-background-edges')
                         .data([]);
                     networkBakData = {};
@@ -568,7 +516,7 @@ export function draw() {
             } else {
                 networkVis = tank.selectAll('line.network-edges')
                     .data([]);
-                networkVisBak = tank.select('#networkGroup')
+                networkVisBak = tank.select('#network-group')
                     .selectAll('line.network-background-edges')
                     .data([]);
                 networkBakData = {};
@@ -615,7 +563,7 @@ export function draw() {
                 .is(':checked')) {
                 //append the group for the voronoi paths
                 voronoi = tank
-                    .select('#vornoiGroup')
+                    .select('#vornoi-group')
                     .selectAll('path.voronoi')
                     .data(swarmData[indexTime]['voronoi'].split(';'));
 
@@ -632,7 +580,7 @@ export function draw() {
                         return d;
                     });
             } else {
-                voronoi = tank.select('#vornoiGroup')
+                voronoi = tank.select('#vornoi-group')
                     .selectAll('path.voronoi')
                     .data([]);
             }
@@ -737,8 +685,7 @@ export function draw() {
                     });
             } else {
                 // hide the arrows
-                svgAnimals.select('line')
-                    .attr('class', 'arrow hidden');
+                $('.arrow').hide();
             }
 
             // EXIT - the groups

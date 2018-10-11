@@ -3,6 +3,8 @@ import os
 import sys
 import chardet
 import codecs
+from collections import OrderedDict
+
 from db import create_session
 
 from model.movement_data_model import Movement_data
@@ -30,15 +32,12 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
     # Calculate the absolute features
     # Starts multiple processes to speed up the calculation
     calculate_absolute_features(id)
-
-    # calculate swarm features
+    # # calculate swarm features
     calculate_swarm_features(id)
-
-    # calculate percentiles
+    # # calculate percentiles
     calculate_percentiles(id)
-
-    # calculate several basic networks for each dataset automatically with the upload
-    calculate_basic_networks(id)
+    # # calculate several basic networks for each dataset automatically with the upload
+    # calculate_basic_networks(id)
 
 
 def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
@@ -99,7 +98,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
     try:
         for row in csv_data:
             query = Movement_data(id, **row)
-            session.add(query)
+            session.merge(query)
+            session.flush()
             # fill group set
             group_time.add(row['time'])
             # execute the query
@@ -109,7 +109,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         session.rollback()
         dataset[0].status = 'Error - uploading movement file to db ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
 
     if metadata_file_filename:
         ## Save the metadata file in the database
@@ -130,7 +131,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
             # build the query
             for row in csv_data:
                 query = Metadata(id, **row)
-                session.add(query)
+                session.merge(query)
+                session.flush()
             # execute the query
             session.commit()
         except Exception as e:
@@ -138,7 +140,8 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
             session.rollback()
             dataset[0].status = 'Error - Uploading and saving reference file ' + str(e)[0:200]
             dataset[0].error = True
-            pass
+            session.commit()
+            session.remove()
 
     # save the image path in the db
     if image_name:
@@ -148,8 +151,9 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         # save the group data
         # build the query
         for elem in group_time:
-            query = Group_data(id, elem)
-            session.add(query)
+            query = Group_data(id, **OrderedDict({'time': elem}))
+            session.merge(query)
+            session.flush()
         # execute the query
         session.commit()
     except Exception as e:
@@ -157,17 +161,22 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         session.rollback()
         dataset[0].status = 'Error - creating swarm feature table ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
+
+    # get set values that the dataset is uploaded
+    dataset[0].status = 'Dataset is uploaded - starting feature extraction'
+    dataset[0].progress = 3
 
     session.commit()
 
+    session.remove()
+    # remove the csv files in the file system
     try:
         os.remove(movement_file_filename)
         os.remove(metadata_file_filename)
     except OSError:
         pass
-
-    session.remove()
 
 
 def calculate_percentiles(id):
@@ -215,7 +224,8 @@ def calculate_percentiles(id):
         session.rollback()
         dataset[0].status = 'Error - calculating percentiles ' + str(e)[0:200]
         dataset[0].error = True
-        pass
+        session.commit()
+        session.remove()
 
     session.commit()
     session.remove()
