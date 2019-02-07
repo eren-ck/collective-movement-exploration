@@ -40,8 +40,10 @@ export function addNetworkButtons(data) {
                         '><span class="mdi mdi-graphql" aria-hidden="true"></span></button></td> ' +
                         '<td><div class="pretty p-switch p-fill"><input type="checkbox" class="hiearchy-checkbox" data="' +
                         data[i]['network_id'] + '" name="' + data[i]['name'] + '"><div class="state p-success"><label></label></div></div></td>' +
-                        '<td><div class="pretty p-switch p-fill"><input type="checkbox" class="network-hierarchy-checkbox" data="' +
-                        data[i]['network_id'] + '"><div class="state p-success"><label></label></div></div></td>');
+                        '<td>---</td>'
+                        // '<td><div class="pretty p-switch p-fill"><input type="checkbox" class="network-hierarchy-checkbox" data="' +
+                        // data[i]['network_id'] + '"><div class="state p-success"><label></label></div></div></td>'
+                    );
             }
         }
     } else {

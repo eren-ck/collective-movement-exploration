@@ -27,7 +27,6 @@ def calculate_network(dataset_id, network_id):
     """
     # create new db session for the new spanned process
     session = create_session()
-
     try:
         network_model = session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id).first()
 
@@ -57,7 +56,6 @@ def calculate_network(dataset_id, network_id):
         # results
         result_network = {}
         result_hclust = {}
-
         # group by time for the network computation for each time frame
         grouped_df = df.groupby(['time'])  # .apply(lambda g: pd.Series(distance.pdist(g), index=["D1", "D2", "D3"]))
         # compute network and hierarhcy
@@ -68,28 +66,29 @@ def calculate_network(dataset_id, network_id):
             group.drop('time', 1, inplace=True)
             # compute the pairwise distance - weighted euclidean distance
             res = pdist(group, 'wminkowski', p=2, w=weights)
-            # transform into squared matrix
-            network_df = pd.DataFrame(squareform(res), index=group.index, columns=group.index)
-            # rename column and index name needed - for duplicate error warning
-            network_df.columns.name = None
-            network_df.index.name = None
-            # get the upper triangular matrix of the pandas dataframe
-            network_df = network_df.where(np.triu(np.ones(network_df.shape)).astype(np.bool))
-            network_df = network_df.stack().reset_index()
-            # start end value
-            network_df.columns = ['s', 'e', 'v']
-            # remove rows with the value zero
-            network_df = network_df[network_df.v != 0]
-            # sort and pick the n largest values
-            network_df = network_df.nlargest(CONST_NETWORK_EDGES, 'v')
-            # filtered network round
-            network_df = network_df.round({'v': 4}).to_dict('records')
-            result_network[key] = network_df
-            # ** Hierarchy
-            # hierarchical clustering (ward clustering)
-            hierarchy = hierarchical_clustering(res, group.index.tolist())
-            result_hclust[key] = hierarchy
-
+            if res.size != 0:
+                # transform into squared matrix
+                network_df = pd.DataFrame(squareform(res), index=group.index, columns=group.index)
+                # rename column and index name needed - for duplicate error warning
+                network_df.columns.name = None
+                network_df.index.name = None
+                # get the upper triangular matrix of the pandas dataframe
+                network_df = network_df.where(np.triu(np.ones(network_df.shape)).astype(np.bool))
+                network_df = network_df.stack().reset_index()
+                # start end value
+                network_df.columns = ['s', 'e', 'v']
+                # remove rows with the value zero
+                network_df = network_df[network_df.v != 0]
+                # sort and pick the n largest values
+                network_df = network_df.nlargest(CONST_NETWORK_EDGES, 'v')
+                # filtered network round
+                network_df = network_df.round({'v': 4}).to_dict('records')
+                result_network[key] = network_df
+                # ** Hierarchy
+                # hierarchical clustering (ward clustering)
+                hierarchy = hierarchical_clustering(res, group.index.tolist())
+                result_hclust[key] = hierarchy
+        print('3')
         # save the results in the database
         network_model.network = json.dumps(result_network)
         network_model.hierarchy = json.dumps(result_hclust, separators=(',', ':'))

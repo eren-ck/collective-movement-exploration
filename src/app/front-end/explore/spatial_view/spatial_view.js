@@ -12,10 +12,10 @@ import {
     networkAuto,
     setNetworLimit,
     networkLimit,
-    showNetworkHierarchy,
-    networkID,
-    networkBackground,
-    networkBackgroundLimit
+    // showNetworkHierarchy,
+    // networkID,
+    // networkBackground,
+    // networkBackgroundLimit
 } from '../network.js';
 
 import {
@@ -58,8 +58,8 @@ import {
 import {
     initDendrogram,
     drawDendrogram,
-    networkHierarchyIds,
-    sethierarchyGroupStdev,
+    // networkHierarchyIds,
+    // sethierarchyGroupStdev,
     resethierarchyGroupStdev
 } from '../hierarchy.js';
 
@@ -79,7 +79,7 @@ export let arrayAnimals; // array of animals for the specific time frame
 
 let svgContainer; // svg container for the spatial view
 let tank; // svg group for the spatial view tank
-let networkBakData = {};
+// let networkBakData = {};
 
 /**
  * Initialize the spatial view with all the important factors
@@ -279,56 +279,69 @@ export function draw() {
 
             // Network vis
             let networkVis;
-            let networkVisBak;
+            // let networkVisBak;
             if (indexTime in networkData) {
-                let network = [];
-                let tmp = networkData[indexTime];
+                let network = networkData[indexTime];
                 // reset the group standard deviation for the hierarhcy
                 // needed for coloring of the dendrogram nodes (variacne)
                 resethierarchyGroupStdev();
 
-                let tmp_index = 0;
                 // display the whole network
-                if (showNetworkHierarchy == null) {
-                    for (let i = 0; i < arrayAnimals.length; i++) {
-                        for (let j = i + 1; j < arrayAnimals.length; j++) {
-                            network.push({
-                                'node1': arrayAnimals[i]['a'],
-                                'node2': arrayAnimals[j]['a'],
-                                'start': arrayAnimals[i]['p'],
-                                'end': arrayAnimals[j]['p'],
-                                'val': tmp[tmp_index]
-                            });
-                            tmp_index = tmp_index + 1;
-                        }
-                    }
-                } // display the network only in the clustering
-                else {
-                    let show_dendrogram = $('.show-dendrogram.btn-primary').length;
-                    let id = $('.show-dendrogram.btn-primary').attr('data');
-                    for (let i = 0; i < arrayAnimals.length; i++) {
-                        for (let j = i + 1; j < arrayAnimals.length; j++) {
-                            for (let k = 0; k < networkHierarchyIds.length; k++) {
-                                if (networkHierarchyIds[k].includes(arrayAnimals[i]['a']) && networkHierarchyIds[k].includes(arrayAnimals[j]['a'])) {
-                                    // console.log(networkHierarchyIds[k]);
-                                    network.push({
-                                        'node1': arrayAnimals[i]['a'],
-                                        'node2': arrayAnimals[j]['a'],
-                                        'start': arrayAnimals[i]['p'],
-                                        'end': arrayAnimals[j]['p'],
-                                        'val': tmp[tmp_index]
-                                    });
-                                    // if true depict the standard deviation via color in the dendrogram
-                                    // TODO make this faster
-                                    if (show_dendrogram && id === networkID) {
-                                        sethierarchyGroupStdev('h' + networkHierarchyIds[k].toString().hashCode(), tmp[tmp_index]);
-                                    }
-                                }
-                            }
-                            tmp_index = tmp_index + 1;
-                        }
-                    }
-                }
+                network = network.map(function(item) {
+                    let animal1 = arrayAnimals.filter(function(obj) {
+                        return obj['a'] === item['s'];
+                    })[0];
+                    let animal2 = arrayAnimals.filter(function(obj) {
+                        return obj['a'] === item['e'];
+                    })[0];
+                    return {
+                        'node1': animal1['a'],
+                        'node2': animal2['a'],
+                        'start': animal1['p'],
+                        'end': animal2['p'],
+                        'val': item['v']
+                    };
+                });
+                // if (showNetworkHierarchy == null) {
+                //     for (let i = 0; i < arrayAnimals.length; i++) {
+                //         for (let j = i + 1; j < arrayAnimals.length; j++) {
+                //             network.push({
+                //                 'node1': arrayAnimals[i]['a'],
+                //                 'node2': arrayAnimals[j]['a'],
+                //                 'start': arrayAnimals[i]['p'],
+                //                 'end': arrayAnimals[j]['p'],
+                //                 'val': tmp[tmp_index]
+                //             });
+                //             tmp_index = tmp_index + 1;
+                //         }
+                //     }
+                // } // display the network only in the clustering
+                // else {
+                //     let show_dendrogram = $('.show-dendrogram.btn-primary').length;
+                //     let id = $('.show-dendrogram.btn-primary').attr('data');
+                //     for (let i = 0; i < arrayAnimals.length; i++) {
+                //         for (let j = i + 1; j < arrayAnimals.length; j++) {
+                //             for (let k = 0; k < networkHierarchyIds.length; k++) {
+                //                 if (networkHierarchyIds[k].includes(arrayAnimals[i]['a']) && networkHierarchyIds[k].includes(arrayAnimals[j]['a'])) {
+                //                     // console.log(networkHierarchyIds[k]);
+                //                     network.push({
+                //                         'node1': arrayAnimals[i]['a'],
+                //                         'node2': arrayAnimals[j]['a'],
+                //                         'start': arrayAnimals[i]['p'],
+                //                         'end': arrayAnimals[j]['p'],
+                //                         // 'val': tmp[tmp_index]
+                //                     });
+                //                     // if true depict the standard deviation via color in the dendrogram
+                //                     // TODO make this faster
+                //                     if (show_dendrogram && id === networkID) {
+                //                         // sethierarchyGroupStdev('h' + networkHierarchyIds[k].toString().hashCode(), tmp[tmp_index]);
+                //                     }
+                //                 }
+                //             }
+                //             tmp_index = tmp_index + 1;
+                //         }
+                //     }
+                // }
 
                 network.forEach(function(d) {
                     $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
@@ -358,10 +371,10 @@ export function draw() {
                         return -d['start'][1];
                     })
                     .attr('x2', function(d) {
-                        return (d['end'][0]);
+                        return d['end'][0];
                     })
                     .attr('y2', function(d) {
-                        return (-d['end'][1]);
+                        return -d['end'][1];
                     })
                     .attr('stroke', function(d) {
                         return networkColorScale(d['val']);
@@ -382,10 +395,10 @@ export function draw() {
                         return -d['start'][1];
                     })
                     .attr('x2', function(d) {
-                        return (d['end'][0]);
+                        return d['end'][0];
                     })
                     .attr('y2', function(d) {
-                        return (-d['end'][1]);
+                        return -d['end'][1];
                     })
                     .attr('stroke', function(d) {
                         return networkColorScale(d['val']);
@@ -394,138 +407,139 @@ export function draw() {
                         return d['val'];
                     });
 
-                if (networkBackground) {
-                    // prepare the data
-                    // get the data from the network dataset in a temp object
-                    let tmp_data = {};
-                    network.forEach(function(d) {
-                        let key = 'd-' + d['node1'] + '-' + d['node2'];
-                        tmp_data[key] = {};
-                        tmp_data[key]['start'] = d['start'];
-                        tmp_data[key]['end'] = d['end'];
-                    });
-                    // decrease the edge in networkBackground by 1
-                    // delete the background edge if necessary
-                    for (let key in networkBakData) {
-                        if (!(key in tmp_data)) {
-                            if (networkBakData[key]['stroke'] <= 3) {
-                                delete networkBakData[key];
-                            } else {
-                                networkBakData[key]['stroke'] = networkBakData[key]['stroke'] - 1;
-                                let ids = key.split('-').slice(1);
-                                for (let i = 0; i < arrayAnimals.length; i++) {
-                                    if (ids[0] == arrayAnimals[i]['a']) {
-                                        networkBakData[key]['start'] = arrayAnimals[i]['p'];
-                                    } else if (ids[1] == arrayAnimals[i]['a']) {
-                                        networkBakData[key]['end'] = arrayAnimals[i]['p'];
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-
-                    // increase the edge in networkBackground by 1
-                    // longer lasting connection the background edge
-                    for (let key in tmp_data) {
-                        // console.log(key);
-                        // console.log(key in networkBakData);
-                        if (key in networkBakData) {
-                            if (networkBakData[key]['stroke'] <= 10 || networkBakData[key]['stroke'] <= 2 * networkBackgroundLimit) {
-                                networkBakData[key]['stroke'] = networkBakData[key]['stroke'] + 1;
-                            }
-                            networkBakData[key]['start'] = tmp_data[key]['start'];
-                            networkBakData[key]['end'] = tmp_data[key]['end'];
-                            // console.log(key + " -> " + p[key]);
-                        } else {
-                            networkBakData[key] = {
-                                'stroke': 3,
-                                'start': tmp_data[key]['start'],
-                                'end': tmp_data[key]['end']
-                            };
-                        }
-                    }
-
-                    let filteredData = Object.values(networkBakData).filter(function(d) {
-                        return d['stroke'] > networkBackgroundLimit;
-                    });
-
-                    networkVisBak = tank.select('#network-group')
-                        .selectAll('line.network-background-edges')
-                        .data(filteredData);
-
-                    // UPDATE
-                    networkVisBak
-                        .attr('x1', function(d) {
-                            return d['start'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['start'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['end'][0]);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['end'][1]);
-                        })
-                        .attr('stroke-width', function(d) {
-                            // return d['stroke'];
-                            let val = d['stroke'];
-                            if (val > 10) {
-                                return 10;
-                            } else {
-                                return val;
-                            }
-                        });
-
-                    //ENTER
-                    networkVisBak
-                        .enter()
-                        .append('line')
-                        .attr('class', 'network-background-edges')
-                        .attr('x1', function(d) {
-                            return d['start'][0];
-                        })
-                        .attr('y1', function(d) {
-                            return -d['start'][1];
-                        })
-                        .attr('x2', function(d) {
-                            return (d['end'][0]);
-                        })
-                        .attr('y2', function(d) {
-                            return (-d['end'][1]);
-                        })
-                        .attr('stroke-width', function(d) {
-                            // return d['stroke'];
-                            let val = d['stroke'] - networkBackgroundLimit;
-                            if (val > 10) {
-                                return 10;
-                            } else {
-                                return val;
-                            }
-                        });
-                    // .attr('stroke-opacity', function(d) {
-                    //     return d['val'];
-                    // });
-                } else {
-                    networkVisBak = tank.select('#network-group')
-                        .selectAll('line.network-background-edges')
-                        .data([]);
-                    networkBakData = {};
-                }
+                // if (networkBackground) {
+                //     // prepare the data
+                //     // get the data from the network dataset in a temp object
+                //     let tmp_data = {};
+                //     network.forEach(function(d) {
+                //         let key = 'd-' + d['node1'] + '-' + d['node2'];
+                //         tmp_data[key] = {};
+                //         tmp_data[key]['start'] = d['start'];
+                //         tmp_data[key]['end'] = d['end'];
+                //     });
+                //     // decrease the edge in networkBackground by 1
+                //     // delete the background edge if necessary
+                //     for (let key in networkBakData) {
+                //         if (!(key in tmp_data)) {
+                //             if (networkBakData[key]['stroke'] <= 3) {
+                //                 delete networkBakData[key];
+                //             } else {
+                //                 networkBakData[key]['stroke'] = networkBakData[key]['stroke'] - 1;
+                //                 let ids = key.split('-').slice(1);
+                //                 for (let i = 0; i < arrayAnimals.length; i++) {
+                //                     if (ids[0] == arrayAnimals[i]['a']) {
+                //                         networkBakData[key]['start'] = arrayAnimals[i]['p'];
+                //                     } else if (ids[1] == arrayAnimals[i]['a']) {
+                //                         networkBakData[key]['end'] = arrayAnimals[i]['p'];
+                //                     }
+                //
+                //                 }
+                //             }
+                //         }
+                //     }
+                //
+                //     // increase the edge in networkBackground by 1
+                //     // longer lasting connection the background edge
+                //     for (let key in tmp_data) {
+                //         // console.log(key);
+                //         // console.log(key in networkBakData);
+                //         if (key in networkBakData) {
+                //             if (networkBakData[key]['stroke'] <= 10 || networkBakData[key]['stroke'] <= 2 * networkBackgroundLimit) {
+                //                 networkBakData[key]['stroke'] = networkBakData[key]['stroke'] + 1;
+                //             }
+                //             networkBakData[key]['start'] = tmp_data[key]['start'];
+                //             networkBakData[key]['end'] = tmp_data[key]['end'];
+                //             // console.log(key + " -> " + p[key]);
+                //         } else {
+                //             networkBakData[key] = {
+                //                 'stroke': 3,
+                //                 'start': tmp_data[key]['start'],
+                //                 'end': tmp_data[key]['end']
+                //             };
+                //         }
+                //     }
+                //
+                //     let filteredData = Object.values(networkBakData).filter(function(d) {
+                //         return d['stroke'] > networkBackgroundLimit;
+                //     });
+                //     // console.log(filteredData);
+                //
+                //     networkVisBak = tank.select('#network-group')
+                //         .selectAll('line.network-background-edges')
+                //         .data(filteredData);
+                //
+                //     // UPDATE
+                //     networkVisBak
+                //         .attr('x1', function(d) {
+                //             return d['start'][0];
+                //         })
+                //         .attr('y1', function(d) {
+                //             return -d['start'][1];
+                //         })
+                //         .attr('x2', function(d) {
+                //             return (d['end'][0]);
+                //         })
+                //         .attr('y2', function(d) {
+                //             return (-d['end'][1]);
+                //         })
+                //         .attr('stroke-width', function(d) {
+                //             // return d['stroke'];
+                //             let val = d['stroke'];
+                //             if (val > 10) {
+                //                 return 10;
+                //             } else {
+                //                 return val;
+                //             }
+                //         });
+                //
+                //     //ENTER
+                //     networkVisBak
+                //         .enter()
+                //         .append('line')
+                //         .attr('class', 'network-background-edges')
+                //         .attr('x1', function(d) {
+                //             return d['start'][0];
+                //         })
+                //         .attr('y1', function(d) {
+                //             return -d['start'][1];
+                //         })
+                //         .attr('x2', function(d) {
+                //             return (d['end'][0]);
+                //         })
+                //         .attr('y2', function(d) {
+                //             return (-d['end'][1]);
+                //         })
+                //         .attr('stroke-width', function(d) {
+                //             // return d['stroke'];
+                //             let val = d['stroke'] - networkBackgroundLimit;
+                //             if (val > 10) {
+                //                 return 10;
+                //             } else {
+                //                 return val;
+                //             }
+                //         });
+                //     // .attr('stroke-opacity', function(d) {
+                //     //     return d['val'];
+                //     // });
+                // } else {
+                //     networkVisBak = tank.select('#network-group')
+                //         .selectAll('line.network-background-edges')
+                //         .data([]);
+                //     networkBakData = {};
+                // }
             } else {
                 networkVis = tank.selectAll('line.network-edges')
                     .data([]);
-                networkVisBak = tank.select('#network-group')
-                    .selectAll('line.network-background-edges')
-                    .data([]);
-                networkBakData = {};
+                // networkVisBak = tank.select('#network-group')
+                //     .selectAll('line.network-background-edges')
+                //     .data([]);
+                // networkBakData = {};
             }
             // EXIT - network
             networkVis.exit()
                 .remove();
-            networkVisBak.exit()
-                .remove();
+            // networkVisBak.exit()
+            //     .remove();
 
             // delaunay triangulation
             // DATA JOIN  - triangulation

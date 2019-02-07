@@ -344,9 +344,6 @@ function initLineChartButtons(swarm_features) {
                 swarm_features[i] + '" data="#' + swarm_features[i] + 'Line" /><div class="state"><label>' +
                 capitalized_feature_string + '</label></div></div></th></tr>');
     }
-    //check line chart draw all lines
-    $('#line-chart-feature-checkboxes input[type=checkbox]')
-        .prop('checked', true);
 
     $('.line-chart-check-box').change(function() {
         let checkbox = $(this);
@@ -356,6 +353,9 @@ function initLineChartButtons(swarm_features) {
             $(checkbox.attr('data')).hide();
         }
     });
+    //check line chart draw all lines
+    $('#line-chart-feature-checkboxes input[type=checkbox]')
+        .prop('checked', true);
 }
 
 /**
