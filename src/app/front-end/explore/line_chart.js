@@ -353,9 +353,6 @@ function initLineChartButtons(swarm_features) {
             $(checkbox.attr('data')).hide();
         }
     });
-    //check line chart draw all lines
-    $('#line-chart-feature-checkboxes input[type=checkbox]')
-        .prop('checked', true);
 }
 
 /**

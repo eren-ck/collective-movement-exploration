@@ -46,6 +46,9 @@ def index():
 def contact():
     return render_template('/contact.html')
 
+@app.route('/imprint')
+def imprint():
+    return render_template('/imprint.html')
 
 @app.errorhandler(400)
 def not_found(error):
