@@ -23,7 +23,7 @@ export let networkBackgroundLimit = 1; //draw background line if limit is exceed
 export let networkColorScale = d3.scaleThreshold()
     .domain(
         [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
-    );
+    ).range(['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b']);
 
 
 /**
@@ -70,7 +70,7 @@ export function setNetworkAuto(value) {
  * @param {Number} value - between 0 and 1
  */
 export function setNetworLimit(value) {
-    networkLimit = 1 - value;
+    networkLimit = value;
 }
 
 /**
@@ -96,40 +96,7 @@ export function setNetworkID(value) {
 export function setnetworkColor(network_id) {
     // if id = -1 set the color to nothing
     if (network_id >= 0) {
-        // reset color of the edges
-        networkColor = {};
-
-        // hierarchy colors which are already in usage
-        let tmpColor = [];
-
-        // get the color
-        // search in the hieraryColors if a color was defined for the network id
-        for (var key in hierarchyColors) {
-            if (hierarchyColors.hasOwnProperty(key)) {
-                if (key === ('h' + network_id)) {
-                    networkColor['h' + network_id] = hierarchyColors[key];
-                } else {
-                    tmpColor.push(hierarchyColors[key]);
-                }
-            }
-        }
-        // if the the networkColor is still empty choose a color
-        // check if the color is already in usage, if so skip
-        if (Object.keys(networkColor).length === 0) {
-            for (let i = 0; i < colors.length; i++) {
-                if (tmpColor.indexOf(colors[i]) === -1) {
-                    networkColor['h' + network_id] = colors[i];
-                    break;
-                }
-            }
-        }
-        // change the color scale
-        let tmp = networkColor['h' + network_id];
-        networkColorScale
-            .range([d3.color(tmp).darker([5]), d3.color(tmp).darker([4]), d3.color(tmp).darker([3]), d3.color(tmp).darker([2]), d3.color(tmp).darker([1]),
-                d3.color(tmp), d3.color(tmp).brighter([1]), d3.color(tmp).brighter([2]), d3.color(tmp).brighter([3]), d3.color(tmp).brighter([])
-            ]);
-
+        networkColor['h' + network_id] = '#08306b';
     } else {
         networkColor = {};
     }
