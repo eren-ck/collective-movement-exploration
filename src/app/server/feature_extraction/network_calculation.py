@@ -8,6 +8,8 @@ from scipy.cluster.hierarchy import ward, to_tree
 from sklearn.preprocessing import MinMaxScaler
 import json
 from functools import reduce
+from multiprocessing import Pool, cpu_count
+import time
 
 from db import create_session
 
@@ -25,9 +27,9 @@ def calculate_network(dataset_id, network_id):
     dataset_id -- id of the dataset
     network_id -- in combination with the dataset_id the primary key
     """
+    # start = time.time()
     # create new db session for the new spanned process
     session = create_session()
-
     try:
         network_model = session.query(Network).filter_by(dataset_id=dataset_id, network_id=network_id).first()
 
@@ -54,41 +56,13 @@ def calculate_network(dataset_id, network_id):
             df[['metric_distance', 'speed', 'acceleration', 'distance_centroid', 'direction', 'x',
                 'y']])
 
-        # results
-        result_network = {}
-        result_hclust = {}
-
         # group by time for the network computation for each time frame
         grouped_df = df.groupby(['time'])  # .apply(lambda g: pd.Series(distance.pdist(g), index=["D1", "D2", "D3"]))
         # compute network and hierarhcy
-        for key, group in grouped_df:
-            # set index to animal id
-            group.set_index('animal_id', inplace=True)
-            # remove the time column - this is stored in key
-            group.drop('time', 1, inplace=True)
-            # compute the pairwise distance - weighted euclidean distance
-            res = pdist(group, 'wminkowski', p=2, w=weights)
-            # transform into squared matrix
-            network_df = pd.DataFrame(squareform(res), index=group.index, columns=group.index)
-            # rename column and index name needed - for duplicate error warning
-            network_df.columns.name = None
-            network_df.index.name = None
-            # get the upper triangular matrix of the pandas dataframe
-            network_df = network_df.where(np.triu(np.ones(network_df.shape)).astype(np.bool))
-            network_df = network_df.stack().reset_index()
-            # start end value
-            network_df.columns = ['s', 'e', 'v']
-            # remove rows with the value zero
-            network_df = network_df[network_df.v != 0]
-            # sort and pick the n largest values
-            network_df = network_df.nlargest(CONST_NETWORK_EDGES, 'v')
-            # filtered network round
-            network_df = network_df.round({'v': 4}).to_dict('records')
-            result_network[key] = network_df
-            # ** Hierarchy
-            # hierarchical clustering (ward clustering)
-            hierarchy = hierarchical_clustering(res, group.index.tolist())
-            result_hclust[key] = hierarchy
+        two_result = applyParallel(grouped_df, weights)
+
+        result_network = two_result[0]
+        result_hclust = two_result[1]
 
         # save the results in the database
         network_model.network = json.dumps(result_network)
@@ -105,6 +79,65 @@ def calculate_network(dataset_id, network_id):
         session.remove()
 
     session.remove()
+    # end = time.time()
+    # print(end - start)
+
+
+def applyParallel(dfGrouped, weights):
+    """ Multiprocessed function
+
+    Keyword arguments:
+    dfGrouped -- grouped dataframe
+    weights -- dataframe weights
+    """
+    with Pool(cpu_count()) as p:
+        ret_list = p.map(network_computation, [[group, weights] for key, group in dfGrouped])
+    result_network = {}
+    result_hclust = {}
+    for d in ret_list:
+        result_network[d['time']] = d['network']
+        result_hclust[d['time']] = d['hierarchy']
+    return [result_network, result_hclust]
+
+
+def network_computation(data):
+    """ Compute the network and hierarchy
+
+    Keyword arguments:
+    data -- list of two element a dataframe and the weight data frame
+    """
+    df = data[0]
+    weights = data[1]
+    result = {}
+    result['time'] = df.iloc[0, 0].item()
+
+    df.set_index('animal_id', inplace=True)
+    # remove the time column - this is stored in key
+    df.drop('time', 1, inplace=True)
+    # compute the pairwise distance - weighted euclidean distance
+    dist = pdist(df, 'wminkowski', p=2, w=weights)
+    if dist.size != 0:
+        # transform into squared matrix
+        network_df = pd.DataFrame(squareform(dist), index=df.index, columns=df.index)
+        # rename column and index name needed - for duplicate error warning
+        network_df.columns.name = None
+        network_df.index.name = None
+        # get the upper triangular matrix of the pandas dataframe
+        network_df = network_df.where(np.triu(np.ones(network_df.shape)).astype(np.bool))
+        network_df = network_df.stack().reset_index()
+        # start end value
+        network_df.columns = ['s', 'e', 'v']
+        # remove rows with the value zero
+        network_df = network_df[network_df.v != 0]
+        # sort and pick the n smallest values
+        network_df = network_df.nsmallest(CONST_NETWORK_EDGES, 'v')
+        # filtered network round
+        result['network'] = network_df.round({'v': 4}).to_dict('records')
+        # ** Hierarchy
+        # hierarchical clustering (ward clustering)
+        hierarchy = hierarchical_clustering(dist, df.index.tolist())
+        result['hierarchy'] = hierarchy
+    return result
 
 
 def hierarchical_clustering(data, labels):

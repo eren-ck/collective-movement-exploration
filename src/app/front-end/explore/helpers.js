@@ -37,7 +37,6 @@ export function enablePlayButton() {
     draw();
 }
 
-
 /**
  * Return  .05 percentiles of the array
  */
@@ -203,4 +202,7 @@ export function defaultConfig() {
     $('#metadata-input').hide();
     $('#dendrogram-buttons-div').hide();
     $('#g-centroid').hide();
+    //check line chart draw all lines
+    $('#line-chart-feature-checkboxes input[type=checkbox]')
+        .prop('checked', true);
 }

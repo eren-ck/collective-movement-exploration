@@ -10,3 +10,4 @@ psutil
 psycopg2
 sklearn
 wincertstore
+chardet

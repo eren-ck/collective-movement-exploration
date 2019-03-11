@@ -47,6 +47,11 @@ def contact():
     return render_template('/contact.html')
 
 
+@app.route('/imprint')
+def imprint():
+    return render_template('/imprint.html')
+
+
 @app.errorhandler(400)
 def not_found(error):
     return make_response(jsonify({'error': 'Bad request'}), 400)
@@ -65,6 +70,28 @@ def not_found(error):
 @app.errorhandler(500)
 def not_found(error):
     return make_response(jsonify({'error': 'Internal Server Error'}), 500)
+
+
+# reuqired for the local first installation
+# Create a user to test with
+@app.before_first_request
+def create_user():
+    db.create_all()
+
+    # if admin does not exist create admin user with encrypted password
+    if not user_datastore.get_user('admin'):
+        # create admin and user role
+        user_datastore.find_or_create_role(name='admin', description='Administrator')
+        user_datastore.find_or_create_role(name='user', description='User')
+        model = User(email='admin', password='admin')
+        db.session.add(model)
+        db.session.commit()
+    #
+    # db.session.commit()
+    #
+    # # add the admin to the admin role
+    # user_datastore.add_role_to_user('admin', 'admin')
+    # db.session.commit()
 
 
 # defining function to run on shutdown

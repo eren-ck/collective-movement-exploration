@@ -173,6 +173,7 @@ export function drawDendrogram() {
 
         // maps the node data to the tree layout
         nodes = treemap(nodes);
+        console.log(nodes);
 
         // hide if no network is choosen
         if ($('.show-dendrogram.btn-primary').length) {
@@ -396,83 +397,83 @@ function drawHierarchy() {
     // if more than 2 hierarchies are drawn
     if (hierarchyVertices.length > 0) {
         // union the list of polygons to one polygon
-        for (let i = 0; i < hierarchyIds.length; i++) {
-            hierarchyVertices[i] = unionPolygons(hierarchyVertices[i]);
-        }
+        // for (let i = 0; i < hierarchyIds.length; i++) {
+        //     hierarchyVertices[i] = unionPolygons(hierarchyVertices[i]);
+        // }
 
         // transform and calculate the intersection polygons of the n hierarchies
-        if (setOperation === 'intersection') {
-            // temp solution of two intersections
-            let tmpIntersection = hierarchyVertices[0];
-            // iterate over the hierarchies and intersect all of them
-            for (let i = 1; i < hierarchyVertices.length; i++) {
-                // intersection
-                tmpIntersection = PolyBool.intersect({
-                    regions: tmpIntersection, // list of regions
-                    inverted: false // is this polygon inverted?
-                }, {
-                    regions: hierarchyVertices[i],
-                    inverted: false
-                });
-                // convert it again
-                tmpIntersection = tmpIntersection['regions'];
-            }
-
-            // result
-            hierarchyVertices = [tmpIntersection];
-        }
-        // transform and calculate the symmetric difference polygons of the n hierarchies
-        else if (setOperation === 'sym-difference') {
-            // xor = Union of all hierarchies - intersection of all hierarchies
-            // temp solution of two intersections
-            let tmpIntersection = hierarchyVertices[0];
-            // iterate over the hierarchies and intersect all of them
-            for (let i = 1; i < hierarchyVertices.length; i++) {
-                // intersection
-                tmpIntersection = PolyBool.intersect({
-                    regions: tmpIntersection, // list of regions
-                    inverted: false // is this polygon inverted?
-                }, {
-                    regions: hierarchyVertices[i],
-                    inverted: false
-                });
-                // convert it again
-                tmpIntersection = tmpIntersection['regions'];
-            }
-            // intersection result
-            let intersectionHierarchyPolygons = tmpIntersection;
-
-            // union
-            let tmpUnion = hierarchyVertices[0];
-            // iterate over the hierarchies and intersect all of them
-            for (let i = 1; i < hierarchyVertices.length; i++) {
-                // intersection
-                tmpUnion = PolyBool.union({
-                    regions: tmpUnion, // list of regions
-                    inverted: false // is this polygon inverted?
-                }, {
-                    regions: hierarchyVertices[i],
-                    inverted: false
-                });
-                // convert it again
-                tmpUnion = tmpUnion['regions'];
-            }
-            let unionHierarchyPolygons = tmpUnion;
-
-
-            // symmetric difference
-            let tmpDifference = PolyBool.xor({
-                regions: unionHierarchyPolygons, // list of regions
-                inverted: false // is this polygon inverted?
-            }, {
-                regions: intersectionHierarchyPolygons,
-                inverted: false
-            });
-            // convert it again
-            tmpDifference = tmpDifference['regions'];
-            // result
-            hierarchyVertices = [tmpDifference];
-        }
+        // if (setOperation === 'intersection') {
+        //     // temp solution of two intersections
+        //     let tmpIntersection = hierarchyVertices[0];
+        //     // iterate over the hierarchies and intersect all of them
+        //     for (let i = 1; i < hierarchyVertices.length; i++) {
+        //         // intersection
+        //         tmpIntersection = PolyBool.intersect({
+        //             regions: tmpIntersection, // list of regions
+        //             inverted: false // is this polygon inverted?
+        //         }, {
+        //             regions: hierarchyVertices[i],
+        //             inverted: false
+        //         });
+        //         // convert it again
+        //         tmpIntersection = tmpIntersection['regions'];
+        //     }
+        //
+        //     // result
+        //     hierarchyVertices = [tmpIntersection];
+        // }
+        // // transform and calculate the symmetric difference polygons of the n hierarchies
+        // else if (setOperation === 'sym-difference') {
+        //     // xor = Union of all hierarchies - intersection of all hierarchies
+        //     // temp solution of two intersections
+        //     let tmpIntersection = hierarchyVertices[0];
+        //     // iterate over the hierarchies and intersect all of them
+        //     for (let i = 1; i < hierarchyVertices.length; i++) {
+        //         // intersection
+        //         tmpIntersection = PolyBool.intersect({
+        //             regions: tmpIntersection, // list of regions
+        //             inverted: false // is this polygon inverted?
+        //         }, {
+        //             regions: hierarchyVertices[i],
+        //             inverted: false
+        //         });
+        //         // convert it again
+        //         tmpIntersection = tmpIntersection['regions'];
+        //     }
+        //     // intersection result
+        //     let intersectionHierarchyPolygons = tmpIntersection;
+        //
+        //     // union
+        //     let tmpUnion = hierarchyVertices[0];
+        //     // iterate over the hierarchies and intersect all of them
+        //     for (let i = 1; i < hierarchyVertices.length; i++) {
+        //         // intersection
+        //         tmpUnion = PolyBool.union({
+        //             regions: tmpUnion, // list of regions
+        //             inverted: false // is this polygon inverted?
+        //         }, {
+        //             regions: hierarchyVertices[i],
+        //             inverted: false
+        //         });
+        //         // convert it again
+        //         tmpUnion = tmpUnion['regions'];
+        //     }
+        //     let unionHierarchyPolygons = tmpUnion;
+        //
+        //
+        //     // symmetric difference
+        //     let tmpDifference = PolyBool.xor({
+        //         regions: unionHierarchyPolygons, // list of regions
+        //         inverted: false // is this polygon inverted?
+        //     }, {
+        //         regions: intersectionHierarchyPolygons,
+        //         inverted: false
+        //     });
+        //     // convert it again
+        //     tmpDifference = tmpDifference['regions'];
+        //     // result
+        //     hierarchyVertices = [tmpDifference];
+        // }
     }
 
     // DATA Join
@@ -555,23 +556,23 @@ function drawHierarchy() {
  * Union multiple polygons together - needed or else there will be holes in the intersections
  * @param {array} polygons - array of array of points
  */
-function unionPolygons(polygons) {
-    // console.log(polygons);
-    for (let i = 0; i < polygons.length; i++) {
-        polygons[i] = {
-            regions: [polygons[i]],
-            inverted: false // is this polygon inverted?
-        };
-    }
-    // union a list of polygons together
-    let segments = PolyBool.segments(polygons[0]);
-    for (let i = 1; i < polygons.length; i++) {
-        let seg2 = PolyBool.segments(polygons[i]);
-        let comb = PolyBool.combine(segments, seg2);
-        segments = PolyBool.selectUnion(comb);
-    }
-    return PolyBool.polygon(segments)['regions'];
-}
+// function unionPolygons(polygons) {
+//     // console.log(polygons);
+//     for (let i = 0; i < polygons.length; i++) {
+//         polygons[i] = {
+//             regions: [polygons[i]],
+//             inverted: false // is this polygon inverted?
+//         };
+//     }
+//     // union a list of polygons together
+//     let segments = PolyBool.segments(polygons[0]);
+//     for (let i = 1; i < polygons.length; i++) {
+//         let seg2 = PolyBool.segments(polygons[i]);
+//         let comb = PolyBool.combine(segments, seg2);
+//         segments = PolyBool.selectUnion(comb);
+//     }
+//     return PolyBool.polygon(segments)['regions'];
+// }
 
 /**
  * Edge drawing method of the dendrogram

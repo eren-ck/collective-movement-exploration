@@ -113,7 +113,6 @@ def network_new():
         # set the possible choices for the dataset id
         form.dataset_id.choices = [(d.id, d.name) for d in
                                    db.session.query(Dataset).filter_by(user_id=current_user.id, progress=100)]
-
         # check if valid form
         if form.validate():
             # get the next network_id for the dataset

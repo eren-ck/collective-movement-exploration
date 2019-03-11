@@ -11,8 +11,6 @@ from model.movement_data_model import Movement_data
 
 def calculate_absolute_features(id):
     """ Calculate the absolute features for the dataset id.
-    This is using multiple processes to speed up the calculation
-    It uses 5 processes - defined at pool_size = 5
 
     Keyword arguments:
     id -- id of the dataset
