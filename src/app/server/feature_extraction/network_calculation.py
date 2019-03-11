@@ -27,7 +27,7 @@ def calculate_network(dataset_id, network_id):
     dataset_id -- id of the dataset
     network_id -- in combination with the dataset_id the primary key
     """
-    start = time.time()
+    # start = time.time()
     # create new db session for the new spanned process
     session = create_session()
     try:
@@ -79,8 +79,8 @@ def calculate_network(dataset_id, network_id):
         session.remove()
 
     session.remove()
-    end = time.time()
-    print(end - start)
+    # end = time.time()
+    # print(end - start)
 
 
 def applyParallel(dfGrouped, weights):

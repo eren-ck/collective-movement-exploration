@@ -14,6 +14,52 @@ Gunicorn takes the HTTP request and starts a new worker Flask for the request
 5. The HTML page or stream is routed back to the user
 6. The user accesses the requested web page
 
+## Local installation on a Windows/macOS
+
+1. Install PostgreSQL, PostGIS, Python 3
+2. Create a new database
+```
+CREATE DATABASE animaldb;
+adduser deploy sudo
+```
+3. Connect to the database and create the PostGIS extension
+```
+CREATE EXTENSION postgis;
+```
+4. Install Python requirements
+```
+pip install -r requirements.txt
+```
+5. Modify the ```config.py``` of the server project, for example
+
+```
+SECRET_KEY = '123456789'
+
+DATABASE_FILE = ''
+SQLALCHEMY_DATABASE_URI = postgresql://postgres:@localhost/animaldb
+SQLALCHEMY_ECHO = True
+
+SECURITY_URL_PREFIX = "/view"
+SECURITY_PASSWORD_HASH = "pbkdf2_sha512"
+SECURITY_PASSWORD_SALT = "123456789abcdef"
+
+SECURITY_LOGIN_URL = "/login/"
+SECURITY_LOGOUT_URL = "/logout/"
+SECURITY_REGISTER_URL = "/register/"
+
+SECURITY_POST_LOGIN_VIEW = "/admin/"
+SECURITY_POST_LOGOUT_VIEW = "/view/"
+SECURITY_POST_REGISTER_VIEW = "/view/"
+
+SECURITY_REGISTERABLE = False
+SECURITY_SEND_REGISTER_EMAIL = False
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+```
+
+6. Run ```app.py``` with Pyhton e.g. with PyCharm
+7. Login with the user ```admin``` and password ```admin```
+
 ## Configuration of the server
 
 1. Create a new user
