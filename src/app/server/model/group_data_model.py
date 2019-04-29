@@ -29,6 +29,9 @@ class Group_data(db.Model):
     convex_hull = deferred(db.Column(Geometry('Geometry')))
     delaunay_triangulation = (db.Column(Geometry('MultiLineString')))
     voronoi_polygons = deferred(db.Column(Geometry('GeometryCollection')))
+    metric_distance = db.Column(db.Float)
+    distance_centroid = db.Column(db.Float)
+    polarisation = db.Column(db.Float)
 
     def __init__(self, dataset_id, **kwargs):
         self.dataset_id = dataset_id

@@ -1,10 +1,10 @@
-from config import *
+import config
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
+engine = create_engine(config.SQLALCHEMY_DATABASE_URI)
 
 
 def create_session():
