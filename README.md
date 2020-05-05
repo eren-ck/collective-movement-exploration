@@ -1,4 +1,4 @@
-# Collective Movement Exploration
+# Collective Movement Exploration.
 > A web application to explore and analyze collective movement datasets.
 
 <p align="center"><img width=100% src="https://raw.githubusercontent.com/dbvis-eren-ck/collective-movement-exploration/master/media/collective-movement-exploration-pipeline.png"></p>
