@@ -204,7 +204,7 @@ def calculate_speed_acceleration(id, session):
     id - id of the dataset
     session - db session
     """
-    # metric distance
+    #metric distance
     query = '''UPDATE group_data
                 SET metric_distance = subquery.distance
                 FROM (  SELECT "time", SUM(metric_distance) as distance
