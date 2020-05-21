@@ -7,6 +7,7 @@ from collections import OrderedDict
 from db import *
 from model.dataset_model import Dataset
 from model.movement_data_model import Movement_data
+import movekit as mkit
 
 
 def calculate_absolute_features(id):
@@ -37,9 +38,15 @@ def calculate_absolute_features(id):
     # rename a column
     df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
     # groupby animal id for the feature extraction
-    grouped_df = df.groupby(['animal_id'])
+    #grouped_df = df.groupby(['animal_id'])
+    #df.sort_values(['animal_id', 'time'])
+    df = mkit.extract_features(df, dataset[0].fps).sort_values(['animal_id', 'time'])
+    df = df.drop(columns = ['stopped'])
+    df = df.rename(columns = {'distance':'metric_distance', 'average_speed':'speed', 'average_acceleration':'acceleration'})
     # extract the features
-    df = absolute_feature_worker_2(grouped_df, dataset[0].fps)
+    #df = absolute_feature_worker_2(grouped_df, dataset[0].fps)
+
+
     print(df)
     print(dataset[0].fps)
     # upload the dataset
