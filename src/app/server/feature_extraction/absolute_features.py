@@ -41,6 +41,7 @@ def calculate_absolute_features(id):
     # extract the features
     df = absolute_feature_worker_2(grouped_df, dataset[0].fps)
     print(df)
+    print(dataset[0].fps)
     # upload the dataset
     try:
         for index, row in df.iterrows():
