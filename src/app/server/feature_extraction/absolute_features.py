@@ -40,6 +40,7 @@ def calculate_absolute_features(id):
     grouped_df = df.groupby(['animal_id'])
     # extract the features
     df = absolute_feature_worker_2(grouped_df, dataset[0].fps)
+    print(df)
     # upload the dataset
     try:
         for index, row in df.iterrows():
