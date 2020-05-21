@@ -11,3 +11,4 @@ psycopg2
 sklearn
 wincertstore
 chardet
+movekit
