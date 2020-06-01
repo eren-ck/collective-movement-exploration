@@ -1,10 +1,12 @@
 from model.dataset_model import Dataset
 from model.group_data_model import Group_data
+from model.movement_data_model import Movement_data
 from db import create_session
 
 from geoalchemy2 import functions
 import pandas as pd
 import numpy as np
+import movekit as mkit
 from collections import OrderedDict
 
 
@@ -256,6 +258,8 @@ def calculate_mean_distance_centroid(id, session):
     session.execute(query, {'id': id})
 
 
+
+#Gives only zeros
 def calculate_centroid_direction(id, session):
     """ Calculate the direction of the centroid of the animal group
 
@@ -266,6 +270,9 @@ def calculate_centroid_direction(id, session):
     query = session.query(Group_data.time, functions.ST_X(Group_data.centroid),
                           functions.ST_Y(Group_data.centroid)).filter_by(dataset_id=id)
     df = pd.read_sql(query.statement, query.session.bind)
+
+
+    print(df)
     # rename a column
     df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
     df['direction'] = np.rad2deg(np.arctan2(np.float64(
@@ -280,23 +287,41 @@ def calculate_centroid_direction(id, session):
 
 
 def calculate_polarisation(id, session):
+
     """ Calculate the polarisation  of the animal group
 
     Keyword arguments:
     id - id of the dataset
     session - db session
     """
-    query = ''' UPDATE group_data
-                SET polarisation = subquery.polarisation
-                FROM (SELECT "time", (
-                            sqrt(
-                                power(SUM(sin(radians(direction))),2) +
-                                power(SUM(cos(radians(direction))),2)
-                            ) / count(*)
-                            ) as polarisation
-                      FROM movement_data
-                      WHERE dataset_id = :id
-                      GROUP BY "time") as subquery
-                WHERE group_data.time = subquery.time
-                  AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
+    query = session.query(Movement_data.time, Movement_data.animal_id,
+                          Movement_data.direction) \
+        .filter_by(dataset_id=id).order_by('time')
+    # read into pandas frame for faster calculation
+    df = pd.read_sql(query.statement, query.session.bind)
+    dat = mkit.compute_polarization(df, group_output = True).fillna(0)
+    session.commit()
+
+
+    query = session.query(Group_data.time, Group_data.polarisation).filter_by(dataset_id=id).order_by('time')
+    # read into pandas frame for faster calculation
+    df = pd.read_sql(query.statement, query.session.bind)
+    # rename a column
+    df.polarisation = dat.polarization
+
+    # Extracting the features via mkit
+
+    for index, row in df.iterrows():
+        query = Group_data(dataset_id=id, **OrderedDict(row))
+        session.merge(query)
+
+    # change the progress bar
+    # add the data to the database
+    session.commit()
+
+
+    #group_dat = Group_data.query.get(2)
+
+    #print(group_dat)
+    # commit
+    #session.commit()

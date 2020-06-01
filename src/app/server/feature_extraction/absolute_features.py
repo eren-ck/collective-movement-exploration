@@ -40,9 +40,9 @@ def calculate_absolute_features(id):
 
     # Extracting the features via mkit
     df = mkit.extract_features(df, dataset[0].fps).sort_values(['animal_id', 'time'])
+
     df = df.drop(columns = ['stopped'])
     df = df.rename(columns = {'distance':'metric_distance', 'average_speed':'speed', 'average_acceleration':'acceleration'})
-
     try:
         for index, row in df.iterrows():
             query = Movement_data(dataset_id=id, **OrderedDict(row))
@@ -64,4 +64,3 @@ def calculate_absolute_features(id):
 
     session.remove()
     # print("Performance " + str(datetime.datetime.utcnow() - t0) + " secs")
-
