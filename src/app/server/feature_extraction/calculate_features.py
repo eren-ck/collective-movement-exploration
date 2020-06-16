@@ -35,11 +35,9 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
     # # calculate swarm features
     calculate_swarm_features(id)
     # # calculate percentiles
-    print('STARTING PERCENTILES')
     calculate_percentiles(id)
+    
     # # calculate several basic networks for each dataset automatically with the upload
-
-    print('STARTING NETWORK')
     calculate_basic_networks(id)
 
 

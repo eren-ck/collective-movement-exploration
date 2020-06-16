@@ -31,22 +31,18 @@ def calculate_swarm_features(id):
     try:
 
         calculate_mkit_feats(id, session)
-        print('MKIT DONE')
-                # calculate the centroid
-        #calculate_centroid(id, session)
-        # calculate the convex hull area
+
         calculate_convex_hull(id, session)
-        print('CONV HULL DONE')
 
         # calculate convex hull area
         calculate_convex_hull_area(id, session)
-        print('CONV AREA DONE')
+
         # calculate delaunay triangulation
         calculate_delaunay_triangulation(id, session)
-        print('DELAUNAY DONE')
+
         # calculate voronoi diagram
         calculate_voronoi_diagram(id, session)
-        print('VORONOI DONE')
+
 
         # complete
         dataset[0].status = 'Complete'
@@ -167,7 +163,6 @@ def calculate_mkit_feats(id, session):
         session.merge(query)
 
     session.commit()
-    print('DIST CEN DONE')
     # Take subset from dataset above, focusing only on group-level
     group = movement.loc[movement.animal_id == list(set(movement.animal_id))[0], ['time', 'x_centroid', 'y_centroid', 'medoid', 'centroid']].reset_index(drop=True)
 
@@ -192,6 +187,6 @@ def calculate_mkit_feats(id, session):
     for index, row in group.iterrows():
         query = Group_data(dataset_id=id,**OrderedDict(row))
         session.merge(query)
-    print('GROUP FEATS DONE')
+
     # add the data to the database
     session.commit()
