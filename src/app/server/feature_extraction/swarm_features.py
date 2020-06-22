@@ -1,10 +1,13 @@
 from model.dataset_model import Dataset
 from model.group_data_model import Group_data
+from model.movement_data_model import Movement_data
 from db import create_session
+from functools import reduce
 
-from geoalchemy2 import functions
+from geoalchemy2 import functions, elements
 import pandas as pd
 import numpy as np
+import movekit as mkit
 from collections import OrderedDict
 
 
@@ -26,28 +29,21 @@ def calculate_swarm_features(id):
     # for every animal get the movement data
     # and extrat the absolute features
     try:
-        # calculate the centroid
-        calculate_centroid(id, session)
-        # calculate the direction of the centroid
-        calculate_centroid_direction(id, session)
-        # calculate the absolute feature distance to centroid
-        calculate_distance_centroid(id, session)
-        # calculate the medoid of the group
-        calculate_medoid(id, session)
-        # calculate the convex hull area
+
+        calculate_mkit_feats(id, session)
+
         calculate_convex_hull(id, session)
+
         # calculate convex hull area
         calculate_convex_hull_area(id, session)
+
         # calculate delaunay triangulation
         calculate_delaunay_triangulation(id, session)
+
         # calculate voronoi diagram
         calculate_voronoi_diagram(id, session)
-        # calculate metric distance, speed and acceleration
-        calculate_speed_acceleration(id, session)
-        #  calculate the mean distance to centorid for the whole swarm
-        calculate_mean_distance_centroid(id, session)
-        #  calculate the polarisation for the whole swarm
-        calculate_polarisation(id, session)
+
+
         # complete
         dataset[0].status = 'Complete'
         dataset[0].progress = 100
@@ -64,69 +60,8 @@ def calculate_swarm_features(id):
     # remove the session
     session.remove()
 
-
-def calculate_centroid(id, session):
-    """ Calculate the centroid of the animal group
-
-    Keyword arguments:
-    id - id of the dataset
-    session - db session
-    """
-    query = '''UPDATE   group_data
-                SET 	centroid =  subquery.geom
-                FROM ( SELECT "time", ST_Centroid(ST_Collect(position)) AS geom
-                                        FROM movement_data
-                                        WHERE dataset_id = :id
-                                        GROUP BY "time") AS subquery
-                WHERE   group_data.time = subquery.time
-                        AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
-
-
-def calculate_distance_centroid(id, session):
-    """ Calculate the absolute feature distance centroid
-
-    Keyword arguments:
-    id - id of the dataset
-    session - db session
-    """
-    query = '''UPDATE movement_data
-                SET   distance_centroid = subquery.dist
-                FROM   (SELECT  tmp."time", tmp.animal_id,ST_Distance(group_data.centroid, tmp.position) AS dist
-                        FROM group_data, movement_data as tmp
-                        WHERE   group_data.time = tmp.time
-                                AND group_data.dataset_id = :id
-                                AND tmp.dataset_id = :id)  AS subquery
-                WHERE   movement_data.time = subquery.time
-                        AND movement_data.dataset_id = :id
-                        AND movement_data.animal_id = subquery.animal_id;'''
-    session.execute(query, {'id': id})
-
-
-def calculate_medoid(id, session):
-    """ Calculate the medoid of the whole group
-
-    Keyword arguments:
-    id - id of the dataset
-    session - db session
-    """
-    query = '''UPDATE group_data
-                SET medoid = movement_data.animal_id
-                FROM (SELECT "time", min(distance_centroid) as min_centroid
-                                                    FROM movement_data
-                                                    WHERE dataset_id = :id
-                                                    GROUP BY "time") AS subquery, movement_data
-                WHERE   group_data.dataset_id = :id
-                        AND group_data.time = movement_data.time
-                        AND movement_data.dataset_id = :id
-                        AND movement_data.time = subquery.time
-                        AND movement_data.distance_centroid = subquery.min_centroid;'''
-    session.execute(query, {'id': id})
-
-
 def calculate_convex_hull(id, session):
     """ Calculate the convex hull of the animal group
-
     Keyword arguments:
     id - id of the dataset
     session - db session
@@ -144,7 +79,6 @@ def calculate_convex_hull(id, session):
 
 def calculate_convex_hull_area(id, session):
     """ Calculate the convex hull area of the animal group
-
     Keyword arguments:
     id - id of the dataset
     session - db session
@@ -161,7 +95,6 @@ def calculate_convex_hull_area(id, session):
 
 def calculate_delaunay_triangulation(id, session):
     """ Calculate the delaunay triangulation of the animal group
-
     Keyword arguments:
     id - id of the dataset
     session - db session
@@ -179,7 +112,6 @@ def calculate_delaunay_triangulation(id, session):
 
 def calculate_voronoi_diagram(id, session):
     """ Calculate the voronoi diagram of the animal group
-
     Keyword arguments:
     id - id of the dataset
     session - db session
@@ -197,106 +129,64 @@ def calculate_voronoi_diagram(id, session):
     session.execute(query, {'id': id})
 
 
-def calculate_speed_acceleration(id, session):
-    """ Calculate the SUM metric distance, AVG speed and AVG acceleration of the animal group
+def calculate_mkit_feats(id, session):
+
+    """ Calculate all remaining features, including: mean speed/acceleration, centroid-direction, mean-dist centroid, polarization,
 
     Keyword arguments:
     id - id of the dataset
     session - db session
     """
-    # metric distance
-    query = '''UPDATE group_data
-                SET metric_distance = subquery.distance
-                FROM (  SELECT "time", SUM(metric_distance) as distance
-                        FROM movement_data
-                        WHERE dataset_id = :id
-                        GROUP BY "time") as subquery
-                WHERE group_data.time = subquery.time
-                      AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
 
-    # speed
-    query = '''UPDATE group_data
-                SET speed = subquery.speed
-                FROM (  SELECT "time", SUM(speed) as speed
-                        FROM movement_data
-                        WHERE dataset_id = :id
-                        GROUP BY "time") as subquery
-                WHERE group_data.time = subquery.time
-                      AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
-
-    # acceleration
-    query = '''UPDATE group_data
-                SET acceleration = subquery.acceleration
-                FROM (  SELECT "time", SUM(acceleration) as acceleration
-                        FROM movement_data
-                        WHERE dataset_id = :id
-                        GROUP BY "time") as subquery
-                WHERE group_data.time = subquery.time
-                      AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
-
-
-def calculate_mean_distance_centroid(id, session):
-    """ Calculate the mean distance to the centroid for the whole swarm
-
-    Keyword arguments:
-    id - id of the dataset
-    session - db session
-    """
-    query = '''UPDATE group_data
-                SET distance_centroid = subquery.distance
-                FROM (  SELECT "time", AVG(distance_centroid) as distance
-                        FROM movement_data
-                        WHERE dataset_id = :id
-                        GROUP BY "time") as subquery
-                WHERE group_data.time = subquery.time
-                      AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
-
-
-def calculate_centroid_direction(id, session):
-    """ Calculate the direction of the centroid of the animal group
-
-    Keyword arguments:
-    id - id of the dataset
-    session - db session
-    """
-    query = session.query(Group_data.time, functions.ST_X(Group_data.centroid),
-                          functions.ST_Y(Group_data.centroid)).filter_by(dataset_id=id)
+    # Get features from database
+    query = session.query(Movement_data.time,
+                          Movement_data.animal_id,
+                          Movement_data.direction,
+                          functions.ST_X(Movement_data.position),
+                          functions.ST_Y(Movement_data.position)) \
+        .filter_by(dataset_id=id).order_by('time')
+    # read into pandas frame for faster calculation
     df = pd.read_sql(query.statement, query.session.bind)
-    # rename a column
+
+    # prepare for analysis
     df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
-    df['direction'] = np.rad2deg(np.arctan2(np.float64(
-        (df['y'] - df['y'].shift())), np.float64((df['x'] - df['x'].shift()))))
-    df = df.fillna(0)
-    # write to db
-    for index, row in df.iterrows():
-        query = Group_data(dataset_id=id, **OrderedDict(row))
+
+    # calculate the centroids and medoids, store in group data
+    movement = mkit.centroid_medoid_computation(df, object_output = True)
+
+    # prepare for merge
+    movement = movement.rename(columns = {'distance_to_centroid':'distance_centroid'})
+
+    # merge movement data with distance_centroid
+    for index, row in movement.iterrows():
+        query = Movement_data(dataset_id=id, **OrderedDict(row))
         session.merge(query)
-    # commit
+
     session.commit()
+    # Take subset from dataset above, focusing only on group-level
+    group = movement.loc[movement.animal_id == list(set(movement.animal_id))[0], ['time', 'x_centroid', 'y_centroid', 'medoid', 'centroid']].reset_index(drop=True)
+
+    # compute polarization
+    pol = mkit.compute_polarization(df, group_output = True).fillna(0)
+
+    # compute mean speed, acceleration and mean distance to centroid
+    mov = mkit.group_movement(movement).fillna(0)
+
+    # compute centroid direction
+    cen_dir = mkit.compute_centroid_direction(movement, group_output = True).fillna(0)
 
 
-def calculate_polarisation(id, session):
-    """ Calculate the polarisation  of the animal group
+    # merge computed values into group-dataframe
+    data_frames = [group, pol, mov, cen_dir]
+    group = reduce(lambda  left,right: pd.merge(left,right,on=['time'],
+                                                how='outer'), data_frames)
+    # prepare for merging with database
+    group = group.rename(columns = {'mean_distance_centroid':'distance_centroid','centroid_direction':'direction','mean_speed':'speed','mean_acceleration':'acceleration','mean_distance_centroid':'distance_centroid', 'total_dist': 'metric_distance', 'polarization': 'polarisation'})
 
-    Keyword arguments:
-    id - id of the dataset
-    session - db session
-    """
-    query = ''' UPDATE group_data
-                SET polarisation = subquery.polarisation
-                FROM (SELECT "time", (
-                            sqrt(
-                                power(SUM(sin(radians(direction))),2) +
-                                power(SUM(cos(radians(direction))),2)
-                            ) / count(*)
-                            ) as polarisation
-                      FROM movement_data
-                      WHERE dataset_id = :id
-                      GROUP BY "time") as subquery
-                WHERE group_data.time = subquery.time
-                  AND group_data.dataset_id = :id;'''
-    session.execute(query, {'id': id})
+    # first convert centroid coordinates to shape and delete them, then run query.
+    for index, row in group.iterrows():
+        query = Group_data(dataset_id=id,**OrderedDict(row))
+        session.merge(query)
+
+    # add the data to the database
+    session.commit()
