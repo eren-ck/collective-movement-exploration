@@ -19,7 +19,7 @@ import {
 } from '../network.js';
 
 import {
-    lineChart,
+    //lineChart,
     updateLineChart,
     Chart
 } from '../line_chart';

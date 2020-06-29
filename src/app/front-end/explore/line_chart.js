@@ -338,7 +338,7 @@ export class Chart {
            });
        $('#trendChartLegend').hide();
 
-       initLineChartButtons();
+       this.initLineChartButtons(swarm_features);
 
    }
 
