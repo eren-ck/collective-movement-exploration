@@ -275,7 +275,7 @@ let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.di
   //});
     //measure execution time of function draw
     // let t0 = performance.now();
-    linechart = Chart();
+    let linechart = new Chart(swarmData);
 
     //update time to wait aka speed of replay
     let timeToWait = $('input[type="radio"].group-playback-rate:checked')
@@ -717,7 +717,7 @@ let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.di
             //next frame
             indexTime++;
 
-            linechart.updateLineChart();
+            updateLineChart();
 
 
             //check if play button is active and if the animation is not finished

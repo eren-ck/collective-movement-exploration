@@ -37,7 +37,7 @@ export class Chart {
     constructor(data) {
         // load in arguments from config object
         this.data = data;
-        this.swarm_features = Object.keys(this.Data[0])
+        this.swarm_features = Object.keys(this.data[0])
         this.lineChart();
     }
 
