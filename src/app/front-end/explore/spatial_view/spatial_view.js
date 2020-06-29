@@ -269,12 +269,13 @@ export function draw() {
   //console.log(swarmData);
 let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid, speed: obj.speed})));
 
-  var linechart = new Chart({
-    data: result,
-    element: document.querySelector('#swarm-vis')
-  });
+  //var linechart = new Chart({
+  //  data: swarmData,
+  //  element: document.querySelector('#swarm-vis')
+  //});
     //measure execution time of function draw
     // let t0 = performance.now();
+    linechart = Chart();
 
     //update time to wait aka speed of replay
     let timeToWait = $('input[type="radio"].group-playback-rate:checked')
