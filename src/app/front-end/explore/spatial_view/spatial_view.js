@@ -240,12 +240,12 @@ export function spatialViewInit() {
 
 
     console.log(Object.values(swarmData));
-    let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid})));
+    let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid, speed: obj.speed})));
     //var outputData = result.map( Object.values );
     console.log(result);
 
     let entries = Object.values(result)
-    console.log(entries);
+    //console.log(entries);
 
     let dat = [
               [new Date(2016,0,1), 10],
@@ -255,7 +255,7 @@ export function spatialViewInit() {
               [new Date(2016,4,1), 40],
               [new Date(2016,5,1), 400]
           ]
-    console.log(dat);
+    //console.log(dat);
     // start the animation
     draw();
 }
@@ -267,10 +267,10 @@ export function spatialViewInit() {
 export function draw() {
 
   //console.log(swarmData);
-let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid})));
+let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid, speed: obj.speed})));
 
   var linechart = new Chart({
-    data: Object.values(result),
+    data: result,
     element: document.querySelector('#swarm-vis')
   });
     //measure execution time of function draw
