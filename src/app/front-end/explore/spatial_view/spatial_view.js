@@ -237,25 +237,6 @@ export function spatialViewInit() {
     initDendrogram();
     makeResizable(tankHeight, tankWidth);
     defaultConfig();
-
-
-    console.log(Object.values(swarmData));
-    let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid, speed: obj.speed})));
-    //var outputData = result.map( Object.values );
-    console.log(result);
-
-    let entries = Object.values(result)
-    //console.log(entries);
-
-    let dat = [
-              [new Date(2016,0,1), 10],
-              [new Date(2016,1,1), 70],
-              [new Date(2016,2,1), 30],
-              [new Date(2016,3,1), 10],
-              [new Date(2016,4,1), 40],
-              [new Date(2016,5,1), 400]
-          ]
-    //console.log(dat);
     // start the animation
     draw();
 }
@@ -266,15 +247,6 @@ export function spatialViewInit() {
  */
 export function draw() {
 
-  //console.log(swarmData);
-let result = swarmData.map(obj => (Object.values({time:obj.time, dist_cen:obj.distance_centroid, speed: obj.speed})));
-
-  //var linechart = new Chart({
-  //  data: swarmData,
-  //  element: document.querySelector('#swarm-vis')
-  //});
-    //measure execution time of function draw
-    // let t0 = performance.now();
     let linechart = new Chart(swarmData);
 
     //update time to wait aka speed of replay
