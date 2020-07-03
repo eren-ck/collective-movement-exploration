@@ -233,13 +233,13 @@ export function spatialViewInit() {
     initSliders();
     addSpatialViewGroup();
     initColorPicker();
-    let linechart = new Chart(swarmData);
+    var linechart = new Chart(swarmData);
     initListeners();
     initDendrogram();
     makeResizable(tankHeight, tankWidth);
     defaultConfig();
     // start the animation
-    draw();
+    draw(linechart);
 }
 
 /**
