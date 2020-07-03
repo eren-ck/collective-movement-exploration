@@ -233,6 +233,7 @@ export function spatialViewInit() {
     initSliders();
     addSpatialViewGroup();
     initColorPicker();
+    let linechart = new Chart(swarmData);
     initListeners();
     initDendrogram();
     makeResizable(tankHeight, tankWidth);
@@ -246,9 +247,6 @@ export function spatialViewInit() {
  * indexTime saves the current time
  */
 export function draw() {
-
-    let linechart = new Chart(swarmData);
-
     //update time to wait aka speed of replay
     let timeToWait = $('input[type="radio"].group-playback-rate:checked')
         .val();

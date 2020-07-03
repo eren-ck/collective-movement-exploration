@@ -112,7 +112,7 @@ export function addAbsoluteFeatureButtons(dataSetPercentile) {
     // hide the elements
     $('.draw-details').hide();
     // init the listerners
-    initTrendChartListener();
+  initTrendChartListener();
 
 }
 
