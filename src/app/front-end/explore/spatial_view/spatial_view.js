@@ -19,8 +19,9 @@ import {
 } from '../network.js';
 
 import {
-    lineChart,
-    updateLineChart
+    //lineChart,
+    updateLineChart,
+    LineChart
 } from '../line_chart';
 
 import {
@@ -232,13 +233,13 @@ export function spatialViewInit() {
     initSliders();
     addSpatialViewGroup();
     initColorPicker();
-    lineChart();
+    var linechart = new LineChart(swarmData);
     initListeners();
     initDendrogram();
     makeResizable(tankHeight, tankWidth);
     defaultConfig();
     // start the animation
-    draw();
+    draw(linechart);
 }
 
 /**
@@ -246,9 +247,6 @@ export function spatialViewInit() {
  * indexTime saves the current time
  */
 export function draw() {
-    //measure execution time of function draw
-    // let t0 = performance.now();
-
     //update time to wait aka speed of replay
     let timeToWait = $('input[type="radio"].group-playback-rate:checked')
         .val();
