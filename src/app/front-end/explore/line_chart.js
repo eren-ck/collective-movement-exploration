@@ -376,13 +376,13 @@ export class Chart {
 
 
 /**
- * Line chart details click listener
+ * Line chart details click listener export to helpers
  */
 export function initTrendChartListener() {
     $('.draw-details').click(function() {
         if ($(this).find('input:checkbox').prop('checked')) {
             disableLineChart();
-            addTrendChart(this);
+            var trendchart = new TrendChart(this);
         } else {
             removeTrendChart();
             enableLineChart();
@@ -419,18 +419,25 @@ function removeTrendChart() {
 
 /**
  * Add a trend chart showing median and percentiles
- * @param {String} elem - which feature
+ * // - which feature
  */
-function addTrendChart(elem) {
+class TrendChart {
+    constructor(elem){
+      this.elem = elem;
+      this.trendchart();
+
+    }
+
+    trendchart(){
     // check which feature to display in the trend chart
     let feature = '';
-    if (elem['id'].toLowerCase().includes('speed')) {
+    if (this.elem['id'].toLowerCase().includes('speed')) {
         feature = 'speed';
-    } else if (elem['id'].toLowerCase().includes('acceleration')) {
+    } else if (this.elem['id'].toLowerCase().includes('acceleration')) {
         feature = 'acceleration';
-    } else if (elem['id'].toLowerCase().includes('distance_centroid')) {
+    } else if (this.elem['id'].toLowerCase().includes('distance_centroid')) {
         feature = 'distance_centroid';
-    } else if (elem['id'].toLowerCase().includes('midline_offset')) {
+    } else if (this.elem['id'].toLowerCase().includes('midline_offset')) {
         feature = 'midline_offset';
     } else {
         return;
@@ -492,7 +499,7 @@ function addTrendChart(elem) {
         let normalizationScale = d3.scaleLinear().domain([min, max]).range([0, 100]);
 
         // add a group for the trend chart
-        let trendChart = this.zoomGroup.append('g')
+        let trendChart = zoomGroup.append('g')
             .attr('id', (feature + 'TrendChart'))
             .attr('class', 'trendChartData');
         // append the zoom rectangle again to the end of the group
@@ -552,6 +559,7 @@ function addTrendChart(elem) {
         // show the trend chart
         $(('#' + feature + 'TrendChart')).show();
     }
+}
 }
 
 /**
