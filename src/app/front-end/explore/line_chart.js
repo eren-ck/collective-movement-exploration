@@ -443,9 +443,9 @@ class TrendChart {
         return;
     }
     // data is not loaded fully -- return
-    if (!dataset[0][feature]) {
-        return;
-    }
+    //if (!dataset[0][feature]) {
+    //    return;
+    //}
     // change to the trend chart legend
     $('#lineChartLegend').hide();
     $('#trendChartLegend').show();
