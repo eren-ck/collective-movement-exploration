@@ -21,7 +21,7 @@ import {
 import {
     //lineChart,
     updateLineChart,
-    Chart
+    LineChart
 } from '../line_chart';
 
 import {
@@ -233,7 +233,7 @@ export function spatialViewInit() {
     initSliders();
     addSpatialViewGroup();
     initColorPicker();
-    var linechart = new Chart(swarmData);
+    var linechart = new LineChart(swarmData);
     initListeners();
     initDendrogram();
     makeResizable(tankHeight, tankWidth);

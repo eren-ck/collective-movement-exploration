@@ -11,8 +11,12 @@ import {
 } from './listener.js';
 
 import {
-    initTrendChartListener
+  initTrendChartListener,
+  TrendChart
 } from './line_chart.js';
+import {
+    swarmData
+} from './explore.js';
 /**
  * Disable the play button --> Loading symbol
  */
@@ -86,8 +90,10 @@ export function percentilesLineChart(arr) {
     return result;
 }
 
+
+
 /**
- * Add the absolute feature checkboxes in the feature panel
+ * Add the absolute feature checkboxes in the feature panel export to ajax
  *
  */
 export function addAbsoluteFeatureButtons(dataSetPercentile) {
