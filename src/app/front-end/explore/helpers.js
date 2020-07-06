@@ -11,7 +11,7 @@ import {
 } from './listener.js';
 
 import {
-  initTrendChartListener,
+  //initTrendChartListener,
   TrendChart
 } from './line_chart.js';
 import {
@@ -88,6 +88,49 @@ export function percentilesLineChart(arr) {
         }
     }
     return result;
+}
+
+/**
+ * Line chart details click listener
+ */
+function initTrendChartListener() {
+    $('.draw-details').click(function() {
+        if ($(this).find('input:checkbox').prop('checked')) {
+            //disableLineChart();
+            var trendchart = new TrendChart(this, swarmData);
+            trendchart.disableLineChart();
+        } else {
+            removeTrendChart();
+            enableLineChart();
+        }
+    });
+}
+
+/**
+ * Line chart details click listener
+ */
+function disableLineChart() {
+    $('.lineChartButton').prop('checked', false).prop('disabled', true);
+    $('.line-chart-check-box').attr('disabled', true);
+    $('.lineChartLine').attr('visibility', 'hidden');
+}
+
+/**
+ * Line chart details click listener
+ */
+function enableLineChart() {
+    $('.lineChartButton').prop('checked', true).prop('disabled', false);
+    $('.line-chart-check-box').attr('disabled', false);
+    $('.lineChartLine').attr('visibility', 'visible');
+}
+
+/**
+ * Hide the trend chart
+ */
+function removeTrendChart() {
+    $('.trendChartData').hide();
+    $('#trendChartLegend').hide();
+    $('#lineChartLegend').show();
 }
 
 
