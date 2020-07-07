@@ -144,6 +144,26 @@ $('#download-movement-data').click(function() {
                 }
             });
         }
+
+        // check if direction is checked
+        if ($('#direction').is(':checked') && !('direction' in resultMovement[0])) {
+            $.ajax({
+                url: '/api/dataset/' + dataset_id + '/direction',
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'Accept': JSONAPI_MIMETYPE
+                },
+                success: function(data) {
+                    // add the distance centroid feature to the dataset
+                    for (let i = 0; i < resultMovement.length; i++) {
+                        resultMovement[i]['direction'] = +data[i];
+                    }
+                }
+            });
+        }
+
         // empty ajax query to call start the ajaxStop callback
         $.ajax();
     }
@@ -158,6 +178,7 @@ $('#download-movement-data').click(function() {
         let speed = $('#speed').is(':checked');
         let acceleration = $('#acceleration').is(':checked');
         let distanceCentroid = $('#distance-centroid').is(':checked');
+        let direction = $('#direction').is(':checked');
         // create the export CSV array of objects
         for (let i = 0; i < resultMovement.length; i++) {
             csletray[i] = {};
@@ -186,6 +207,9 @@ $('#download-movement-data').click(function() {
             if (distanceCentroid) {
                 csletray[i]['distance_centroid'] = resultMovement[i]['distance_centroid'];
             }
+            if (direction) {
+                csletray[i]['direction'] = resultMovement[i]['direction'];
+            }
         }
         // parse the csv this is multithreaded
         let csv = Papa.unparse(csletray);
@@ -206,7 +230,7 @@ $('#download-movement-data').click(function() {
 
 
 /**
- * Download the goup data
+ * Download the group data
  */
 $('#download-group-data').click(function() {
     // change the button text and icon (loading)
@@ -240,83 +264,153 @@ $('#download-group-data').click(function() {
     /**
      * Download the needed group features
      */
-    function getGroupFeatures() {
-        // get speed if checked
-        if ($('#group-speed').is(':checked') && !('speed' in resultGroup[0])) {
-            $.ajax({
-                url: '/api/dataset/' + dataset_id + '/swarm_speed',
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'Accept': JSONAPI_MIMETYPE
-                },
-                success: function(data) {
-                    // add the speed feature to the dataset
-                    for (let i = 0; i < resultGroup.length; i++) {
-                        resultGroup[i]['speed'] = +data[i];
-                    }
-                }
-            });
-        }
-        // get acceleration if checked
-        if ($('#group-acceleration').is(':checked') && !('acceleration' in resultGroup[0])) {
-            $.ajax({
-                url: '/api/dataset/' + dataset_id + '/swarm_acceleration',
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'Accept': JSONAPI_MIMETYPE
-                },
-                success: function(data) {
-                    // add the speed feature to the dataset
-                    for (let i = 0; i < resultGroup.length; i++) {
-                        resultGroup[i]['acceleration'] = +data[i];
-                    }
-                }
-            });
-        }
-        // get convex_hull_area if checked
-        if ($('#group-convex-hull-area').is(':checked') && !('convex_hull_area' in resultGroup[0])) {
-            $.ajax({
-                url: '/api/dataset/' + dataset_id + '/swarm_convex_hull_area',
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'Accept': JSONAPI_MIMETYPE
-                },
-                success: function(data) {
-                    // add the speed feature to the dataset
-                    for (let i = 0; i < resultGroup.length; i++) {
-                        resultGroup[i]['convex_hull_area'] = +data[i];
-                    }
-                }
-            });
-        }
-
+     function getGroupFeatures() {
+         // get speed if checked
+         if ($('#group-speed').is(':checked') && !('speed' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/swarm_speed',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['speed'] = +data[i];
+                     }
+                 }
+             });
+         }
+         // get acceleration if checked
+         if ($('#group-acceleration').is(':checked') && !('acceleration' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/swarm_acceleration',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['acceleration'] = +data[i];
+                     }
+                 }
+             });
+         }
+         // get convex_hull_area if checked
+         if ($('#group-convex-hull-area').is(':checked') && !('convex_hull_area' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/swarm_convex_hull_area',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['convex_hull_area'] = +data[i];
+                     }
+                 }
+             });
+         }
+         if ($('#group-medoid').is(':checked') && !('medoid' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/medoid',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['medoid'] = +data[i];
+                     }
+                 }
+             });
+         }
+         if ($('#group-direction').is(':checked') && !('direction' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/swarm_direction',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['direction'] = +data[i];
+                     }
+                 }
+             });
+         }
+         if ($('#group-distance_centroid').is(':checked') && !('distance_centroid' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/swarm_distance_centroid',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['distance_centroid'] = +data[i];
+                     }
+                 }
+             });
+         }
+         if ($('#group-polarisation').is(':checked') && !('polarisation' in resultGroup[0])) {
+             $.ajax({
+                 url: '/api/dataset/' + dataset_id + '/swarm_polarisation',
+                 dataType: 'json',
+                 type: 'GET',
+                 contentType: 'application/json; charset=utf-8',
+                 headers: {
+                     'Accept': JSONAPI_MIMETYPE
+                 },
+                 success: function(data) {
+                     // add the speed feature to the dataset
+                     for (let i = 0; i < resultGroup.length; i++) {
+                         resultGroup[i]['polarisation'] = +data[i];
+                     }
+                 }
+             });
+         }
         // empty ajax query to call start the ajaxStop callback
         $.ajax();
     }
+
 
     $(document).one('ajaxStop', function() {
         // Objects in the csv file
         let csletray = [];
 
         // get what should be included in the csv file
-        let centroid = $('#centroid').is(':checked');
+        //let centroid = $('#centroid').is(':checked');
         let speed = $('#group-speed').is(':checked');
         let acceleration = $('#group-acceleration').is(':checked');
         let convexHull = $('#group-convex-hull-area').is(':checked');
+        let medoid = $('#group-medoid').is(':checked');
+        let direction = $('#group-direction').is(':checked');
+        let distanceCentroid = $('#group-distance_centroid').is(':checked');
+        let polarisation = $('#group-polarisation').is(':checked');
+
         // create the export CSV array of objects
         for (let i = 0; i < resultGroup.length; i++) {
             csletray[i] = {};
             csletray[i]['time'] = resultGroup[i]['time'];
             // centroid is checked
-            if (centroid) {
-                csletray[i]['centroid'] = '(' + resultGroup[i]['centroid'] + ')';
-            }
             // speed checked
             if (speed) {
                 csletray[i]['speed'] = resultGroup[i]['speed'];
@@ -328,6 +422,18 @@ $('#download-group-data').click(function() {
             // distance centroid checked
             if (convexHull) {
                 csletray[i]['convex_hull_area'] = resultGroup[i]['convex_hull_area'];
+            }
+            if (speed) {
+                csletray[i]['medoid'] = resultGroup[i]['medoid'];
+            }
+            if (direction) {
+                csletray[i]['direction'] = resultGroup[i]['direction'];
+            }
+            if (distanceCentroid) {
+                csletray[i]['distance_centroid'] = resultGroup[i]['distance_centroid'];
+            }
+            if (polarisation) {
+                csletray[i]['polarisation'] = resultGroup[i]['polarisation'];
             }
         }
         // parse the csv this is multithreaded

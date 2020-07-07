@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 
 from wtforms import DecimalField, BooleanField, StringField, FileField
 from wtforms.validators import InputRequired
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 from db import db
 from model.dataset_model import Dataset

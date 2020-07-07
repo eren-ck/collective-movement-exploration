@@ -17,7 +17,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from wtforms import DecimalField, BooleanField, StringField, SubmitField, IntegerField
 from wtforms.validators import InputRequired
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 upload_page = Blueprint('upload', __name__, url_prefix='/center/upload')
 

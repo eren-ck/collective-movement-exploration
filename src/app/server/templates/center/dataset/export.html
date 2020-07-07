@@ -55,6 +55,13 @@
                                 <label for="distance-centroid" class="label-success"></label>
                             </div>
                         </li>
+                        <li class="list-group-item">
+                            Feature: Direction
+                            <div class="material-switch pull-right">
+                                <input id="direction" name="direction" type="checkbox" checked/>
+                                <label for="direction" class="label-success"></label>
+                            </div>
+                        </li>
                     </ul>
                     <button class="btn btn-default btn-lg float-right" id="download-movement-data">
                         <i class="mdi mdi-cloud-download"></i>
@@ -71,10 +78,11 @@
                 <div class="card-body">
                     <ul class="list-group">
                         <li class="list-group-item">
-                            Centroid of the swarm
+                            Feature: Medoid of the Swarm
                             <div class="material-switch pull-right">
-                                <input id="centroid" name="centroid" type="checkbox" checked/>
-                                <label for="centroid" class="label-success"></label>
+                                <input id="group-medoid" name="group-medoid" type="checkbox"
+                                       checked/>
+                                <label for="group-medoid" class="label-success"></label>
                             </div>
                         </li>
                         <!--<li class="list-group-item">-->
@@ -85,14 +93,14 @@
                         <!--</div>-->
                         <!--</li>-->
                         <li class="list-group-item">
-                            Feature: Speed
+                            Feature: Average Speed
                             <div class="material-switch pull-right">
                                 <input id="group-speed" name="group-speed" type="checkbox" checked/>
                                 <label for="group-speed" class="label-success"></label>
                             </div>
                         </li>
                         <li class="list-group-item">
-                            Feature: Acceleration
+                            Feature: Average Acceleration
                             <div class="material-switch pull-right">
                                 <input id="group-acceleration" name="group-acceleration" type="checkbox" checked/>
                                 <label for="group-acceleration" class="label-success"></label>
@@ -106,7 +114,30 @@
                                 <label for="group-convex-hull-area" class="label-success"></label>
                             </div>
                         </li>
-
+                        <li class="list-group-item">
+                            Feature: Centroid Direction
+                            <div class="material-switch pull-right">
+                                <input id="group-direction" name="group-direction" type="checkbox"
+                                       checked/>
+                                <label for="group-direction" class="label-success"></label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            Feature: Total Distance to Centroid
+                            <div class="material-switch pull-right">
+                                <input id="group-distance_centroid" name="group-distance_centroid" type="checkbox"
+                                       checked/>
+                                <label for="group-distance_centroid" class="label-success"></label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            Feature: Group Polarisation
+                            <div class="material-switch pull-right">
+                                <input id="group-polarisation" name="group-polarisation" type="checkbox"
+                                       checked/>
+                                <label for="group-polarisation" class="label-success"></label>
+                            </div>
+                        </li>
                     </ul>
 
                     <button class="btn btn-default btn-lg float-right" id="download-group-data">

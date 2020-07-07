@@ -21,12 +21,12 @@ class Movement_data(db.Model):
     animal_id = db.Column(db.Integer, primary_key=True, nullable=False)
     time = db.Column(db.Integer, primary_key=True, nullable=False)
     position = db.Column(Geometry('POINT'))
-    metric_distance = db.Column(db.Float)
-    speed = db.Column(db.Float)
-    acceleration = db.Column(db.Float)
-    distance_centroid = db.Column(db.Float)
-    direction = db.Column(db.Float)
-    midline_offset = db.Column(db.Float)
+    metric_distance = db.Column(db.Numeric)
+    speed = db.Column(db.Numeric)
+    acceleration = db.Column(db.Numeric)
+    distance_centroid = db.Column(db.Numeric)
+    direction = db.Column(db.Numeric)
+    midline_offset = db.Column(db.Numeric)
 
     def __init__(self, dataset_id, **kwargs):
         self.dataset_id = dataset_id
