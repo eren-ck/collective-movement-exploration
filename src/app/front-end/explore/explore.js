@@ -18,6 +18,8 @@ import {
 // import css
 import './explore.css';
 
+import Chart from './line_chart.js'
+
 export let dataset = []; // main dataset with values for each individual animal
 export let datasetMetadata = []; // metadataset for each individual fish
 export let swarmData = []; // swarmdata for linechart and also other swarm features

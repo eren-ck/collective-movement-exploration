@@ -72,7 +72,7 @@ export function streamMovementData() {
 }
 
 /**
- * Get the percentile data from the api
+ * Get the percentile data from the api export to explore.js
  */
 export function getPercentile() {
     let dataSetPercentile = [];
