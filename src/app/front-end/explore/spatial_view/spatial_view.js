@@ -239,7 +239,7 @@ export function spatialViewInit() {
     makeResizable(tankHeight, tankWidth);
     defaultConfig();
     // start the animation
-    draw(linechart);
+    draw();
 }
 
 /**
