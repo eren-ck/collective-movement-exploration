@@ -27,7 +27,7 @@ import {
 } from './helpers.js';
 
 import {
-    spatialViewInit
+    SpatialView
 } from './spatial_view/spatial_view.js';
 
 // import {
@@ -51,7 +51,7 @@ export function streamMovementData() {
                         if ($.active > 0) {
                             window.setTimeout(checkPendingRequest, 100);
                         } else {
-                            spatialViewInit();
+                            var view = new SpatialView();
                         }
                     }
                     window.setTimeout(checkPendingRequest, 100);

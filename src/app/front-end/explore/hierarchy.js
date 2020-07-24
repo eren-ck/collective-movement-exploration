@@ -370,7 +370,7 @@ function collapse(d) {
  * add a group with the ids of the animals in it to the view
  * with path child elements
  */
-function drawHierarchy() {
+export function drawHierarchy() {
     // id of the hierarchy e.g. [1,5,3]
     let hierarchyIds = Object.keys(networkHierarchy).map(function(x) {
         return x.replace('h', '');
@@ -859,7 +859,7 @@ export function changeHierarchyLegend() {
 /**
  * Initialize the dendrogram legend
  */
-function initDendrogramLegend() {
+export function initDendrogramLegend() {
     let legendWidth = 550;
     let legendHeight = 60;
 
