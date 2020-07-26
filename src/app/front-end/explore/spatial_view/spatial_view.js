@@ -65,7 +65,6 @@ import {
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
     resethierarchyGroupStdev,
-    Drawer,
     Dendrogram
 } from '../hierarchy.js';
 
@@ -94,9 +93,701 @@ let tank; // svg group for the spatial view tank
 /**
  * Initialize the spatial view with all the important factors
  */
+export class Drawer {
+   constructor(){
+     this.tankWidth = 0;
+     this.tankHeight=0;
+     this.svgContainer = d3.select('#main-vis')
+           .classed('svg-container', true)
+           // to make it responsive with css
+           .append('svg')
+           .attr('preserveAspectRatio', 'xMinYMin meet')
+           .attr('viewBox', '0 0 ' + this.tankWidth + ' ' + this.tankHeight)
+           // add the class svg-content
+           .classed('svg-content', true)
+           .attr('id', 'main-vis-svg')
+           .call(zoom);
+     this.zoomGroup = this.svgContainer.append('svg:g');
+     this.tank = this.zoomGroup.append('svg:g')
+               .attr('class', 'tank')
+               .attr('transform', function() {
+                   let x = parameters.inverted_x ? -1 : 1;
+                   let y = parameters.inverted_y ? -1 : 1;
+                   return 'scale(' + x + ',' + y + ')';
+               });
+     this.indexTime = 0; // actual time moment in the animation
 
-export class SpatialView extends Drawer {
+     this.activeScale = 'black'; // can be speed, acceleration, .. and black (meaning no active scale)
+     this.medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
+     this.activeAnimals = []; // active selected animals
+     this.arrayAnimals = 0 // array of animals for the specific time frame
+
+
+   }
+   static draw() {
+       //update time to wait aka speed of replay
+       let timeToWait = $('input[type="radio"].group-playback-rate:checked')
+           .val();
+       //scale the size by this number
+       let animalScale = $('input[type="radio"].group-size:checked')
+           .val();
+
+       //get the next animals
+       arrayAnimals = dataset.filter(function(d) {
+           return d['t'] === this.indexTime;
+       });
+
+       //the timeout is set after one update 30 ms
+       setTimeout(function() {
+               // draw hierarchy
+               this.drawDendrogram();
+               //change the time frame text
+               this.svgContainer.select('.frame-text')
+                   .text(Math.floor(this.indexTime / 1500) % 60 + ':' + Math.floor(this.indexTime / parameters['fps']) % 60 + '::' + this.indexTime % parameters['fps']);
+               // if a second has changed move the slider
+               if (this.indexTime % parameters['fps'] === 0) {
+                   setTimeSlider(this.indexTime);
+               }
+
+               let svgAnimals = this.tank.selectAll('g.animal')
+                   .data(arrayAnimals);
+
+               // Network vis
+               let networkVis;
+               // let networkVisBak;
+               if (this.indexTime in networkData) {
+                   let network = networkData[this.indexTime];
+                   // reset the group standard deviation for the hierarhcy
+                   // needed for coloring of the dendrogram nodes (variacne)
+                   resethierarchyGroupStdev();
+
+                   // display the whole network
+                   network = network.map(function(item) {
+                       let animal1 = arrayAnimals.filter(function(obj) {
+                           return obj['a'] === item['s'];
+                       })[0];
+                       let animal2 = arrayAnimals.filter(function(obj) {
+                           return obj['a'] === item['e'];
+                       })[0];
+                       return {
+                           'node1': animal1['a'],
+                           'node2': animal2['a'],
+                           'start': animal1['p'],
+                           'end': animal2['p'],
+                           'val': item['v']
+                       };
+                   });
+
+                   network.forEach(function(d) {
+                       $(('#mc-' + d['node1'] + '-' + d['node2'])).css('fill', networkColorScale(d['val']));
+                       $(('#mc-' + d['node2'] + '-' + d['node1'])).css('fill', networkColorScale(d['val']));
+                   });
+
+                   if (networkAuto) {
+                       let tmpArray = [];
+                       for (let i = 0; i < network.length; i++) {
+                           tmpArray.push(network[i]['val']);
+                       }
+                       setNetworLimit(percentiles(tmpArray));
+                   }
+                   network = network.filter(function(d) {
+                       return d['val'] <= (1 - networkLimit);
+                   });
+                   // DATA JOIN
+                   networkVis = this.tank.select('#network-group')
+                       .selectAll('line.network-edges')
+                       .data(network);
+                   // UPDATE
+                   networkVis
+                       .attr('x1', function(d) {
+                           return d['start'][0];
+                       })
+                       .attr('y1', function(d) {
+                           return -d['start'][1];
+                       })
+                       .attr('x2', function(d) {
+                           return d['end'][0];
+                       })
+                       .attr('y2', function(d) {
+                           return -d['end'][1];
+                       })
+                       .attr('stroke', function(d) {
+                           return networkColorScale((1 - d['val']));
+                       })
+                       .attr('stroke-opacity', function(d) {
+                           return 1 - d['val'];
+                       });
+                   //ENTER
+
+                   networkVis
+                       .enter()
+                       .append('line')
+                       .attr('class', 'network-edges')
+                       .attr('x1', function(d) {
+                           return d['start'][0];
+                       })
+                       .attr('y1', function(d) {
+                           return -d['start'][1];
+                       })
+                       .attr('x2', function(d) {
+                           return d['end'][0];
+                       })
+                       .attr('y2', function(d) {
+                           return -d['end'][1];
+                       })
+                       .attr('stroke', function(d) {
+                           return networkColorScale(d['val']);
+                       })
+                       .attr('stroke-opacity', function(d) {
+                           return d['val'];
+                       });
+
+               } else {
+                   networkVis = this.tank.selectAll('line.network-edges')
+                       .data([]);
+
+               }
+               // EXIT - network
+               networkVis.exit()
+                   .remove();
+
+               // delaunay triangulation
+               // DATA JOIN  - triangulation
+               var triangulation;
+               if ($('#draw-triangulation')
+                   .is(':checked')) {
+                   triangulation = this.tank.select('#delaunay-triangulation-group')
+                       .selectAll('path.delaunay-triangulation')
+                       .data([swarmData[this.indexTime]['triangulation']]);
+
+                   // UPDATE - triangulation
+                   triangulation
+                       .attr('d', function(d) {
+                           return d;
+                       });
+                   //ENTER - triangulation
+                   triangulation.enter()
+                       .append('path')
+                       .attr('class', 'delaunay-triangulation')
+                       .attr('d', function(d) {
+                           return d;
+                       });
+               } else {
+                   triangulation = this.tank.selectAll('path.delaunay-triangulation')
+                       .data([]);
+               }
+               // EXIT - triangulation
+               triangulation.exit()
+                   .remove();
+
+               // Voronoi
+               // DATA JOIN  - voronoi
+               var voronoi;
+               if ($('#draw-voronoi')
+                   .is(':checked')) {
+                   //append the group for the voronoi paths
+                   voronoi = this.tank
+                       .select('#vornoi-group')
+                       .selectAll('path.voronoi')
+                       .data(swarmData[this.indexTime]['voronoi'].split(';'));
+
+                   // UPDATE - voronoi
+                   voronoi
+                       .attr('d', function(d) {
+                           return d;
+                       });
+                   //ENTER - voronoi
+                   voronoi.enter()
+                       .append('path')
+                       .attr('class', 'voronoi')
+                       .attr('d', function(d) {
+                           return d;
+                       });
+               } else {
+                   voronoi = this.tank.select('#vornoi-group')
+                       .selectAll('path.voronoi')
+                       .data([]);
+               }
+               // EXIT - voronoi
+               voronoi.exit()
+                   .remove();
+
+               //ENTER - append the animal groups
+               let animalGroupings = svgAnimals
+                   .enter()
+                   .append('g')
+                   .attr('class', 'animal')
+                   .attr('id', function(d) {
+                       return 'animal-' + d['a'];
+                   });
+
+               // Append the circles for each animal to the animalgroup
+               animalGroupings.append('circle')
+                   .attr('r', 1.5 * animalScale)
+                   .attr('cx', function(d) {
+                       return d['p'][0];
+                   })
+                   .attr('cy', function(d) {
+                       return -d['p'][1];
+                   })
+                   .on('mouseover', function(d) {
+                       tooltipFunction(d);
+                   })
+                   .on('mouseout', function() {
+                       tooltip
+                           .transition()
+                           .duration(500)
+                           .style('opacity', 0);
+                   })
+                   // add on click for the active fishs
+                   .on('click', function(d) {
+                       if (this.activeAnimals.includes(d['a'])) {
+                           this.activeAnimals = this.activeAnimals.filter(item => item !== d['a']);
+                       } else {
+                           this.activeAnimals.push(d['a']);
+                       }
+                       if (!$('#play-button')
+                           .hasClass('active')) {
+                           //go back one second and draw the next frame
+                           //this applys the changes
+                           this.indexTime--;
+                           this.draw();
+                       }
+                   });
+
+               // UPDATE - animals circles
+               svgAnimals.select('circle')
+                   .attr('cx', function(d) {
+                       return d['p'][0];
+                   })
+                   .attr('cy', function(d) {
+                       return -d['p'][1];
+                   })
+                   .attr('r', animalScale);
+
+               // Append for each group the arrow, needed for coloring
+               animalGroupings.append('svg:defs')
+                   .append('svg:marker')
+                   .attr('id', function(d) {
+                       return 'arrow-marker-' + d['a'];
+                   })
+                   .attr('refX', 2)
+                   .attr('refY', 6)
+                   .attr('markerWidth', 13)
+                   .attr('markerHeight', 13)
+                   .attr('orient', 'auto')
+                   .append('svg:path')
+                   .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+               // Append the line for the direction arrow
+               animalGroupings
+                   .append('line')
+                   .attr('class', 'arrow')
+                   .attr('marker-end', function(d) {
+                       return 'url(#arrow-marker-' + d['a'] + ')';
+                   });
+
+               //execute only when draw direction button is checked
+               if ($('#draw-direction')
+                   .is(':checked')) {
+                   // UPDATE animal direction arrow
+                   svgAnimals.select('line')
+                       .attr('x1', function(d) {
+                           return d['p'][0];
+                       })
+                       .attr('y1', function(d) {
+                           return -d['p'][1];
+                       })
+                       .attr('x2', function(d) {
+                           return (d['p'][0] + 2 * animalScale);
+                       })
+                       .attr('y2', function(d) {
+                           return (-d['p'][1]);
+                       })
+                       .attr('transform', function(d) {
+                           return 'rotate(' + -d['direction'] + ' ' + d['p'][0] + ' ' + -d['p'][1] + ')';
+                       });
+               } else {
+                   // hide the arrows
+                   $('.arrow').hide();
+               }
+
+               // EXIT - the groups
+               svgAnimals.exit()
+                   .remove();
+
+               //Convex hull
+               if ($('#draw-convex-hull')
+                   .is(':checked')) {
+                   // DATA JOIN - paths
+                   var hullPath = this.tank.selectAll('path.hull-path')
+                       .data([swarmData[this.indexTime]['convex_hull']]);
+
+                   // UPDATE - hull path
+                   hullPath
+                       .attr('d', function(d) {
+                           return d;
+                       });
+
+                   // ENTER - hull paths
+                   hullPath.enter()
+                       .append('path')
+                       .attr('class', 'hull-path')
+                       .attr('d', function(d) {
+                           return d;
+                       });
+
+               } else {
+                   // draw no hull
+                   hullPath = this.tank.select('path.hull-path')
+                       .data([]);
+               }
+               // EXIT - hull paths
+               hullPath.exit()
+                   .remove();
+
+               //change the colors of the fish
+               if (this.activeScale !== 'black') {
+                   // once the fill for the heads and the stroke for the path
+                   var tmpScale = returnColorScale();
+                   svgAnimals
+                       .transition()
+                       .duration(10)
+                       .style('fill', function(d) {
+                           return tmpScale(d[this.activeScale]);
+                       })
+                       .attr('stroke', function(d) {
+                           return tmpScale(d[this.activeScale]);
+                       });
+               } else {
+                   //color every fish black
+                   svgAnimals
+                       .style('fill', '#000')
+                       .attr('stroke', '#000');
+
+                   if (!$.isEmptyObject(metadataColor)) {
+                       Object.keys(metadataColor).forEach(function(key) {
+                           d3
+                               .select('#animal-' + key)
+                               .style('fill', metadataColor[key])
+                               .attr('stroke', metadataColor[key]);
+                       });
+                   }
+               }
+
+               //change opactiy if the fish is selected
+               if (this.activeAnimals.length) {
+                   svgAnimals
+                       .style('opacity', function(d) {
+                           if (this.activeAnimals.includes(d['a'])) {
+                               return 1;
+                           } else {
+                               return 0.25;
+                           }
+                       });
+                   if ($('#remove-active-selected-button')
+                       .is(':disabled')) {
+                       $('#remove-active-selected-button')
+                           .prop('disabled', false);
+                       $('#visual-parameter-button')
+                           .prop('disabled', false);
+                   }
+                   // if tracking is on
+                   if (trackingBoolean) {
+                       addTrackedData(arrayAnimals[0]['t'], this.activeAnimals);
+                   }
+               } else {
+                   if (!$('#remove-active-selected-button')
+                       .is(':disabled')) {
+                       $('#remove-active-selected-button')
+                           .prop('disabled', true);
+                       $('#visual-parameter-button')
+                           .prop('disabled', true);
+                   }
+                   // normal opacity
+                   svgAnimals
+                       .style('opacity', 1);
+               }
+
+               //draw centroid
+               d3.select('.centroid')
+                   .attr('cx', function() {
+                       if ('centroid' in swarmData[0]) {
+                           return swarmData[this.indexTime]['centroid'][0];
+                       } else {
+                           return 0;
+                       }
+                   })
+                   .attr('cy', function() {
+                       if ('centroid' in swarmData[0]) {
+                           return -swarmData[this.indexTime]['centroid'][1];
+                       } else {
+                           return 0;
+                       }
+                   });
+               if ($('#draw-direction').is(':checked') &&
+                   swarmData[this.indexTime].centroid &&
+                   $('#draw-centroid').is(':checked')) {
+                   d3.select('#centroid-line')
+                       .classed('hidden', false);
+                   // UPDATE animal direction arrow
+                   d3.select('#centroid-line')
+                       .attr('x1', function() {
+                           return swarmData[this.indexTime]['centroid'][0];
+                       })
+                       .attr('y1', function() {
+                           return -swarmData[this.indexTime]['centroid'][1];
+                       })
+                       .attr('x2', function() {
+                           return (swarmData[this.indexTime]['centroid'][0] + 2 * animalScale);
+                       })
+                       .attr('y2', function() {
+                           return -swarmData[this.indexTime]['centroid'][1];
+                       })
+                       .attr('transform', function() {
+                           return 'rotate(' + -swarmData[this.indexTime]['direction'] + ' ' + swarmData[this.indexTime]['centroid'][0] + ' ' + -swarmData[this.indexTime]['centroid'][1] + ')';
+                       });
+               } else {
+                   // hide the arrows
+                   d3.select('#centroid-line')
+                       .attr('class', 'hidden');
+               }
+
+               // medoid
+               if (this.medoidAnimal !== -1) {
+                   d3.selectAll('#animal-' + this.medoidAnimal)
+                       .classed('medoid', false);
+                   this.medoidAnimal = swarmData[this.indexTime]['medoid'];
+                   d3.selectAll('#animal-' + this.medoidAnimal)
+                       .classed('medoid', true);
+               }
+
+               //next frame
+               this.indexTime++;
+
+               updateLineChart();
+
+
+               //check if play button is active and if the animation is not finished
+               if (this.indexTime >= swarmData.length) {
+                   //start again from the start
+                   this.indexTime = 0;
+                   this.draw();
+               } else if (playBoolean) {
+                   //measure execution time
+                   //   let t1 = performance.now();
+                   //   console.log(t1 - t0); // in milliseconds
+                   this.draw();
+               }
+           },
+           timeToWait);
+   }
+   static drawDendrogram() {
+       // get the active dendrogram
+       id = $('.show-dendrogram.btn-primary').attr('data');
+       // if data is avaiable draw hierarchy clusters and a button is active selcted
+       if (!$.isEmptyObject(networkHierarchy) && id) {
+           // get the data and transform it
+           let treeData = networkHierarchy['h' + id][this.indexTime];
+           let nodes = d3.hierarchy(treeData, function(d) {
+               return d.children;
+           });
+           // skip the root node
+           nodes = nodes.children[0];
+           // collapse the tree
+           nodes.children.forEach(collapse);
+
+           // maps the node data to the tree layout
+           nodes = treemap(nodes);
+           console.log(nodes);
+
+           // hide if no network is choosen
+           if ($('.show-dendrogram.btn-primary').length) {
+
+               // set the new slider max
+               $('#dendrogram-panel-level-slider')
+                   .slider('option', 'max', (nodes['height'] - 1))
+                   .slider('value', hierarchyLevels['h' + id]);
+
+               // DATA JOIN - links (edges)
+               let link = this.zoomGroup
+                   .selectAll('path.link')
+                   .data(nodes.descendants().slice(1));
+
+               // ENTER
+               link
+                   .enter()
+                   .append('path')
+                   .attr('class', 'link')
+                   .attr('d', diagonalLines);
+
+               // Transition links to their new position.
+               link
+                   .attr('d', diagonalLines);
+
+               // EXIT
+               link.exit()
+                   .remove();
+
+               // DATA JOIN - nodes
+               // adds each node as a group
+               let node = this.zoomGroup
+                   .selectAll('.node')
+                   .data(nodes.descendants());
+
+               // add the groups to the dendgrogram
+               var nodeEnter = node.enter()
+                   .append('g')
+                   .attr('class', function(d) {
+                       return 'node' +
+                           (d.children ? ' node--internal' : ' node--leaf');
+                   })
+                   .attr('transform', function(d) {
+                       return 'translate(' + d.x + ',' + d.y + ')';
+                   });
+
+               // ENTER - append for each group a node (circle)
+               // with highlighting for the active choosen level
+               nodeEnter.append('circle')
+                   .attr('r', function(d) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                           return 40 + d.data.name.length;
+                       } else {
+                           return 20 + d.data.name.length;
+                       }
+                   })
+                   .attr('class', function(d) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                           return 'active-level';
+                       }
+                   })
+                   .attr('id', function(d) {
+                       return 'h' + d['data']['name'].toString().hashCode();
+                   })
+                   // TODO find a nice function for the on click method
+                   .on('click', click)
+                   .on('mouseover', function(d) {
+                       // tooltip position and text
+                       tooltipDiv
+                           .style('left', (d3.event.pageX + 5) + 'px')
+                           .style('top', (d3.event.pageY + 5) + 'px')
+                           .style('opacity', 1);
+                       tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
+                       // add highlight in the spatial view
+                       // the undion of the paths makes this complicated
+                       addHighlightSpatialView(d['data']['name']);
+                   })
+                   .on('mouseout', function() {
+                       tooltipDiv.transition()
+                           .duration(500)
+                           .style('opacity', 0);
+                       // remove highlight in the spatial view
+                       removeHighlightSpatialView();
+                   });
+
+               // add the text - # number of animals in the cluster
+               nodeEnter.append('text')
+                   .attr('class', 'dendrogram-text')
+                   .attr('x', 150)
+                   .attr('y', -150)
+                   .text(function(d) {
+                       return d.data.name.length;
+                   });
+
+               // UPDATE -- update the groups
+               nodeEnter
+                   .attr('transform', function(d) {
+                       return 'translate(' + d.x + ',' + d.y + ')';
+                   });
+
+               // updae the node and circles
+               // with active-level function to highlight which level is chosen
+               node
+                   .attr('transform', function(d) {
+                       return 'translate(' + d.x + ',' + d.y + ')';
+                   })
+                   .select('circle')
+                   .attr('r', function(d) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                           return 40 + d.data.name.length;
+                       } else {
+                           return 20 + d.data.name.length;
+                       }
+                   })
+                   .attr('class', function(d) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                           // console.log('active-level');
+                           // console.log(('h' + d['data']['name'].toString().hashCode()));
+                           return 'active-level';
+                       } else {
+                           return '';
+                       }
+                   })
+                   .attr('id', function(d) {
+                       return 'h' + d['data']['name'].toString().hashCode();
+                   });
+
+               // update the text of number of entities
+               node.select('text')
+                   .text(function(d) {
+                       return d.data.name.length;
+                   });
+
+               // EXIT
+               node.exit()
+                   .remove();
+
+               // color the dendrogram nodes using the standardDeviation in the cluster
+               if (Object.keys(hierarchyGroupStdev).length) {
+                   // show the legend for the coloring
+                   // console.log(hierarchyGroupStdev);
+                   // TODO legend here
+                   // console.log('JUMPS HERE');
+                   if ($('#dendrogram-legend').css('display') == 'none') {
+                       $('#dendrogram-legend').show();
+                   }
+                   // IMPORTANT - async problems
+                   // TODO solve this - very slow
+                   setTimeout(function() {
+                       node.select('circle')
+                           .style('fill', function(d) {
+                               // console.log(hierarchyGroupStdev);
+                               // console.log(('h' + d['data']['name'].toString().hashCode()));
+                               // console.log(('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev)
+                               // color the nodes by calculating the standardDeviation
+                               // for each cluster
+                               // only active is show in cluster is choosen
+                               if (('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev) {
+                                   // console.log('hello');
+                                   // console.log(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
+                                   return standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
+                               } else if (d['depth'] !== hierarchyLevels['h' + id]) {
+                                   return '';
+                               } else {
+                                   return '#000';
+                               }
+                           });
+                   }, 250);
+               } else if ($('#dendrogram-legend').css('display') !== 'none') {
+                   $('#dendrogram-legend').hide();
+               }
+           }
+       }
+       if (!$.isEmptyObject(networkHierarchy)) {
+           // draw the hierarchy in spatial view
+           drawHierarchy();
+       }
+   }
+
+   static decindexTime() {
+       this.indexTime = this.indexTime - 1;
+   }
+ }
+
+
+export class SpatialView extends Drawer{
   constructor(){
+    super();
     this.spatialViewInit();
   }
   spatialViewInit(){
