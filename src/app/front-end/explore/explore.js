@@ -36,7 +36,7 @@ export let animalIds = {}; // distinct animal ids
  * the tool is drawn
  */
 $(document).ready(function() {
-    // console.log(parameters);
+    console.log(parameters);
 
     // get the movement data
     queries.streamMovementData();
