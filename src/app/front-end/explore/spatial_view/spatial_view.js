@@ -12,6 +12,7 @@ import {
     networkAuto,
     setNetworLimit,
     networkLimit,
+    networkHierarchy
     // showNetworkHierarchy,
     // networkID,
     // networkBackground,
@@ -85,7 +86,24 @@ export let arrayAnimals; // array of animals for the specific time frame
 let svgContainer; // svg container for the spatial view
 let tank; // svg group for the spatial view tank
 // let networkBakData = {};
+let zoom = d3.zoom()
+    .scaleExtent([1, 6])
+    .on('zoom', ()=>{
+        //constrained zooming
+        // modify the translate so that it never exits the tank
+        d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
+            Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
 
+        d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
+            Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+
+        // translate and scale
+        this.zoomGroup.attr('transform', d3.event.transform);
+
+        // rescale the axis
+        gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+        gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
+    });
 /**
 * Base class drawer
 */
@@ -107,24 +125,44 @@ export class Drawer {
            .classed('svg-content', true)
            .attr('id', 'main-vis-svg')
            .call(zoom);
+     this.zoom = d3.zoom()
+         .scaleExtent([1, 6])
+         .on('zoom', ()=>{
+             //constrained zooming
+             // modify the translate so that it never exits the tank
+             d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
+                 Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
+
+             d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
+                 Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+
+             // translate and scale
+             this.zoomGroup.attr('transform', d3.event.transform);
+
+             // rescale the axis
+             gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+             gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
+         });
      this.zoomGroup = this.svgContainer.append('svg:g');
      this.tank = this.zoomGroup.append('svg:g')
                .attr('class', 'tank')
-               .attr('transform', function() {
+               .attr('transform', ()=>{
                    let x = parameters.inverted_x ? -1 : 1;
                    let y = parameters.inverted_y ? -1 : 1;
                    return 'scale(' + x + ',' + y + ')';
                });
+
      this.indexTime = 0; // actual time moment in the animation
 
      this.activeScale = 'black'; // can be speed, acceleration, .. and black (meaning no active scale)
      this.medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
      this.activeAnimals = []; // active selected animals
      this.arrayAnimals = 0 // array of animals for the specific time frame
+     this.id = $('.show-dendrogram.btn-primary').attr('data');
 
 
    }
-   static draw() {
+   draw() {
        //update time to wait aka speed of replay
        let timeToWait = $('input[type="radio"].group-playback-rate:checked')
            .val();
@@ -133,12 +171,12 @@ export class Drawer {
            .val();
 
        //get the next animals
-       arrayAnimals = dataset.filter(function(d) {
+       arrayAnimals = dataset.filter((d)=>{
            return d['t'] === this.indexTime;
        });
 
        //the timeout is set after one update 30 ms
-       setTimeout(function() {
+       setTimeout(()=>{
                // draw hierarchy
                this.drawDendrogram();
                //change the time frame text
@@ -582,13 +620,13 @@ export class Drawer {
            },
            timeToWait);
    }
-   static drawDendrogram() {
+   drawDendrogram() {
        // get the active dendrogram
-       id = $('.show-dendrogram.btn-primary').attr('data');
+       //id = $('.show-dendrogram.btn-primary').attr('data');
        // if data is avaiable draw hierarchy clusters and a button is active selcted
-       if (!$.isEmptyObject(networkHierarchy) && id) {
+       if (!$.isEmptyObject(networkHierarchy) && this.id) {
            // get the data and transform it
-           let treeData = networkHierarchy['h' + id][this.indexTime];
+           let treeData = networkHierarchy['h' + this.id][this.indexTime];
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
            });
@@ -607,7 +645,7 @@ export class Drawer {
                // set the new slider max
                $('#dendrogram-panel-level-slider')
                    .slider('option', 'max', (nodes['height'] - 1))
-                   .slider('value', hierarchyLevels['h' + id]);
+                   .slider('value', hierarchyLevels['h' + this.id]);
 
                // DATA JOIN - links (edges)
                let link = this.zoomGroup
@@ -649,19 +687,19 @@ export class Drawer {
                // ENTER - append for each group a node (circle)
                // with highlighting for the active choosen level
                nodeEnter.append('circle')
-                   .attr('r', function(d) {
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                   .attr('r', (d)=>{
+                       if (d['depth'] === hierarchyLevels['h' + this.id]) {
                            return 40 + d.data.name.length;
                        } else {
                            return 20 + d.data.name.length;
                        }
                    })
-                   .attr('class', function(d) {
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                   .attr('class', (d)=>{
+                       if (d['depth'] === hierarchyLevels['h' + this.id]) {
                            return 'active-level';
                        }
                    })
-                   .attr('id', function(d) {
+                   .attr('id', (d)=>{
                        return 'h' + d['data']['name'].toString().hashCode();
                    })
                    // TODO find a nice function for the on click method
@@ -690,32 +728,32 @@ export class Drawer {
                    .attr('class', 'dendrogram-text')
                    .attr('x', 150)
                    .attr('y', -150)
-                   .text(function(d) {
+                   .text((d)=>{
                        return d.data.name.length;
                    });
 
                // UPDATE -- update the groups
                nodeEnter
-                   .attr('transform', function(d) {
+                   .attr('transform', (d)=>{
                        return 'translate(' + d.x + ',' + d.y + ')';
                    });
 
                // updae the node and circles
                // with active-level function to highlight which level is chosen
                node
-                   .attr('transform', function(d) {
+                   .attr('transform', (d)=>{
                        return 'translate(' + d.x + ',' + d.y + ')';
                    })
                    .select('circle')
-                   .attr('r', function(d) {
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                   .attr('r', (d)=>{
+                       if (d['depth'] === hierarchyLevels['h' +this.id]) {
                            return 40 + d.data.name.length;
                        } else {
                            return 20 + d.data.name.length;
                        }
                    })
-                   .attr('class', function(d) {
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                   .attr('class', (d)=> {
+                       if (d['depth'] === hierarchyLevels['h' +this.id]) {
                            // console.log('active-level');
                            // console.log(('h' + d['data']['name'].toString().hashCode()));
                            return 'active-level';
@@ -723,13 +761,13 @@ export class Drawer {
                            return '';
                        }
                    })
-                   .attr('id', function(d) {
+                   .attr('id', (d)=>{
                        return 'h' + d['data']['name'].toString().hashCode();
                    });
 
                // update the text of number of entities
                node.select('text')
-                   .text(function(d) {
+                   .text((d)=>{
                        return d.data.name.length;
                    });
 
@@ -748,7 +786,7 @@ export class Drawer {
                    }
                    // IMPORTANT - async problems
                    // TODO solve this - very slow
-                   setTimeout(function() {
+                   setTimeout(()=>{
                        node.select('circle')
                            .style('fill', function(d) {
                                // console.log(hierarchyGroupStdev);
@@ -761,7 +799,7 @@ export class Drawer {
                                    // console.log('hello');
                                    // console.log(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
                                    return standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
-                               } else if (d['depth'] !== hierarchyLevels['h' + id]) {
+                               } else if (d['depth'] !== hierarchyLevels['h' +this.id]) {
                                    return '';
                                } else {
                                    return '#000';
@@ -779,7 +817,7 @@ export class Drawer {
        }
    }
 
-   static decindexTime() {
+   decindexTime() {
        this.indexTime = this.indexTime - 1;
    }
  }
@@ -818,10 +856,10 @@ export class SpatialView extends Drawer{
           .tickPadding(5);
 
       // ZOOMING AND PANNING STUFF
-      let zoomGroup;
+
       let zoom = d3.zoom()
           .scaleExtent([1, 6])
-          .on('zoom', function() {
+          .on('zoom', () => {
               //constrained zooming
               // modify the translate so that it never exits the tank
               d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
@@ -995,7 +1033,7 @@ export function setActiveScale(value) {
 
 /**
  * Set the new medoid animal
- * @param {Number} value - Unique id of the animal
+ * @param {Number} value - Uniquethis.id of the animal
  */
 export function setMedoidAnimal(value) {
     medoidAnimal = value;
@@ -1003,7 +1041,7 @@ export function setMedoidAnimal(value) {
 
 /**
  * Set the selected and highlighted animals
- * @param {array} value - array of unqiue id of the animals
+ * @param {array} value - array of unqiuethis.id of the animals
  */
 export function setActiveAnimals(value) {
     activeAnimals = value;
