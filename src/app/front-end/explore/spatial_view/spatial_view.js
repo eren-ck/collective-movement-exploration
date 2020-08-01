@@ -159,6 +159,7 @@ export class Drawer {
      this.activeAnimals = []; // active selected animals
      this.arrayAnimals = 0 // array of animals for the specific time frame
      this.id = $('.show-dendrogram.btn-primary').attr('data');
+     this.playBoolean = true;
 
 
    }
@@ -205,6 +206,7 @@ export class Drawer {
        arrayAnimals = dataset.filter((d)=>{
            return d['t'] === this.indexTime;
        });
+
 
        //the timeout is set after one update 30 ms
        setTimeout(()=>{
@@ -393,10 +395,10 @@ export class Drawer {
                // Append the circles for each animal to the animalgroup
                animalGroupings.append('circle')
                    .attr('r', 1.5 * animalScale)
-                   .attr('cx', function(d) {
+                   .attr('cx', (d)=> {
                        return d['p'][0];
                    })
-                   .attr('cy', function(d) {
+                   .attr('cy', (d)=> {
                        return -d['p'][1];
                    })
                    .on('mouseover', function(d) {
@@ -409,7 +411,7 @@ export class Drawer {
                            .style('opacity', 0);
                    })
                    // add on click for the active fishs
-                   .on('click', function(d) {
+                   .on('click', (d)=> {
                        if (this.activeAnimals.includes(d['a'])) {
                            this.activeAnimals = this.activeAnimals.filter(item => item !== d['a']);
                        } else {
@@ -426,18 +428,18 @@ export class Drawer {
 
                // UPDATE - animals circles
                svgAnimals.select('circle')
-                   .attr('cx', function(d) {
+                   .attr('cx', (d)=> {
                        return d['p'][0];
                    })
-                   .attr('cy', function(d) {
+                   .attr('cy', (d)=> {
                        return -d['p'][1];
                    })
                    .attr('r', animalScale);
-                console.log(svgAnimals.select('circle'));
+                //console.log(svgAnimals.select('circle'));
                // Append for each group the arrow, needed for coloring
                animalGroupings.append('svg:defs')
                    .append('svg:marker')
-                   .attr('id', function(d) {
+                   .attr('id', (d)=>{
                        return 'arrow-marker-' + d['a'];
                    })
                    .attr('refX', 2)
@@ -642,7 +644,7 @@ export class Drawer {
                    //start again from the start
                    this.indexTime = 0;
                    this.draw();
-               } else if (playBoolean) {
+               } else if (this.playBoolean) {
                    //measure execution time
                    //   let t1 = performance.now();
                    //   console.log(t1 - t0); // in milliseconds
@@ -1046,11 +1048,11 @@ export class Listener extends Drawer {
        */
       $('#play-button').click(()=>{
           if ($('#play-button').hasClass('active') === true) {
-              playBoolean = false;
+              this.playBoolean = true;
               $('.mdi-pause').hide();
               $('.mdi-play').show();
           } else {
-              playBoolean = true;
+              this.playBoolean = true;
               $('.mdi-play').hide();
               $('.mdi-pause').show();
               this.setIndexTime(slider.slider('value'));
@@ -1064,7 +1066,7 @@ export class Listener extends Drawer {
        */
       $('#next-frame-button').click(()=>{
           if ($('#play-button').hasClass('active') === true) {
-              playBoolean = false;
+              this.playBoolean = false;
           }
           $('#play-button').removeClass('active');
           this.draw();
@@ -1075,7 +1077,7 @@ export class Listener extends Drawer {
        */
       $('#brushing-button').click(()=>{
           //stop the animation
-          playBoolean = false;
+          this.playBoolean = false;
           $('#play-button').removeClass('active');
           if (!$('#brushing-button').hasClass('active')) {
               //define the brush
