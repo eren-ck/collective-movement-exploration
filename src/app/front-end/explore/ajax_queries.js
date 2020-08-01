@@ -39,6 +39,7 @@ import {
  * Stream the movement data from the API
  * Loads only the explicit movement data
  */
+//console.log(data);
 export function streamMovementData() {
     if (window.EventSource) {
         source = new EventSource('/api/movement_only/' + parameters['id']);
@@ -51,6 +52,7 @@ export function streamMovementData() {
                         if ($.active > 0) {
                             window.setTimeout(checkPendingRequest, 100);
                         } else {
+
                             var view = new SpatialView();
                         }
                     }
