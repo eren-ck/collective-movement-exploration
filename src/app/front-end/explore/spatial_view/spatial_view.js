@@ -127,17 +127,9 @@ export class Drawer {
    constructor(){
      this.indexTime=0;
      // Tank Base
-
      this.svgContainer = d3.select('#main-vis')
-           .classed('svg-container', true)
-           // to make it responsive with css
-           .append('svg')
-           .attr('preserveAspectRatio', 'xMinYMin meet')
-           .attr('viewBox', '0 0 ' + this.tankWidth + ' ' + this.tankHeight)
-           // add the class svg-content
-           .classed('svg-content', true)
-           .attr('id', 'main-vis-svg')
-           .call(zoom);
+
+
      this.zoom = d3.zoom()
          .scaleExtent([1, 6])
          .on('zoom', ()=>{
@@ -870,11 +862,13 @@ export class Drawer {
 export class SpatialView extends Drawer{
   constructor(data){
     super(data);
-    this.tankWidth = 0;
-    this.tankHeight=0;
+
+
     this.spatialViewInit();
   }
   spatialViewInit(){
+
+
 
       let minPoint = parameters['min']['geometry']['coordinates'];
       let maxPoint = parameters['max']['geometry']['coordinates'];
@@ -923,7 +917,16 @@ export class SpatialView extends Drawer{
           });
 
       //the svg container
-
+      this.svgContainer = d3.select('#main-vis')
+            .classed('svg-container', true)
+            // to make it responsive with css
+            .append('svg')
+            .attr('preserveAspectRatio', 'xMinYMin meet')
+            .attr('viewBox', '0 0 ' + this.tankWidth + ' ' + this.tankHeight)
+            // add the class svg-content
+            .classed('svg-content', true)
+            .attr('id', 'main-vis-svg')
+            .call(zoom);
 
       /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
       let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
