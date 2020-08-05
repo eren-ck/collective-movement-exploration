@@ -28,7 +28,8 @@ import {
     percentiles,
     makeResizable,
     defaultConfig,
-    disablePlayButton
+    disablePlayButton,
+    enablePlayButton
 } from '../helpers.js';
 
 import {
@@ -180,7 +181,9 @@ export class Drawer {
            this.indexTime = 0;
        }
    }
-
+   decindexTime() {
+       this.indexTime = this.indexTime - 1;
+   }
    updateLineChart() {
        if (d3.select('#lineChartTimeLine') && swarmData[Math.ceil(this.indexTime / ratio)]) {
            let tmp = Math.ceil(this.indexTime / ratio);
@@ -366,13 +369,15 @@ export class Drawer {
                var voronoi;
                if ($('#draw-voronoi')
                    .is(':checked')) {
-                   console.log(this.indexTime);
-                   console.log(swarmData[0]);
+                   //console.log(this.indexTime);
+                   console.log(swarmData[this.indexTime]['voronoi']);
                    //append the group for the voronoi paths
+
                    voronoi = this.tank
                        .select('#vornoi-group')
                        .selectAll('path.voronoi')
-                       .data(swarmData[this.indexTime]['voronoi'].split(' '));
+                       .data(swarmData[this.indexTime]['voronoi'].split(';'));
+
 
                    // UPDATE - voronoi
                    voronoi
@@ -386,6 +391,7 @@ export class Drawer {
                        .attr('d', (d)=>{
                            return d;
                        });
+
                } else {
                    voronoi = this.tank.select('#vornoi-group')
                        .selectAll('path.voronoi')
@@ -861,10 +867,297 @@ export class Drawer {
            drawHierarchy();
        }
    }
+   cp_listener() {
 
-   decindexTime() {
-       this.indexTime = this.indexTime - 1;
+       /**
+        * Play or stop the animation
+        */
+       $('#play-button').click(()=>{
+           if ($('#play-button').hasClass('active') === true) {
+               this.playBoolean = false;
+               $('.mdi-pause').hide();
+               $('.mdi-play').show();
+           } else {
+               this.playBoolean = true;
+               $('.mdi-play').hide();
+               $('.mdi-pause').show();
+               this.setIndexTime(slider.slider('value'));
+               $('.brush').remove();
+               this.draw();
+           }
+       });
+
+       /**
+        * Pause the animation and show only the next frame
+        */
+       $('#next-frame-button').click(()=>{
+           if ($('#play-button').hasClass('active') === true) {
+               this.playBoolean = false;
+           }
+           $('#play-button').removeClass('active');
+           this.draw();
+       });
+
+       /**
+        * Brushing button
+        */
+       $('#brushing-button').click(()=>{
+           //stop the animation
+           this.playBoolean = false;
+           $('#play-button').removeClass('active');
+           if (!$('#brushing-button').hasClass('active')) {
+               //define the brush
+               brush = d3.brush()
+                   .extent([
+                       [0, 0],
+                       [this.tankWidth, this.tankHeight]
+                   ])
+                   .on('end', brushend);
+               //add the brush
+               d3.select('#main-vis-svg')
+                   .append('g')
+                   .attr('class', 'brush')
+                   .call(brush);
+           } else {
+               // remove the brush
+               $('.brush').remove();
+           }
+       });
+
+       /**
+        * Unselect all button
+        */
+       $('#remove-active-selected-button').click(()=>{
+           if (!$('#remove-active-selected-button').is(':disabled')) {
+               $('#remove-active-selected-button').prop('disabled', true);
+               setActiveAnimals([]);
+               // tracking of data for visual parameter suggestion
+               resetTrackedData();
+               $('#visual-parameter-button').prop('disabled', true).removeClass('active');
+
+               if (!$('#play-button').hasClass('active')) {
+                   //go back one second and draw the next frame
+                   //this applys the changes
+
+                   this.decIndexTime();
+                   this.draw();
+               }
+           }
+       });
+
+       /**
+        * Track visual parameter button
+        */
+       $('#visual-parameter-button').click(()=>{
+           if ($('#visual-parameter-button').hasClass('active') === true) {
+               setTrackingBoolean(false);
+           } else {
+               setTrackingBoolean(true);
+           }
+       });
+
+       /**
+        * Send the tracked via a ajax query to the server to calculate the parameters
+        */
+       $('#calculate-parameter-button').click(()=>{
+           if (!$('#calculate-parameter-button').hasClass('active')) {
+               setTrackingBoolean(false);
+               sendTrackedData();
+
+               // disable both buttons and remove the active one
+               $('#calculate-parameter-button').prop('disabled', true);
+               $('#calculate-parameter-button').removeClass('active');
+               $('#visual-parameter-button').removeClass('active');
+           }
+       });
+
+       /**
+        * Spatial view background color
+        */
+       $('#background-color').change(()=>{
+           let color = $('input[type="radio"].group-background:checked').val();
+           $('#main-vis-svg').css('background-color', color);
+       });
+
+       /**
+        * Show the spatial view axis button
+        */
+       $('#draw-axis').on('change', ()=> {
+           if (this.checked) {
+               $('#main-vis g.x.axis').show();
+               $('#main-vis g.y.axis').show();
+           } else {
+               $('#main-vis g.x.axis').hide();
+               $('#main-vis g.y.axis').hide();
+           }
+
+       });
+
+       /**
+        * Show the frame (time) number in the spatial view button
+        */
+       $('#draw-time').on('change', ()=>{
+           if (this.checked) {
+               $('#main-vis .frame-text').show();
+           } else {
+               $('#main-vis .frame-text').hide();
+           }
+       });
+
+       /**
+        * Draw the network background color
+        */
+       $('#network-background').on('change', ()=> {
+           if (this.checked) {
+               setNetworkBackground(true);
+           } else {
+               setNetworkBackground(false);
+           }
+       });
+
+       /**
+        * Set the network background edge limit
+        */
+       $('#network-background-limit').val(1);
+       $('#network-background-limit').on('change', ()=>{
+           let val = $(this).val();
+           if ($.isNumeric(val) && val > 0) {
+               setNetworkBackgroundLimit(val);
+           } else {
+               $(this).val(1);
+           }
+       });
+
+       /**
+        * Color Scale Function Radio buttons
+        */
+       $('#color-scale-radio-form input').on('change', ()=>{
+           colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               this.decIndexTime();
+               this.draw();
+           }
+       });
    }
+   sf_listeners() {
+
+       /**
+        * Draw direction arrow of the animal
+        */
+       $('#draw-direction').click(()=>{
+           if ($('#draw-direction').is(':checked')) {
+               if (!('direction' in dataset[0])) {
+                   disablePlayButton();
+                   // ajax query to get direction data
+                   getDatasetFeature('direction');
+               }
+               $('.arrow').show();
+           } else {
+               $('.arrow').hide();
+           }
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               //this.decIndexTime();
+               //this.draw();
+           }
+       });
+
+       /**
+        * Draw medoid in color button
+        */
+       $('#draw-medoid').click(() => {
+           if ($('#draw-medoid').is(':checked')) {
+
+               if (!('medoid' in swarmData[0])) {
+                   getSwarmDatasetFeature('medoid');
+
+               }
+               this.setMedoidAnimal(swarmData[this.indexTime]['medoid']);
+               // display the medoid
+               d3.selectAll('#animal-' + this.medoidAnimal)
+                   .classed('medoid', true);
+           } else {
+               // do not display the medoid fish
+               d3.selectAll('#animal-' + this.medoidAnimal)
+                   .classed('medoid', false);
+               this.setMedoidAnimal(-1);
+           }
+       });
+
+       /**
+        * Draw centroid button
+        */
+       $('#draw-centroid').click(()=>{
+           if ($('#draw-centroid').is(':checked')) {
+               if (!('centroid' in swarmData[0])) {
+                   getSwarmDatasetFeature('centroid');
+               }
+               // display the centroid
+               $('#g-centroid').show();
+           } else {
+               // hide the centroid
+               $('#g-centroid').hide();
+           }
+       });
+
+
+       /**
+        * Draw convex hull in color button
+        */
+       $('#draw-convex-hull').click(()=>{
+           if ($('#draw-convex-hull').is(':checked')) {
+               if (!('hull' in swarmData[0])) {
+                   getSwarmDatasetFeature('convex_hull');
+
+               }
+           }
+       });
+
+
+       /**
+        * Draw triangulation
+        */
+       $('#draw-triangulation').click(()=>{
+           if ($('#draw-triangulation').is(':checked')) {
+               if (!('triangulation' in swarmData[0])) {
+                   getSwarmDatasetFeature('triangulation');
+
+               }
+               if (!$('#play-button').hasClass('active')) {
+                   //go back one second and draw the next frame
+                   //this applys the changes
+                   this.decIndexTime();
+                   this.draw();
+               }
+           }
+       });
+
+
+       /**
+        * Draw voronoi
+        */
+       $('#draw-voronoi').click(()=>{
+           if ($('#draw-voronoi').is(':checked')) {
+               if (!('voronoi' in swarmData[0])) {
+                   getSwarmDatasetFeature('voronoi');
+
+               }
+               if (!$('#play-button').hasClass('active')) {
+                   //go back one second and draw the next frame
+                   //this applys the changes
+                   this.decIndexTime();
+                   this.draw();
+               }
+           }
+       });
+
+
+   }
+
+
  }
 
 
@@ -959,7 +1252,7 @@ export class SpatialView extends Drawer{
       //append the tank group with a transformation which rotates the y axis
       this.tank = this.zoomGroup.append('svg:g')
           .attr('class', 'tank')
-          .attr('transform', function() {
+          .attr('transform', ()=>{
               let x = parameters.inverted_x ? -1 : 1;
               let y = parameters.inverted_y ? -1 : 1;
               return 'scale(' + x + ',' + y + ')';
@@ -1038,300 +1331,6 @@ export class SpatialView extends Drawer{
   setMedoidAnimal(value) {
       this.medoidAnimal = value;
   }
-  cp_listener() {
-
-      /**
-       * Play or stop the animation
-       */
-      $('#play-button').click(()=>{
-          if ($('#play-button').hasClass('active') === true) {
-              this.playBoolean = false;
-              $('.mdi-pause').hide();
-              $('.mdi-play').show();
-          } else {
-              this.playBoolean = true;
-              $('.mdi-play').hide();
-              $('.mdi-pause').show();
-              this.setIndexTime(slider.slider('value'));
-              $('.brush').remove();
-              this.draw();
-          }
-      });
-
-      /**
-       * Pause the animation and show only the next frame
-       */
-      $('#next-frame-button').click(()=>{
-          if ($('#play-button').hasClass('active') === true) {
-              this.playBoolean = false;
-          }
-          $('#play-button').removeClass('active');
-          this.draw();
-      });
-
-      /**
-       * Brushing button
-       */
-      $('#brushing-button').click(()=>{
-          //stop the animation
-          this.playBoolean = false;
-          $('#play-button').removeClass('active');
-          if (!$('#brushing-button').hasClass('active')) {
-              //define the brush
-              brush = d3.brush()
-                  .extent([
-                      [0, 0],
-                      [this.tankWidth, this.tankHeight]
-                  ])
-                  .on('end', brushend);
-              //add the brush
-              d3.select('#main-vis-svg')
-                  .append('g')
-                  .attr('class', 'brush')
-                  .call(brush);
-          } else {
-              // remove the brush
-              $('.brush').remove();
-          }
-      });
-
-      /**
-       * Unselect all button
-       */
-      $('#remove-active-selected-button').click(()=>{
-          if (!$('#remove-active-selected-button').is(':disabled')) {
-              $('#remove-active-selected-button').prop('disabled', true);
-              setActiveAnimals([]);
-              // tracking of data for visual parameter suggestion
-              resetTrackedData();
-              $('#visual-parameter-button').prop('disabled', true).removeClass('active');
-
-              if (!$('#play-button').hasClass('active')) {
-                  //go back one second and draw the next frame
-                  //this applys the changes
-
-                  this.decIndexTime();
-                  this.draw();
-              }
-          }
-      });
-
-      /**
-       * Track visual parameter button
-       */
-      $('#visual-parameter-button').click(()=>{
-          if ($('#visual-parameter-button').hasClass('active') === true) {
-              setTrackingBoolean(false);
-          } else {
-              setTrackingBoolean(true);
-          }
-      });
-
-      /**
-       * Send the tracked via a ajax query to the server to calculate the parameters
-       */
-      $('#calculate-parameter-button').click(()=>{
-          if (!$('#calculate-parameter-button').hasClass('active')) {
-              setTrackingBoolean(false);
-              sendTrackedData();
-
-              // disable both buttons and remove the active one
-              $('#calculate-parameter-button').prop('disabled', true);
-              $('#calculate-parameter-button').removeClass('active');
-              $('#visual-parameter-button').removeClass('active');
-          }
-      });
-
-      /**
-       * Spatial view background color
-       */
-      $('#background-color').change(function() {
-          let color = $('input[type="radio"].group-background:checked').val();
-          $('#main-vis-svg').css('background-color', color);
-      });
-
-      /**
-       * Show the spatial view axis button
-       */
-      $('#draw-axis').on('change', function() {
-          if (this.checked) {
-              $('#main-vis g.x.axis').show();
-              $('#main-vis g.y.axis').show();
-          } else {
-              $('#main-vis g.x.axis').hide();
-              $('#main-vis g.y.axis').hide();
-          }
-
-      });
-
-      /**
-       * Show the frame (time) number in the spatial view button
-       */
-      $('#draw-time').on('change', function() {
-          if (this.checked) {
-              $('#main-vis .frame-text').show();
-          } else {
-              $('#main-vis .frame-text').hide();
-          }
-      });
-
-      /**
-       * Draw the network background color
-       */
-      $('#network-background').on('change', function() {
-          if (this.checked) {
-              setNetworkBackground(true);
-          } else {
-              setNetworkBackground(false);
-          }
-      });
-
-      /**
-       * Set the network background edge limit
-       */
-      $('#network-background-limit').val(1);
-      $('#network-background-limit').on('change', function() {
-          let val = $(this).val();
-          if ($.isNumeric(val) && val > 0) {
-              setNetworkBackgroundLimit(val);
-          } else {
-              $(this).val(1);
-          }
-      });
-
-      /**
-       * Color Scale Function Radio buttons
-       */
-      $('#color-scale-radio-form input').on('change', function() {
-          colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
-          if (!$('#play-button').hasClass('active')) {
-              //go back one second and draw the next frame
-              //this applys the changes
-              this.decIndexTime();
-              this.draw();
-          }
-      });
-  }
-  sf_listeners() {
-
-      /**
-       * Draw direction arrow of the animal
-       */
-      $('#draw-direction').click(()=>{
-          if ($('#draw-direction').is(':checked')) {
-              if (!('direction' in dataset[0])) {
-                  disablePlayButton();
-                  // ajax query to get direction data
-                  getDatasetFeature('direction');
-              }
-              $('.arrow').show();
-          } else {
-              $('.arrow').hide();
-          }
-          if (!$('#play-button').hasClass('active')) {
-              //go back one second and draw the next frame
-              //this applys the changes
-              //this.decIndexTime();
-              //this.draw();
-          }
-      });
-
-      /**
-       * Draw medoid in color button
-       */
-      $('#draw-medoid').click(() => {
-          if ($('#draw-medoid').is(':checked')) {
-
-              if (!('medoid' in swarmData[0])) {
-                  getSwarmDatasetFeature('medoid');
-
-              }
-              this.setMedoidAnimal(swarmData[this.indexTime]['medoid']);
-              // display the medoid
-              d3.selectAll('#animal-' + this.medoidAnimal)
-                  .classed('medoid', true);
-          } else {
-              // do not display the medoid fish
-              d3.selectAll('#animal-' + this.medoidAnimal)
-                  .classed('medoid', false);
-              this.setMedoidAnimal(-1);
-          }
-      });
-
-      /**
-       * Draw centroid button
-       */
-      $('#draw-centroid').click(()=>{
-          if ($('#draw-centroid').is(':checked')) {
-              if (!('centroid' in swarmData[0])) {
-                  getSwarmDatasetFeature('centroid');
-              }
-              // display the centroid
-              $('#g-centroid').show();
-          } else {
-              // hide the centroid
-              $('#g-centroid').hide();
-          }
-      });
-
-
-      /**
-       * Draw convex hull in color button
-       */
-      $('#draw-convex-hull').click(()=>{
-          if ($('#draw-convex-hull').is(':checked')) {
-              if (!('hull' in swarmData[0])) {
-                  getSwarmDatasetFeature('convex_hull');
-
-              }
-          }
-      });
-
-
-      /**
-       * Draw triangulation
-       */
-      $('#draw-triangulation').click(()=>{
-          if ($('#draw-triangulation').is(':checked')) {
-              if (!('triangulation' in swarmData[0])) {
-                  getSwarmDatasetFeature('triangulation');
-
-              }
-              if (!$('#play-button').hasClass('active')) {
-                  //go back one second and draw the next frame
-                  //this applys the changes
-                  this.decIndexTime();
-                  this.draw();
-              }
-          }
-      });
-
-
-      /**
-       * Draw voronoi
-       */
-      $('#draw-voronoi').click(()=>{
-          if ($('#draw-voronoi').is(':checked')) {
-              if (!('voronoi' in swarmData[0])) {
-                  getSwarmDatasetFeature('voronoi');
-
-              }
-              if (!$('#play-button').hasClass('active')) {
-                  //go back one second and draw the next frame
-                  //this applys the changes
-                  this.decIndexTime();
-                  this.draw();
-              }
-          }
-      });
-
-
-  }
-
-
-
-
-
 
 }
 
@@ -1346,6 +1345,7 @@ export class Listener extends Drawer {
     this.n_listeners();
     //this.h_listeners();
   }
+
 
   cp_listener() {
 
@@ -2602,9 +2602,7 @@ export class TrendChart extends Chart{
 /**
  * Decrease time by 1
  */
-export function decIndexTime() {
-    indexTime = indexTime - 1;
-}
+
 
 /**
  * Set the the new active scale - e.g. speed, acceleration, black etc.

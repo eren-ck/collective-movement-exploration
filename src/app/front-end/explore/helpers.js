@@ -38,7 +38,7 @@ export function enablePlayButton() {
     $('#play-button').prop('disabled', false);
     $('#play-loading').hide();
     $('#play-icons').show();
-    draw();
+    //draw();
 }
 
 /**
