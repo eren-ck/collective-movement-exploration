@@ -408,6 +408,8 @@ export function draw() {
             if ($('#draw-voronoi')
                 .is(':checked')) {
                 //append the group for the voronoi paths
+                //console.log(indexTime);
+                //console.log(swarmData[indexTime]['voronoi']);
                 voronoi = tank
                     .select('#vornoi-group')
                     .selectAll('path.voronoi')
