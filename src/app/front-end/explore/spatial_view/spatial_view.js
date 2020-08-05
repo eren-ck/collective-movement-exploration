@@ -370,14 +370,25 @@ export class Drawer {
                if ($('#draw-voronoi')
                    .is(':checked')) {
                    //console.log(this.indexTime);
-                   console.log(swarmData[this.indexTime]['voronoi']);
-                   //append the group for the voronoi paths
+                   //console.log('ho');
+                   //console.log([swarmData[this.indexTime]['voronoi']]);
 
+                //append the group for the voronoi paths
+                // This is a workaround to avoid voronoi stopping at split if empty value.
+                if (!('voronoi' in swarmData[0])){
                    voronoi = this.tank
                        .select('#vornoi-group')
                        .selectAll('path.voronoi')
+                       .data([swarmData[this.indexTime]['voronoi']])
+                     }
+                else {
+                  voronoi = this.tank
+                       .select('#vornoi-group')
+                       .selectAll('path.voronoi')
                        .data(swarmData[this.indexTime]['voronoi'].split(';'));
+                }
 
+                   //console.log(swarmData[this.indexTime]['voronoi']);
 
                    // UPDATE - voronoi
                    voronoi
@@ -1123,14 +1134,18 @@ export class Drawer {
        $('#draw-triangulation').click(()=>{
            if ($('#draw-triangulation').is(':checked')) {
                if (!('triangulation' in swarmData[0])) {
+                   //console.log('ere');
                    getSwarmDatasetFeature('triangulation');
+                   //console.log(swarmData[this.indexTime]['triangulation']);
 
                }
                if (!$('#play-button').hasClass('active')) {
                    //go back one second and draw the next frame
                    //this applys the changes
-                   this.decIndexTime();
-                   this.draw();
+                   //this.decIndexTime();
+                   //this.draw();
+
+
                }
            }
        });
@@ -1142,15 +1157,19 @@ export class Drawer {
        $('#draw-voronoi').click(()=>{
            if ($('#draw-voronoi').is(':checked')) {
                if (!('voronoi' in swarmData[0])) {
+                   //console.log('ere');
                    getSwarmDatasetFeature('voronoi');
+                   //console.log(swarmData[this.indexTime]['voronoi']);
 
                }
                if (!$('#play-button').hasClass('active')) {
                    //go back one second and draw the next frame
                    //this applys the changes
+                   //console.log('there');
                    this.decIndexTime();
                    this.draw();
                }
+
            }
        });
 
