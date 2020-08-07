@@ -3,17 +3,15 @@
 // import * as spv from './spatial_view.js';
 
 import {
-    draw
+    draw,
+    TrendChart
 } from './spatial_view/spatial_view.js';
 
 import {
     setPlayBoolean
 } from './listener.js';
 
-import {
-  //initTrendChartListener,
-  TrendChart
-} from './line_chart.js';
+
 import {
     swarmData
 } from './explore.js';

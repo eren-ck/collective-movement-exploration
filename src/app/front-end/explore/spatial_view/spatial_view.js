@@ -1,13 +1,15 @@
 /*eslint-disable no-unused-lets*/
-/*global window, $,d3, parameters, Set */
+/*global window, $,d3, parameters, colorbrewer, Set */
 'use strict';
 import {
     dataset,
     networkData,
     swarmData,
+    animalIds,
     datasetMetadata,
     setNetworkData,
-    setHierarchyData
+    setHierarchyData,
+    dataSetPercentile
 } from '../explore.js';
 
 import {
@@ -29,7 +31,8 @@ import {
     makeResizable,
     defaultConfig,
     disablePlayButton,
-    enablePlayButton
+    enablePlayButton,
+    percentilesLineChart
 } from '../helpers.js';
 
 import {
@@ -96,10 +99,8 @@ import {
 
 
 // Drawer Setup
-export let activeScale = 'black'; // can be speed, acceleration, .. and black (meaning no active scale)
-export let medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
-export let activeAnimals = []; // active selected animals
-export let arrayAnimals;
+
+
 
 
 let trendChartsZoom = {};
@@ -108,7 +109,7 @@ let trendChartsZoom = {};
 
 
 // Listener Setup
-let brush; // brushing variable
+// brushing variable
 export let playBoolean = true;
 
 
@@ -166,9 +167,23 @@ export class Drawer {
     // actual time moment in the animation
 
      this.activeScale = 'black'; // can be speed, acceleration, .. and black (meaning no active scale)
+     this.colorScale = {
+         type: 'Linear',
+         color: colorbrewer.BuYlBu
+     };
+     this.legendWidth = 550;
+     this.legendHeight = 60;
+
+     this.svgLegend = d3.select('#main-vis-legend-div')
+         .append('svg')
+         .attr('id', 'main-vis-legend')
+         .attr('width', this.legendWidth)
+         .attr('height', this.legendHeight);
      this.medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
      this.activeAnimals = []; // active selected animals
-     this.arrayAnimals = 0 // array of animals for the specific time frame
+     this.arrayAnimals = dataset.filter((d)=>{
+         return d['t'] === this.indexTime;
+     });// array of animals for the specific time frame
      this.id = $('.show-dendrogram.btn-primary').attr('data');
      this.playBoolean = true;
 
@@ -181,7 +196,10 @@ export class Drawer {
            this.indexTime = 0;
        }
    }
-   decindexTime() {
+   setActiveScale(value) {
+       this.activeScale = value;
+  }
+   decIndexTime() {
        this.indexTime = this.indexTime - 1;
    }
    updateLineChart() {
@@ -207,6 +225,140 @@ export class Drawer {
                .attr('transform', 'translate(' + zoomFunction(tmp) + ',0)');
        }
    }
+   returnColorScale() {
+       //if linear is choosen
+       if (this.colorScale['type'] === 'Linear') {
+           return d3.scaleLinear()
+               .domain(
+                   dataSetPercentile[this.activeScale]
+               )
+               .range(this.colorScale['color']);
+       } //Threshold color scale
+       else if (this.colorScale['type'] === 'Threshold') {
+           return d3.scaleThreshold()
+               .domain(
+                   dataSetPercentile[this.activeScale]
+               )
+               .range(this.colorScale['color']);
+       }
+   }
+   initColorPicker() {
+       d3.select('.colors-body')
+           .selectAll('.palette')
+           .data(d3.entries(colorbrewer))
+           .enter()
+           .append('span')
+           .attr('class', 'palette')
+           .attr('title', (d)=>{
+               return d.key;
+           })
+           .on('click', (d)=>{
+               // hightlight the right palette
+               $('.palette').removeClass('selected');
+               $('.palette[title="' + d.key + '"]').addClass('selected');
+               this.colorScale.color = colorbrewer[d.key];
+               this.changelegend();
+               if (!$('#play-button')
+                   .hasClass('active')) {
+                   //go back one second and draw the next frame
+                   //this applys the changes
+                   this.decIndexTime();
+                   this.draw();
+               }
+           })
+           .selectAll('.swatch')
+           .data((d)=>{
+               return d.value;
+           })
+           .enter()
+           .append('span')
+           .attr('class', 'swatch')
+           .style('background-color', (d)=>{
+               return d;
+           });
+
+       // highlight the selected color scheme
+       $('.palette[title="BuYlBu"]').addClass('selected');
+   }
+   changelegend() {
+       let legend; // the color legend
+       let legendText; // color legend text
+       // vars for the legend
+       let legendSwatchWidth = 50;
+       let legendSwatchHeight = 20;
+       // let differentColors = 0;
+
+       // Show the svg first of all
+       $('#main-vis-legend-div')
+           .show();
+
+       //change the colors of the animals
+       if (this.activeScale !== 'black') {
+           var tmpScale = this.returnColorScale();
+           // once the fill for the heads and the stroke for the path
+           legend = this.svgLegend.selectAll('rect.legend')
+               .data(tmpScale.range());
+
+           legendText = this.svgLegend.selectAll('text.legend-text')
+               .data(tmpScale.domain());
+           // differentColors = tmpScale.range()
+           // .length;
+       } else {
+           legend = this.svgLegend.selectAll('rect.legend')
+               .data([]);
+           legendText = this.svgLegend.selectAll('text.legend-text')
+               .data([]);
+           // hide the div again
+           $('#main-vis-legend-div')
+               .hide();
+       }
+
+       // --------------- Legend swatches  -------------------
+       // UPDATE - legend
+       legend.style('fill', function(d) {
+           return d;
+       });
+       // ENTER - legend
+       legend
+           .enter()
+           .append('rect')
+           .attr('class', 'legend')
+           .attr('width', legendSwatchWidth)
+           .attr('height', legendSwatchHeight)
+           .attr('y', 0)
+           .attr('x', function(d, i) {
+               return (legendSwatchWidth + i * legendSwatchWidth) + 'px';
+           })
+           .style('fill', function(d) {
+               return d;
+           });
+       // EXIT - legend
+       legend.exit()
+           .remove();
+
+       // --------------- Text  -------------------
+       // UPDATE - legend text
+       legendText.text(function(d) {
+           return Math.ceil(d * 2) / 2;
+       });
+       // ENTER - legend text
+       legendText
+           .enter()
+           .append('text')
+           .attr('class', 'legend-text')
+           .attr('y', 2 * legendSwatchHeight)
+           .attr('x', function(d, i) {
+               // plus 5 has to be changed
+               return (legendSwatchWidth + i * legendSwatchWidth + 5) + 'px';
+           })
+           .text(function(d) {
+               return Math.ceil(d * 2) / 2;
+           });
+
+       // EXIT - legend text
+       legendText.exit()
+           .remove();
+   }
    draw() {
        //update time to wait aka speed of replay
        let timeToWait = $('input[type="radio"].group-playback-rate:checked')
@@ -216,9 +368,9 @@ export class Drawer {
            .val();
 
        //get the next animals
-       arrayAnimals = dataset.filter((d)=>{
+       this.arrayAnimals = dataset.filter((d)=>{
            return d['t'] === this.indexTime;
-       });
+         });
 
 
        //the timeout is set after one update 30 ms
@@ -234,7 +386,7 @@ export class Drawer {
                }
 
                let svgAnimals = this.tank.selectAll('g.animal')
-                   .data(arrayAnimals);
+                   .data(this.arrayAnimals);
 
                // Network vis
                let networkVis;
@@ -246,11 +398,11 @@ export class Drawer {
                    resethierarchyGroupStdev();
 
                    // display the whole network
-                   network = network.map(function(item) {
-                       let animal1 = arrayAnimals.filter(function(obj) {
+                   network = network.map((item)=>{
+                       let animal1 = this.arrayAnimals.filter(function(obj) {
                            return obj['a'] === item['s'];
                        })[0];
-                       let animal2 = arrayAnimals.filter(function(obj) {
+                       let animal2 = this.arrayAnimals.filter(function(obj) {
                            return obj['a'] === item['e'];
                        })[0];
                        return {
@@ -549,14 +701,14 @@ export class Drawer {
                //change the colors of the fish
                if (this.activeScale !== 'black') {
                    // once the fill for the heads and the stroke for the path
-                   var tmpScale = returnColorScale();
+                   var tmpScale = this.returnColorScale();
                    svgAnimals
                        .transition()
                        .duration(10)
-                       .style('fill', function(d) {
+                       .style('fill', (d)=>{
                            return tmpScale(d[this.activeScale]);
                        })
-                       .attr('stroke', function(d) {
+                       .attr('stroke', (d)=>{
                            return tmpScale(d[this.activeScale]);
                        });
                } else {
@@ -578,7 +730,7 @@ export class Drawer {
                //change opactiy if the fish is selected
                if (this.activeAnimals.length) {
                    svgAnimals
-                       .style('opacity', function(d) {
+                       .style('opacity', (d)=>{
                            if (this.activeAnimals.includes(d['a'])) {
                                return 1;
                            } else {
@@ -594,7 +746,7 @@ export class Drawer {
                    }
                    // if tracking is on
                    if (trackingBoolean) {
-                       addTrackedData(arrayAnimals[0]['t'], this.activeAnimals);
+                       addTrackedData(this.arrayAnimals[0]['t'], this.activeAnimals);
                    }
                } else {
                    if (!$('#remove-active-selected-button')
@@ -1043,7 +1195,7 @@ export class Drawer {
         * Color Scale Function Radio buttons
         */
        $('#color-scale-radio-form input').on('change', ()=>{
-           colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
+           this.colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
            if (!$('#play-button').hasClass('active')) {
                //go back one second and draw the next frame
                //this applys the changes
@@ -1071,7 +1223,7 @@ export class Drawer {
            if (!$('#play-button').hasClass('active')) {
                //go back one second and draw the next frame
                //this applys the changes
-               //this.decIndexTime();
+               this.decIndexTime();
                //this.draw();
            }
        });
@@ -1142,7 +1294,7 @@ export class Drawer {
                if (!$('#play-button').hasClass('active')) {
                    //go back one second and draw the next frame
                    //this applys the changes
-                   //this.decIndexTime();
+                   this.decIndexTime();
                    //this.draw();
 
 
@@ -1167,12 +1319,267 @@ export class Drawer {
                    //this applys the changes
                    //console.log('there');
                    this.decIndexTime();
-                   this.draw();
+                   //this.draw();
                }
 
            }
        });
 
+
+   }
+   af_listeners() {
+
+       /**
+        * Draw Speed button
+        */
+       $('#draw-speed').click(()=>{
+           $('.draw-details').hide()
+               .find('input:checkbox').prop('checked', true).click();
+           if ($('#draw-speed').is(':checked')) {
+               // load absolute feature speed data once
+               if (!('speed' in dataset[0])) {
+                   disablePlayButton();
+                   // ajax query to get the absolute feature speed
+                   getDatasetFeature('speed');
+               }
+               // $('.draw-details').hide();
+               $('#draw-speed-details').show();
+               $('#draw-acceleration').prop('checked', false);
+               $('#draw-distance_centroid').prop('checked', false);
+               $('#draw-midline_offset').prop('checked', false);
+               this.setActiveScale('speed');
+           } else {
+               $('#draw-speed-details').hide();
+               this.setActiveScale('black');
+           }
+           //change color legend
+           d3.selectAll('.colorLegend *').remove();
+           this.changelegend();
+
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               this.decIndexTime();
+               //this.draw();
+           }
+       });
+
+       /**
+        * Draw acceleration button
+        */
+       $('#draw-acceleration').click(()=>{
+           $('.draw-details').hide()
+               .find('input:checkbox').prop('checked', true).click();
+           if ($('#draw-acceleration').is(':checked')) {
+               // load absolute feature acceleration data once
+               if (!('acceleration' in dataset[0])) {
+                   disablePlayButton();
+                   // ajax query to get the absolute feature acceleration
+                   getDatasetFeature('acceleration');
+               }
+               $('#draw-acceleration-details').show();
+               $('#draw-speed').prop('checked', false);
+               $('#draw-distance_centroid').prop('checked', false);
+               $('#draw-midline_offset').prop('checked', false);
+               this.setActiveScale('acceleration');
+           } else {
+               $('#draw-acceleration-details').hide();
+               this.setActiveScale('black');
+           }
+           $('.draw-details.active').click();
+           //change color legend
+           d3.selectAll('.colorLegend *').remove();
+           this.changelegend();
+
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               this.decIndexTime();
+               //this.draw();
+           }
+       });
+
+       /**
+        * Draw distance to centroid button
+        */
+       $('#draw-distance_centroid').click(()=>{
+           $('.draw-details').hide()
+               .find('input:checkbox').prop('checked', true).click();
+           if ($('#draw-distance_centroid').is(':checked')) {
+               console.log('checked');
+               // load absolute feature distance_centroid data once
+               if (!('distance_centroid' in dataset[0])) {
+                   disablePlayButton();
+                   // ajax query to get the absolute feature distance_centroid
+                   getDatasetFeature('distance_centroid');
+               }
+               console.log(dataset);
+               $('#draw-distance_centroid-details').show();
+               $('#draw-speed').prop('checked', false);
+               $('#draw-acceleration').prop('checked', false);
+               $('#draw-midline_offset').prop('checked', false);
+               this.setActiveScale('distance_centroid');
+           } else {
+             console.log('black');
+               $('#draw-distance_centroid-details').hide();
+               this.setActiveScale('black');
+
+           }
+           $('.draw-details.active').click();
+
+           //change color legend
+           d3.selectAll('.colorLegend *').remove();
+           this.changelegend();
+
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               this.decIndexTime();
+               //this.draw();
+           }
+       });
+
+       /**
+        * Draw midline offset
+        */
+       $('#draw-midline_offset').click(()=>{
+           $('.draw-details').hide()
+               .find('input:checkbox').prop('checked', true).click();
+           if ($('#draw-midline_offset').is(':checked')) {
+               // load absolute feature draw-midline_offset data once
+               if (!('draw-midline_offset' in dataset[0])) {
+                   disablePlayButton();
+                   // ajax query to get the absolute feature midline_offset
+                   getDatasetFeature('midline_offset');
+               }
+               $('#draw-midline_offset-details').show();
+               $('#draw-speed').prop('checked', false);
+               $('#draw-acceleration').prop('checked', false);
+               $('#draw-distance_centroid').prop('checked', false);
+               setActiveScale('midline_offset');
+           } else {
+               setActiveScale('black');
+           }
+           $('.draw-details.active').click();
+           //change color legend
+           d3.selectAll('.colorLegend *').remove();
+           this.changelegend();
+
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               this.decIndexTime();
+               this.draw();
+           }
+       });
+
+   }
+   md_listeners() {
+       /**
+        * Metadata swatch functions coloring individual animals
+        */
+       $('.metadata-swatch.metadata-swatch-clickable').click(function() {
+           let id = $(this).attr('value');
+           let colorRGB = $(this).css('background-color');
+           // set the color of the swatch preview
+           $('#metadata-row-' + id + ' #preview')
+               .css('background-color', colorRGB);
+           // if white than reset the color
+           if (colorRGB === 'rgb(255, 255, 255)') {
+               if (metadataColor[id]) {
+                   delete metadataColor[id];
+               }
+           } else {
+               metadataColor[id] = colorRGB;
+           }
+       });
+
+       /**
+        * Metadata group metadata functions for instance color sex
+        */
+       $('#group-metadata :input').change(function() {
+           // reset the metadat acoloring
+           resetIndividualMetadata();
+
+           let value = $(this).attr('value');
+           let tmp = [];
+
+           // metadata sex is choosen - coloring based on m and f
+           if (value === 'sex') {
+               $('#metadata-div').modal('toggle');
+               // close and color here
+               for (let i = 0; i < datasetMetadata.length; i++) {
+                   tmp.push(datasetMetadata[i][value].toLowerCase());
+               }
+               // create a set of individual strings in sex
+               tmp = Array.from(new Set(tmp));
+               let colors = ['#7fc97f', '#386cb0'];
+
+               for (let i = 0; i < datasetMetadata.length; i++) {
+                   for (let j = 0; j < tmp.length; j++) {
+                       if (datasetMetadata[i][value].toLowerCase() === tmp[j]) {
+                           // add the coloring to the metadatacolor object
+                           metadataColor[datasetMetadata[i]['animal_id']] = colors[j];
+                       }
+                   }
+               }
+               $('#metadata-input').hide();
+           } else {
+               $('#metadata-input').show();
+               // set values of inputs
+               // here are automatically input values calculated
+               // .25 and .75 percentiles are used
+               for (let i = 0; i < datasetMetadata.length; i++) {
+                   tmp.push(datasetMetadata[i][value]);
+               }
+               let blAvg = d3.quantile(tmp, 0.25); // below average value
+               let abAvg = d3.quantile(tmp, 0.75); // above average
+               $('#bl-avg').val(blAvg);
+               $('#ab-avg').val(abAvg);
+               // color the animals
+               colorMetadata();
+           }
+       });
+
+       /**
+        * Metadata group metadata input spinner
+        * +/- 0.1 to the input value
+        */
+       $('.number-spinner button').click(function() {
+           let btn = $(this),
+               oldValue = btn.closest('.number-spinner').find('input').val().trim(),
+               newVal = 0;
+
+           if (btn.attr('data-dir') == 'up') {
+               newVal = parseFloat(oldValue) + 0.1;
+           } else {
+               if (oldValue > 0) {
+                   newVal = parseFloat(oldValue) - 0.1;
+               } else {
+                   newVal = 0;
+               }
+           }
+           newVal = Math.round(newVal * 100) / 100; -
+           btn.closest('.number-spinner').find('input').val(newVal);
+           // change the coloring
+           colorMetadata();
+       });
+
+       /**
+        * Metadata input fields change
+        */
+       $('.number-spinner input').on('input', function() {
+           colorMetadata();
+       });
+
+
+       /**
+        * Reset all metadata input parameters
+        */
+       $('#metadata-reset').click(function() {
+           $('#metadata-input').hide();
+           resetIndividualMetadata();
+       });
 
    }
 
@@ -1336,11 +1743,13 @@ export class SpatialView extends Drawer{
       // init stuff from other modules
       initTooltip();
       initSliders();
-      addSpatialViewGroup();
+
       initColorPicker();
       var linechart = new LineChart(swarmData);
       this.cp_listener();
       this.sf_listeners();
+      this.af_listeners();
+      this.md_listeners();
       //var dendrogram = new Dendrogram();
       makeResizable(this.tankHeight, this.tankWidth);
       defaultConfig();
@@ -1531,7 +1940,7 @@ export class Listener extends Drawer {
        * Color Scale Function Radio buttons
        */
       $('#color-scale-radio-form input').on('change', function() {
-          colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
+          this.colorScale['type'] = $('input[name=color-scale-radio]:checked', '#color-scale-radio-form').val();
           if (!$('#play-button').hasClass('active')) {
               //go back one second and draw the next frame
               //this applys the changes
@@ -1688,7 +2097,7 @@ export class Listener extends Drawer {
           }
           //change color legend
           d3.selectAll('.colorLegend *').remove();
-          changeLegend();
+          this.changelegend();
 
           if (!$('#play-button').hasClass('active')) {
               //go back one second and draw the next frame
@@ -1723,7 +2132,7 @@ export class Listener extends Drawer {
           $('.draw-details.active').click();
           //change color legend
           d3.selectAll('.colorLegend *').remove();
-          changeLegend();
+          this.changelegend();
 
           if (!$('#play-button').hasClass('active')) {
               //go back one second and draw the next frame
@@ -1758,7 +2167,7 @@ export class Listener extends Drawer {
           $('.draw-details.active').click();
           //change color legend
           d3.selectAll('.colorLegend *').remove();
-          changeLegend();
+          this.changelegend();
 
           if (!$('#play-button').hasClass('active')) {
               //go back one second and draw the next frame
@@ -1792,7 +2201,7 @@ export class Listener extends Drawer {
           $('.draw-details.active').click();
           //change color legend
           d3.selectAll('.colorLegend *').remove();
-          changeLegend();
+          this.changelegend();
 
           if (!$('#play-button').hasClass('active')) {
               //go back one second and draw the next frame
