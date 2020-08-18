@@ -47,10 +47,7 @@ import {
     metadataColor
 } from '../metadata.js';
 
-import {
-    initColorPicker,
-    returnColorScale
-} from './color_picker.js';
+
 
 import {
     initListeners,
@@ -1744,7 +1741,7 @@ export class SpatialView extends Drawer{
       initTooltip();
       initSliders();
 
-      initColorPicker();
+      this.initColorPicker();
       var linechart = new LineChart(swarmData);
       this.cp_listener();
       this.sf_listeners();
