@@ -159,6 +159,7 @@ export function initDendrogram() {
 export function drawDendrogram() {
     // get the active dendrogram
     id = $('.show-dendrogram.btn-primary').attr('data');
+    console.log(networkHierarchy);
     // if data is avaiable draw hierarchy clusters and a button is active selcted
     if (!$.isEmptyObject(networkHierarchy) && id) {
         // get the data and transform it
