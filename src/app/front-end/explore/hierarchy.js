@@ -113,7 +113,7 @@ export function initDendrogram() {
                     //this applys the changes
                     decIndexTime();
                     draw();
-                    drawDendrogram();
+                    //drawDendrogram();
                 }
             }
         });
