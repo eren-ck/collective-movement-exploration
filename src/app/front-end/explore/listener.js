@@ -738,10 +738,11 @@ function h_listeners() {
     $('.hiearchy-checkbox').on('change', function() {
         let checkbox = $(this);
 
+
         let id = checkbox.attr('data');
         let name = checkbox.attr('name');
         let checked = checkbox.prop('checked');
-
+        console.log(checked);
         if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
             disablePlayButton();
             getNetworkHierarchyData(id);
