@@ -173,7 +173,7 @@ export function drawDendrogram() {
 
         // maps the node data to the tree layout
         nodes = treemap(nodes);
-        console.log(nodes);
+        //console.log(nodes);
 
         // hide if no network is choosen
         if ($('.show-dendrogram.btn-primary').length) {
