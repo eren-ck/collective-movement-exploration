@@ -2603,7 +2603,7 @@ export class LineChart extends Chart {
           .tickSize(10)
           .tickPadding(5);
 
-      let dragged = function() {
+      let dragged = ()=>{
           // dragged function get the coordinates and calculate the time moment from this
           let coords = d3.mouse(this);
           if (coords[0] < margin.left || coords[0] > this.lineChartWidth || coords[1] < 0 || coords[1] > lineChartHeight) {
@@ -2626,7 +2626,7 @@ export class LineChart extends Chart {
               [0, 0],
               [this.lineChartWidth, lineChartHeight]
           ])
-          .on('zoom', function() {
+          .on('zoom', ()=>{
               // get the transform factor
               let t = d3.event.transform;
               // change scaling function
