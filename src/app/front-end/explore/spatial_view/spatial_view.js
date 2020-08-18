@@ -40,7 +40,8 @@ import {
     initTooltip,
     tooltipFunction,
     initSliders,
-    tooltip
+    tooltip,
+    slider
 } from './interaction.js';
 
 import {
@@ -74,10 +75,7 @@ import {
     addTrackedData
 } from '../visual_parameter.js';
 
-import {
-    brushend,
-    slider
-} from './interaction.js';
+
 import {
     getDatasetFeature,
     getNetworkData,
@@ -116,6 +114,7 @@ let zoomGroup;
 let x;
 let y;
 export let zoomFunction;
+
 
 
 
@@ -183,6 +182,11 @@ export class Drawer {
      });// array of animals for the specific time frame
      this.id = $('.show-dendrogram.btn-primary').attr('data');
      this.playBoolean = true;
+     this.brush = d3.brush()
+         .extent([
+             [0, 0],
+             [this.tankWidth, this.tankHeight]
+         ]);
 
 
    }
@@ -195,6 +199,9 @@ export class Drawer {
    }
    setActiveScale(value) {
        this.activeScale = value;
+  }
+   setActiveAnimals(value) {
+      this.activeAnimals = value;
   }
    decIndexTime() {
        this.indexTime = this.indexTime - 1;
@@ -356,7 +363,9 @@ export class Drawer {
        legendText.exit()
            .remove();
    }
+
    draw() {
+
        //update time to wait aka speed of replay
        let timeToWait = $('input[type="radio"].group-playback-rate:checked')
            .val();
@@ -831,6 +840,7 @@ export class Drawer {
            },
            timeToWait);
    }
+
    drawDendrogram() {
        // get the active dendrogram
        //id = $('.show-dendrogram.btn-primary').attr('data');
@@ -1043,7 +1053,7 @@ export class Drawer {
                $('.mdi-pause').show();
                this.setIndexTime(slider.slider('value'));
                $('.brush').remove();
-               this.draw();
+               //this.draw();
            }
        });
 
@@ -1063,21 +1073,56 @@ export class Drawer {
         */
        $('#brushing-button').click(()=>{
            //stop the animation
+
            this.playBoolean = false;
            $('#play-button').removeClass('active');
            if (!$('#brushing-button').hasClass('active')) {
                //define the brush
-               brush = d3.brush()
+               this.brush = d3.brush()
                    .extent([
                        [0, 0],
                        [this.tankWidth, this.tankHeight]
                    ])
-                   .on('end', brushend);
+                   .on('end', ()=>{
+                          //let arrayAnimals = this.arrayAnimals;
+                          //let activeAnimals = this.activeAnimals;
+                          var rect = d3.event.selection;
+                          this.activeAnimals = [];
+
+                          //iterate over the 151 fish to check which are in the brush
+
+                          this.arrayAnimals.map((animal)=>{
+                            var point = [animal['p'][0], animal['p'][1]];
+                            //check which fish are in  the brushed area
+                            if ((rect[0][0] <= point[0]) && (point[0] <= rect[1][0]) &&
+                                (rect[0][1] <= point[1]) && (point[1] <= rect[1][1])) {
+                                // Point is in the brush
+                                this.activeAnimals.push(animal['a']);
+                          }})
+                          console.log(this.activeAnimals);
+                          //setActiveAnimals(activeAnimals);
+
+
+
+                          //this.setActiveAnimals(this.activeAnimals);
+                          if (!$('#play-button')
+                              .hasClass('active')) {
+                              //go back one second and draw the next frame
+                              //this applys the changes
+                              //this.decIndexTime();
+                              //SPV.draw();
+                          }
+                          $('#brushing-button')
+                              .removeClass('active');
+                          // remove the brush
+                          $('.brush')
+                              .remove();
+                      });
                //add the brush
                d3.select('#main-vis-svg')
                    .append('g')
                    .attr('class', 'brush')
-                   .call(brush);
+                   .call(this.brush);
            } else {
                // remove the brush
                $('.brush').remove();
@@ -1090,7 +1135,7 @@ export class Drawer {
        $('#remove-active-selected-button').click(()=>{
            if (!$('#remove-active-selected-button').is(':disabled')) {
                $('#remove-active-selected-button').prop('disabled', true);
-               setActiveAnimals([]);
+               this.setActiveAnimals([]);
                // tracking of data for visual parameter suggestion
                resetTrackedData();
                $('#visual-parameter-button').prop('disabled', true).removeClass('active');
@@ -1579,6 +1624,163 @@ export class Drawer {
        });
 
    }
+   initShowDendrogramListener(id) {
+
+       $('#show-dendrogram-' + id).click(()=>{
+           let clickedButtonID = $(this).attr('id');
+           // iterate over all buttons and custom highlight just one or none
+           $('.show-dendrogram').each((i, button)=>{
+               // active found button
+               if ($(button).attr('id') === clickedButtonID && $(button).hasClass('btn-primary') === false) {
+                   $(button).addClass('btn-primary');
+                   $(button).find('#btn-left').hide();
+                   $(button).find('#btn-right').show();
+                   // TODO add here a resize of the main vis
+                   // $('#dendrogram-panel').insertAfter($(this));
+               } // remove highlight
+               else {
+                   $(button).removeClass('btn-primary');
+                   $(button).find('#btn-left').show();
+                   $(button).find('#btn-right').hide();
+               }
+           });
+
+           // show dendrogram
+           if ($('.show-dendrogram.btn-primary').length) {
+               $('#dendrogram-panel').show();
+           } else {
+               $('#dendrogram-panel').hide();
+           }
+           if (!$('#play-button').hasClass('active')) {
+               //go back one second and draw the next frame
+               //this applys the changes
+               this.decIndexTime();
+               this.draw();
+               this.drawDendrogram();
+           }
+       });
+   }
+   h_listeners() {
+
+       $('.hiearchy-checkbox').on('change', ()=> {
+           let checkbox = $(this);
+
+           let id = checkbox.attr('data');
+           let name = checkbox.attr('name');
+           let checked = checkbox.prop('checked');
+
+           if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
+               disablePlayButton();
+               getNetworkHierarchyData(id);
+
+               addHierarchyButton(id, name);
+               this.initShowDendrogramListener(id);
+               $('#dendrogram-buttons-div').show();
+           }
+           // else if ($('.show-dendrogram').length === maxNumberHierarchies) {
+           // console.log('Max number of hierarchies is: ' + maxNumberHierarchies);
+           //TODO implement this here
+           // notice user that it is not possible to show more than n hierarchies
+           //          <div class="alert alert-warning">
+           //   <strong>Info!</strong> Attention user .
+           // </div>
+           // }
+           else {
+               // tmp variable to save if the button which is going to be removed
+               // was active
+               let tmpActive = $('#show-dendrogram-' + id).hasClass('btn-primary');
+               setHierarchyData({}, id);
+
+               removeHierarchyButton(id);
+               // TODO find better way here
+               d3.select('g.h' + id).remove();
+               // remove the dendrogram and the panel if the removed element was checked
+               if (tmpActive === true) {
+                   $('#dendrogram-panel').hide();
+               }
+               if ($('.show-dendrogram').length === 0) {
+                   $('#dendrogram-buttons-div').hide();
+               }
+
+           }
+           // resize the main svg
+           if ($('.show-dendrogram').length) {
+               $('#main-vis-div').removeClass('col-md-12');
+               $('#main-vis-div').addClass('col-md-8');
+           } else {
+               $('#main-vis-div').removeClass('col-md-8');
+               $('#main-vis-div').addClass('col-md-12');
+           }
+       });
+
+       /**
+        * Visualize the network only in the choosen hierarchy
+        */
+       $('.network-hierarchy-checkbox').on('change', ()=>{
+           // get the info for the clicked button
+           let checkbox = $(this);
+
+           // reset all the other active checkboxes
+           $('.network-hierarchy-checkbox').prop('checked', false);
+           checkbox.prop('checked', true);
+
+           if (checkbox.prop('checked')) {
+               // set the network id
+               setNetworkHierarchy(checkbox.attr('data'));
+           } else {
+               setNetworkHierarchy(undefined);
+           }
+       });
+
+ }
+   n_listeners() {
+     /**
+      * Network buttons clicked - get the data
+      */
+     $('#networks-modal-body button').click(function() {
+         let network_id = $(this).attr('data');
+
+         // add the name of the choosen network to the Network modal
+         $('#active-network-name').text($(this).attr('name'));
+
+         disablePlayButton();
+         getNetworkData(network_id);
+         // set the color of the network
+         setnetworkColor(network_id);
+         $('#network-div').modal('toggle');
+     });
+
+     /**
+      * Network buttons clicked - get the data
+      */
+     $('#network-remove').click(function() {
+         setNetworkData({});
+         setNetworkID(-1);
+         // remove the network color
+         setnetworkColor(-1);
+         $('#active-network-name').text('');
+     });
+
+     /**
+      * Network auto button set acive or remove
+      */
+     $('#network-auto-suggest').click(function() {
+         if (!$('#network-auto-suggest').hasClass('active')) {
+             $('#network-limit-p').hide();
+             $('#network-slider').hide();
+
+             setNetworkAuto(true);
+         } else {
+             $('#network-limit-p').show();
+             $('#network-slider').show();
+             setNetworkAuto(false);
+             let limit = $('#network-slider').slider('value');
+             setNetworLimit(limit);
+             $('#network-limit').val(limit);
+         }
+     });
+
+ }
 
 
  }
@@ -1747,6 +1949,8 @@ export class SpatialView extends Drawer{
       this.sf_listeners();
       this.af_listeners();
       this.md_listeners();
+      this.n_listeners();
+      this.h_listeners();
       //var dendrogram = new Dendrogram();
       makeResizable(this.tankHeight, this.tankWidth);
       defaultConfig();
@@ -1768,6 +1972,7 @@ export class Listener extends Drawer {
     this.af_listeners();
     this.md_listeners();
     this.n_listeners();
+    this.h_listeners();
     //this.h_listeners();
   }
 
@@ -1812,17 +2017,17 @@ export class Listener extends Drawer {
           $('#play-button').removeClass('active');
           if (!$('#brushing-button').hasClass('active')) {
               //define the brush
-              brush = d3.brush()
+              this.brush = d3.brush()
                   .extent([
                       [0, 0],
                       [this.tankWidth, this.tankHeight]
                   ])
-                  .on('end', brushend);
+                  .on('end', this.brushend);
               //add the brush
               d3.select('#main-vis-svg')
                   .append('g')
                   .attr('class', 'brush')
-                  .call(brush);
+                  .call(this.brush);
           } else {
               // remove the brush
               $('.brush').remove();
@@ -1835,7 +2040,7 @@ export class Listener extends Drawer {
       $('#remove-active-selected-button').click(()=>{
           if (!$('#remove-active-selected-button').is(':disabled')) {
               $('#remove-active-selected-button').prop('disabled', true);
-              setActiveAnimals([]);
+              this.setActiveAnimals([]);
               // tracking of data for visual parameter suggestion
               resetTrackedData();
               $('#visual-parameter-button').prop('disabled', true).removeClass('active');
@@ -3049,6 +3254,3 @@ export function setMedoidAnimal(value) {
  * Set the selected and highlighted animals
  * @param {array} value - array of unqiuethis.id of the animals
  */
-export function setActiveAnimals(value) {
-    activeAnimals = value;
-}
