@@ -382,6 +382,7 @@ function drawHierarchy() {
     // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
     for (let i = 0; i < hierarchyIds.length; i++) {
         let treeData = networkHierarchy['h' + hierarchyIds[i]][indexTime];
+        console.log(treeData);
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
         });
