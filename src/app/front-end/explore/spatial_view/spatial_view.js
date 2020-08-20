@@ -856,6 +856,109 @@ export class Drawer {
            timeToWait);
    }
 
+   initDendrogram() {
+       // constanct factors for the dendgrogram
+       let margin = 20,
+           width = 5000,
+           height = 5000;
+
+       // zoom function for the dendrogram
+       let zoom = d3.zoom()
+           .scaleExtent([1, 10])
+           .on('zoom', ()=>{
+               //constrained zooming
+               d3.event.transform.x = Math.min(0, width * (d3.event.transform.k - 1),
+                   Math.max(width * (1 - d3.event.transform.k), d3.event.transform.x));
+
+               d3.event.transform.y = Math.min(0, height * (d3.event.transform.k - 1),
+                   Math.max(height * (1 - d3.event.transform.k), d3.event.transform.y));
+
+               // translate and scale
+               this.zoomGroup.attr('transform', d3.event.transform);
+           });
+
+       // svg container for the dendrogram
+       let svg = d3.select('#dendrogram-panel')
+           .classed('svg-dendrogram-container', true)
+           .append('svg')
+           .attr('preserveAspectRatio', 'xMinYMin meet')
+           .attr('viewBox', '0 0 ' + width + ' ' + height)
+           // add the class svg-content
+           .classed('svg-content-dendrogram', true)
+           .call(zoom);
+
+       initDendrogramLegend();
+
+       // append the zoom group to the svg
+       this.zoomGroup = svg.append('g')
+           .attr('transform', 'translate(' + margin + ',' + margin + ')')
+           .append('svg:g');
+
+       // d3 tree
+       let treemap = d3.tree() //d3.cluster()
+           .size([(height - 10 * margin), (width - 10 * margin)]);
+
+       // set the spatial view - needed to add the clustering to the spatial view window
+       let spatialView = d3.select('.tank');
+
+       // init dendrogram slider
+       // initialize the Network slider
+       $('#dendrogram-panel-level-slider')
+           .slider({
+               range: 'max',
+               min: 2,
+               max: 2,
+               step: 1,
+               value: this.hierarchyLevels['h0'],
+               slide: (event, ui)=>{
+                   let id = $('.show-dendrogram.btn-primary').attr('data');
+                   this.setHierarchyLevel(id, ui.value);
+                   this.updateDendrogram();
+                   // if no animation is active draw the new clustering and dendrogram
+                   // drawDendrogram();
+                   if (!$('#play-button').hasClass('active')) {
+                       //go back one second and draw the next frame
+                       //this applys the changes
+                       this.decIndexTime();
+                       this.draw();
+                       this.drawDendrogram();
+                   }
+               }
+           });
+       let tooltipDiv;
+       // init the tooltip for the dendrogram
+       tooltipDiv = d3.select('#dendrogram-tooltip')
+           .style('left', 0 + 'px')
+           .style('top', 0 + 'px')
+           .on('mouseover', function() {
+               tooltipDiv
+                   .style('opacity', 1);
+           });
+       // init the hierarchy legend
+       let legendWidth = maxNumberHierarchies * 100;
+       let legendHeight = 60;
+
+       let svgLegend = d3.select('#hierarchy-legend-div')
+           .append('svg')
+           .attr('id', 'hierarchy-legend')
+           .attr('width', legendWidth)
+           .attr('height', legendHeight);
+
+       // add pattern for striped background of intersections etc.
+       spatialView.append('defs')
+           .append('svg:pattern')
+           .attr('id', 'striped')
+           .attr('patternUnits', 'userSpaceOnUse')
+           .attr('width', '20')
+           .attr('height', '5')
+           .attr('patternTransform', 'rotate(60)')
+           .append('rect')
+           .attr('width', 5)
+           .attr('height', 10)
+           .attr('transform', 'translate(0,0)')
+           .style('fill', '#67000d');
+
+   };
    click(d) {
        setActiveAnimals(d['data']['name']);
        // if no animation is active draw the draw one step
@@ -1093,7 +1196,7 @@ export class Drawer {
            let treemap = d3.tree() //d3.cluster()
                .size([(height - 10 * margin), (width - 10 * margin)]);
 
-           
+
 
            // maps the node data to the tree layout
            nodes = treemap(nodes);
@@ -2194,7 +2297,9 @@ export class SpatialView extends Drawer{
       this.md_listeners();
       this.n_listeners();
       this.h_listeners();
-      var dendrogram = new Dendrogram();
+      //var dendrogram = new Dendrogram();
+//findinit
+      this.initDendrogram();
       makeResizable(this.tankHeight, this.tankWidth);
       defaultConfig();
       // start the animation

@@ -154,7 +154,7 @@ export function setHierarchyData(value, network_id) {
         setHierarchyColor(network_id);
     } // too many elements cant be added
 
-    changeHierarchyLegend();
+    //changeHierarchyLegend();
 }
 
 /**
