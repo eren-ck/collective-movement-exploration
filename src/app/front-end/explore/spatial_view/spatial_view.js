@@ -17,8 +17,8 @@ import {
     networkColorScale,
     networkAuto,
     setNetworLimit,
-    networkLimit
-    // showNetworkHierarchy,
+    networkLimit,
+    showNetworkHierarchy,
     // networkID,
     // networkBackground,
     // networkBackgroundLimit
@@ -62,14 +62,21 @@ import {
 import {
     updateDendrogram,
     setHierarchyLevel,
+    getHierarchyLevel,
     drawHierarchy,
     initDendrogramLegend,
     addHierarchyButton,
     removeHierarchyButton,
+    hierarchyColors,
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
     resethierarchyGroupStdev,
     maxNumberHierarchies,
+    treemap,
+    setOperation,
+    collapse,
+    hierarchyLevels,
+    //getHierarchyVertices,
     Dendrogram
 } from '../hierarchy.js';
 
@@ -844,6 +851,23 @@ export class Drawer {
            timeToWait);
    }
 
+   getHierarchyVertices(hierarchies) {
+       let result = []; // result set
+       hierarchies.forEach((cluster)=>{
+           let vertices = []; // vertices of the clusters in the spatial view
+           for (let j = 0; j < cluster.length; j++) {
+               let groupMember = this.arrayAnimals.find(d => d['a'] === cluster[j]);
+               if (groupMember) {
+                   vertices.push([groupMember['p'][0], -groupMember['p'][1]]);
+               }
+           }
+           // Andrew montone chain algorithm reutrns for points fewer than 3 null
+           if (vertices.length >= 3) {
+               result.push(d3.polygonHull(vertices));
+           }
+       });
+       return result;
+   }
    drawHierarchy() {
        // id of the hierarchy e.g. [1,5,3]
        let hierarchyIds = Object.keys(networkHierarchy).map(function(x) {
@@ -859,21 +883,27 @@ export class Drawer {
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
            });
+           let margin = 20,
+               width = 5000,
+               height = 5000;
 
+           // d3 tree
+           let treemap = d3.tree() //d3.cluster()
+               .size([(height - 10 * margin), (width - 10 * margin)]);
            nodes = treemap(nodes);
            let root = nodes['children'][0];
            if (showNetworkHierarchy === hierarchyIds[i]) {
                networkHierarchyIds = getHierarchyLevel(root, hierarchyIds[i]);
            }
            // add the vertices into the array
-           hierarchyVertices.push(getHierarchyVertices(getHierarchyLevel(root, hierarchyIds[i])));
+           hierarchyVertices.push(this.getHierarchyVertices(getHierarchyLevel(root, hierarchyIds[i])));
        }
 
        // if more than 2 hierarchies are drawn
        if (hierarchyVertices.length > 0) {
 
        }
-
+       let spatialView = d3.select('.tank');
        // DATA Join
        let hierarchies = spatialView
            .selectAll('g.hierarchy-group')
@@ -952,11 +982,11 @@ export class Drawer {
    drawDendrogram() {
 
        // get the active dendrogram
-       //id = $('.show-dendrogram.btn-primary').attr('data');
+       let id = $('.show-dendrogram.btn-primary').attr('data');
        // if data is avaiable draw hierarchy clusters and a button is active selcted
-       if (!$.isEmptyObject(networkHierarchy) && this.id) {
+       if (!$.isEmptyObject(networkHierarchy) && id) {
            // get the data and transform it
-           let treeData = networkHierarchy['h' + this.id][this.indexTime];
+           let treeData = networkHierarchy['h' + id][this.indexTime];
 
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
@@ -966,17 +996,25 @@ export class Drawer {
            // collapse the tree
            nodes.children.forEach(collapse);
 
+           let margin = 20,
+               width = 5000,
+               height = 5000;
+
+           // d3 tree
+           let treemap = d3.tree() //d3.cluster()
+               .size([(height - 10 * margin), (width - 10 * margin)]);
+
            // maps the node data to the tree layout
            nodes = treemap(nodes);
-           console.log(nodes);
+           //console.log(nodes);
 
            // hide if no network is choosen
            if ($('.show-dendrogram.btn-primary').length) {
-
+              console.log(hierarchyLevels);
                // set the new slider max
                $('#dendrogram-panel-level-slider')
                    .slider('option', 'max', (nodes['height'] - 1))
-                   .slider('value', hierarchyLevels['h' + this.id]);
+                   .slider('value', hierarchyLevels['h' + id]);
 
                // DATA JOIN - links (edges)
                let link = this.zoomGroup
@@ -1019,14 +1057,14 @@ export class Drawer {
                // with highlighting for the active choosen level
                nodeEnter.append('circle')
                    .attr('r', (d)=>{
-                       if (d['depth'] === hierarchyLevels['h' + this.id]) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
                            return 40 + d.data.name.length;
                        } else {
                            return 20 + d.data.name.length;
                        }
                    })
                    .attr('class', (d)=>{
-                       if (d['depth'] === hierarchyLevels['h' + this.id]) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
                            return 'active-level';
                        }
                    })
@@ -1077,14 +1115,14 @@ export class Drawer {
                    })
                    .select('circle')
                    .attr('r', (d)=>{
-                       if (d['depth'] === hierarchyLevels['h' +this.id]) {
+                       if (d['depth'] === hierarchyLevels['h' +id]) {
                            return 40 + d.data.name.length;
                        } else {
                            return 20 + d.data.name.length;
                        }
                    })
                    .attr('class', (d)=> {
-                       if (d['depth'] === hierarchyLevels['h' +this.id]) {
+                       if (d['depth'] === hierarchyLevels['h' + id]) {
                            // console.log('active-level');
                            // console.log(('h' + d['data']['name'].toString().hashCode()));
                            return 'active-level';

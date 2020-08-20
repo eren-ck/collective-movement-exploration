@@ -195,7 +195,7 @@ export class Dendrogram extends Drawer{
 /**
  * Collapse function - only show the active level and one sub level
  */
-function collapse(d) {
+export function collapse(d) {
     if (d.children && d.depth <= hierarchyLevels['h' + id]) {
         d._children = d.children;
         d._children.forEach(collapse);
@@ -442,7 +442,7 @@ function click(d) {
  * @param {object} root - Root of the treemap
  * @param {number} hiearchy - Number of hierarchy from [0-3]
  */
-function getHierarchyLevel(root, hierarchy) {
+export function getHierarchyLevel(root, hierarchy) {
     let result = [];
     let level = hierarchyLevels['h' + hierarchy];
 
@@ -477,7 +477,7 @@ function getHierarchyLevel(root, hierarchy) {
  * Return an array of points [[x,y][x,y]...]
  * @param {Array} hierarchies - Array of arrays with each array contains all the ids for a specific clustering
  */
-function getHierarchyVertices(hierarchies) {
+export function getHierarchyVertices(hierarchies) {
     let result = []; // result set
     hierarchies.forEach(function(cluster) {
         let vertices = []; // vertices of the clusters in the spatial view
