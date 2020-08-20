@@ -41,8 +41,8 @@ import {
     LineChart
 } from './line_chart.js';
 
-let zoomGroup; // zoom group for the specific dendrogram
-let treemap;
+//let zoomGroup; // zoom group for the specific dendrogram
+let treemap; // beide
 let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
 let svgLegend;
@@ -70,6 +70,7 @@ export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
 
 export class Dendrogram extends Drawer{
   constructor(){
+    super();
     this.initDendrogram()
   }
 
@@ -82,7 +83,7 @@ export class Dendrogram extends Drawer{
       // zoom function for the dendrogram
       let zoom = d3.zoom()
           .scaleExtent([1, 10])
-          .on('zoom', function() {
+          .on('zoom', ()=>{
               //constrained zooming
               d3.event.transform.x = Math.min(0, width * (d3.event.transform.k - 1),
                   Math.max(width * (1 - d3.event.transform.k), d3.event.transform.x));
@@ -91,7 +92,7 @@ export class Dendrogram extends Drawer{
                   Math.max(height * (1 - d3.event.transform.k), d3.event.transform.y));
 
               // translate and scale
-              zoomGroup.attr('transform', d3.event.transform);
+              this.zoomGroup.attr('transform', d3.event.transform);
           });
 
       // svg container for the dendrogram
@@ -107,7 +108,7 @@ export class Dendrogram extends Drawer{
       initDendrogramLegend();
 
       // append the zoom group to the svg
-      zoomGroup = svg.append('g')
+      this.zoomGroup = svg.append('g')
           .attr('transform', 'translate(' + margin + ',' + margin + ')')
           .append('svg:g');
 
@@ -219,6 +220,7 @@ export function drawHierarchy() {
     // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
     for (let i = 0; i < hierarchyIds.length; i++) {
         let treeData = networkHierarchy['h' + hierarchyIds[i]][indexTime];
+        console.log(treeData);
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
         });
