@@ -127,11 +127,11 @@ export class Dendrogram extends Drawer{
               min: 2,
               max: 2,
               step: 1,
-              value: hierarchyLevels['h0'],
-              slide: function(event, ui) {
+              value: this.hierarchyLevels['h0'],
+              slide: (event, ui)=>{
                   let id = $('.show-dendrogram.btn-primary').attr('data');
-                  setHierarchyLevel(id, ui.value);
-                  updateDendrogram();
+                  this.setHierarchyLevel(id, ui.value);
+                  this.updateDendrogram();
                   // if no animation is active draw the new clustering and dendrogram
                   // drawDendrogram();
                   if (!$('#play-button').hasClass('active')) {
@@ -418,7 +418,7 @@ export function drawHierarchy() {
  * Edge drawing method of the dendrogram
  * @param {object} d - Treemap element
  */
-function diagonalLines(d) {
+export function diagonalLines(d) {
     return 'M' + d.x + ',' + d.y +
         'V' + d.parent.y + 'H' + d.parent.x;
 }

@@ -60,9 +60,9 @@ import {
 } from './legend.js';
 
 import {
-    updateDendrogram,
-    setHierarchyLevel,
-    getHierarchyLevel,
+    //updateDendrogram,
+    //setHierarchyLevel,
+    //getHierarchyLevel,
     drawHierarchy,
     initDendrogramLegend,
     addHierarchyButton,
@@ -71,11 +71,14 @@ import {
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
     resethierarchyGroupStdev,
+    hierarchyGroupStdev,
     maxNumberHierarchies,
     treemap,
     setOperation,
-    collapse,
+    //collapse,
     hierarchyLevels,
+    diagonalLines,
+    //click,
     //getHierarchyVertices,
     Dendrogram
 } from '../hierarchy.js';
@@ -192,6 +195,8 @@ export class Drawer {
      });// array of animals for the specific time frame
      this.id = $('.show-dendrogram.btn-primary').attr('data');
      this.playBoolean = true;
+     this.hierarchyLevels = {};
+     this.hierarchyGroupStdev = {};
      this.brush = d3.brush()
          .extent([
              [0, 0],
@@ -851,6 +856,77 @@ export class Drawer {
            timeToWait);
    }
 
+   click(d) {
+       setActiveAnimals(d['data']['name']);
+       // if no animation is active draw the draw one step
+       if (!$('#play-button').hasClass('active')) {
+           this.decIndexTime();
+           this.draw();
+       }
+   }
+   sethierarchyGroupStdev(key, value) {
+       if (key in this.hierarchyGroupStdev) {
+           this.hierarchyGroupStdev[key].push(value);
+       } else {
+           this.hierarchyGroupStdev[key] = [value];
+       }
+   }
+
+   /**
+    * Reset hierarchy group standard deviation
+    */
+   resethierarchyGroupStdev() {
+       this.hierarchyGroupStdev = {};
+   }
+   getHierarchyLevel(root, hierarchy) {
+    let result = [];
+    let level = this.hierarchyLevels['h' + hierarchy];
+
+    // second level of the array
+    let tmp_nodes = root['children'];
+    // iterate through the tree
+    for (let i = 1; i < root['height']; i++) {
+        // check if we are at the searched level
+        if (tmp_nodes[0] && tmp_nodes[0]['depth'] === level) {
+            // add each cluster to the result set
+            tmp_nodes.forEach(function(node) {
+                if (typeof node['data']['name'] !== 'undefined') {
+                    result.push(node['data']['name']);
+                }
+            });
+            break;
+        }
+        // get all children of a specific level in the tree
+        let tmp = [];
+        tmp_nodes.forEach(function(node) {
+            if (typeof node['children'] !== 'undefined') {
+                tmp = tmp.concat(node['children']);
+            }
+        });
+        tmp_nodes = tmp;
+    }
+    return result;
+}
+   setHierarchyLevel(hierarchy, level) {
+     // TODO catch cases < 0 and bigger than overall height
+     this.hierarchyLevels['h' + hierarchy] = level;
+    }
+   removeHierarchyLevel(hierarchy) {
+      // TODO catch cases < 0 and bigger than overall height
+      delete this.hierarchyLevels['h' + hierarchy];
+  }
+   updateDendrogram() {
+     // get the important info
+     let id = $('.show-dendrogram.btn-primary').attr('data');
+     let name = $('.show-dendrogram.btn-primary').attr('name');
+     // set the name of the displayed hierarchy
+     $('#dendrogram-panel-name').text(name);
+
+     // set slider and  text value
+     $('#dendrogram-panel-level-slider').val(this.hierarchyLevels['h' + id]);
+     $('#dendrogram-panel-level-text').text(this.hierarchyLevels['h' + id]);
+
+}
    getHierarchyVertices(hierarchies) {
        let result = []; // result set
        hierarchies.forEach((cluster)=>{
@@ -879,7 +955,7 @@ export class Drawer {
        // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
        for (let i = 0; i < hierarchyIds.length; i++) {
            let treeData = networkHierarchy['h' + hierarchyIds[i]][this.indexTime];
-           console.log(treeData);
+           //console.log(treeData);
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
            });
@@ -893,10 +969,10 @@ export class Drawer {
            nodes = treemap(nodes);
            let root = nodes['children'][0];
            if (showNetworkHierarchy === hierarchyIds[i]) {
-               networkHierarchyIds = getHierarchyLevel(root, hierarchyIds[i]);
+               networkHierarchyIds = this.getHierarchyLevel(root, hierarchyIds[i]);
            }
            // add the vertices into the array
-           hierarchyVertices.push(this.getHierarchyVertices(getHierarchyLevel(root, hierarchyIds[i])));
+           hierarchyVertices.push(this.getHierarchyVertices(this.getHierarchyLevel(root, hierarchyIds[i])));
        }
 
        // if more than 2 hierarchies are drawn
@@ -981,6 +1057,19 @@ export class Drawer {
    }
    drawDendrogram() {
 
+
+         var collapse = (d)=>{
+          //console.log(this.hierarchyLevels);
+          //console.log(d.children);
+          //if (d.children && d.depth <= this.hierarchyLevels['h' + this.id])
+          if (d.children && d.depth <= 2) {
+              d._children = d.children;
+              d._children.forEach(collapse);
+          } else {
+              d.children = 0;
+          }
+    }
+
        // get the active dendrogram
        let id = $('.show-dendrogram.btn-primary').attr('data');
        // if data is avaiable draw hierarchy clusters and a button is active selcted
@@ -1004,17 +1093,19 @@ export class Drawer {
            let treemap = d3.tree() //d3.cluster()
                .size([(height - 10 * margin), (width - 10 * margin)]);
 
+           
+
            // maps the node data to the tree layout
            nodes = treemap(nodes);
            //console.log(nodes);
 
            // hide if no network is choosen
            if ($('.show-dendrogram.btn-primary').length) {
-              console.log(hierarchyLevels);
+              //console.log(hierarchyLevels);
                // set the new slider max
                $('#dendrogram-panel-level-slider')
                    .slider('option', 'max', (nodes['height'] - 1))
-                   .slider('value', hierarchyLevels['h' + id]);
+                   .slider('value', this.hierarchyLevels['h' + id]);
 
                // DATA JOIN - links (edges)
                let link = this.zoomGroup
@@ -1057,14 +1148,14 @@ export class Drawer {
                // with highlighting for the active choosen level
                nodeEnter.append('circle')
                    .attr('r', (d)=>{
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                       if (d['depth'] === this.hierarchyLevels['h' + id]) {
                            return 40 + d.data.name.length;
                        } else {
                            return 20 + d.data.name.length;
                        }
                    })
                    .attr('class', (d)=>{
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                       if (d['depth'] === this.hierarchyLevels['h' + id]) {
                            return 'active-level';
                        }
                    })
@@ -1072,7 +1163,7 @@ export class Drawer {
                        return 'h' + d['data']['name'].toString().hashCode();
                    })
                    // TODO find a nice function for the on click method
-                   .on('click', click)
+                   .on('click', this.click)
                    .on('mouseover', function(d) {
                        // tooltip position and text
                        tooltipDiv
@@ -1115,14 +1206,14 @@ export class Drawer {
                    })
                    .select('circle')
                    .attr('r', (d)=>{
-                       if (d['depth'] === hierarchyLevels['h' +id]) {
+                       if (d['depth'] === this.hierarchyLevels['h' +id]) {
                            return 40 + d.data.name.length;
                        } else {
                            return 20 + d.data.name.length;
                        }
                    })
                    .attr('class', (d)=> {
-                       if (d['depth'] === hierarchyLevels['h' + id]) {
+                       if (d['depth'] === this.hierarchyLevels['h' + id]) {
                            // console.log('active-level');
                            // console.log(('h' + d['data']['name'].toString().hashCode()));
                            return 'active-level';
@@ -1143,9 +1234,10 @@ export class Drawer {
                // EXIT
                node.exit()
                    .remove();
-
+              //console.log(hierarchyGroupStdev);
                // color the dendrogram nodes using the standardDeviation in the cluster
-               if (Object.keys(hierarchyGroupStdev).length) {
+               if (Object.keys(this.hierarchyGroupStdev).length) {
+                   console.log('runs');
                    // show the legend for the coloring
                    // console.log(hierarchyGroupStdev);
                    // TODO legend here
