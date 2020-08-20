@@ -426,6 +426,7 @@ export class TrendChart extends Chart{
     $('#trendChartLegend').show();
     // check if already computed and only hidden
     if (!$(('#' + feature + 'TrendChart')).length) {
+        console.log('none in');
         // get the data for the trend chart
         let trendChartData = [];
         let num_animals = animalIds.length;
@@ -442,6 +443,7 @@ export class TrendChart extends Chart{
         //aggregate and average the trendChartData to this.lineChartWidth data points
         if (trendChartData.length > this.lineChartWidth) {
             let tmpTrendChartData = [];
+            console.log('too large');
 
             // [perc05,perc25,perc50,perc75,perc95]
             let tmp = [0, 0, 0, 0, 0];
@@ -532,6 +534,7 @@ export class TrendChart extends Chart{
         }
     } else {
         // show the trend chart
+        console.log('shows');
         $(('#' + feature + 'TrendChart')).show();
     }
 }
