@@ -202,6 +202,9 @@ export class Drawer {
              [0, 0],
              [this.tankWidth, this.tankHeight]
          ]);
+     this.dendrozoom = 'none';
+
+
 
 
    }
@@ -890,7 +893,7 @@ export class Drawer {
        initDendrogramLegend();
 
        // append the zoom group to the svg
-       this.zoomGroup = svg.append('g')
+       this.dendrozoom = svg.append('g')
            .attr('transform', 'translate(' + margin + ',' + margin + ')')
            .append('svg:g');
 
@@ -1211,7 +1214,7 @@ export class Drawer {
                    .slider('value', this.hierarchyLevels['h' + id]);
 
                // DATA JOIN - links (edges)
-               let link = this.zoomGroup
+               let link = this.dendrozoom
                    .selectAll('path.link')
                    .data(nodes.descendants().slice(1));
 
@@ -1232,7 +1235,7 @@ export class Drawer {
 
                // DATA JOIN - nodes
                // adds each node as a group
-               let node = this.zoomGroup
+               let node = this.dendrozoom
                    .selectAll('.node')
                    .data(nodes.descendants());
 
