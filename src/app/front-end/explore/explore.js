@@ -18,7 +18,7 @@ import {
 // import css
 import './explore.css';
 
-import Chart from './line_chart.js'
+import Chart from './line_chart.js';
 
 export let dataset = []; // main dataset with values for each individual animal
 export let datasetMetadata = []; // metadataset for each individual fish
@@ -154,7 +154,7 @@ export function setHierarchyData(value, network_id) {
         setHierarchyColor(network_id);
     } // too many elements cant be added
 
-    changeHierarchyLegend();
+    //changeHierarchyLegend();
 }
 
 /**

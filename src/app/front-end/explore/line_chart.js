@@ -1,7 +1,8 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $, parameters*/
 import {
-    setIndexTime
+    setIndexTime,
+    Drawer
 } from './spatial_view/spatial_view.js';
 
 import {
@@ -32,6 +33,7 @@ let x;
 let y;
 
 
+<<<<<<< HEAD
 class Chart {
 
     constructor(data) {
@@ -566,6 +568,8 @@ export function updateLineChart() {
             .attr('transform', 'translate(' + zoomFunction(tmp) + ',0)');
     }
 }
+=======
+>>>>>>> hierarchyzoom
 
 
 
