@@ -64,57 +64,6 @@ export let hierarchyGroupStdev = {};
 export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
 
 
-<<<<<<< HEAD
-    // svg container for the dendrogram
-    let svg = d3.select('#dendrogram-panel')
-        .classed('svg-dendrogram-container', true)
-        .append('svg')
-        .attr('preserveAspectRatio', 'xMinYMin meet')
-        .attr('viewBox', '0 0 ' + width + ' ' + height)
-        // add the class svg-content
-        .classed('svg-content-dendrogram', true)
-        .call(zoom);
-
-    initDendrogramLegend();
-
-    // append the zoom group to the svg
-    zoomGroup = svg.append('g')
-        .attr('transform', 'translate(' + margin + ',' + margin + ')')
-        .append('svg:g');
-
-    // d3 tree
-    treemap = d3.tree() //d3.cluster()
-        .size([(height - 10 * margin), (width - 10 * margin)]);
-
-    // set the spatial view - needed to add the clustering to the spatial view window
-    spatialView = d3.select('.tank');
-
-    // init dendrogram slider
-    // initialize the Network slider
-    $('#dendrogram-panel-level-slider')
-        .slider({
-            range: 'max',
-            min: 2,
-            max: 2,
-            step: 1,
-            value: hierarchyLevels['h0'],
-            slide: function(event, ui) {
-                let id = $('.show-dendrogram.btn-primary').attr('data');
-                setHierarchyLevel(id, ui.value);
-                updateDendrogram();
-                // if no animation is active draw the new clustering and dendrogram
-                // drawDendrogram();
-                if (!$('#play-button').hasClass('active')) {
-                    //go back one second and draw the next frame
-                    //this applys the changes
-                    decIndexTime();
-                    draw();
-                    //drawDendrogram();
-                }
-            }
-        });
-=======
->>>>>>> hierarchyzoom
 
 
 
