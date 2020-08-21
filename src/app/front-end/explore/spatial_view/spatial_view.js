@@ -202,7 +202,7 @@ export class Drawer {
              [0, 0],
              [this.tankWidth, this.tankHeight]
          ]);
-     this.dendrozoom = 'none';
+     this.dendrozoom = this.zoomGroup;
 
 
 
@@ -877,7 +877,7 @@ export class Drawer {
                    Math.max(height * (1 - d3.event.transform.k), d3.event.transform.y));
 
                // translate and scale
-               this.zoomGroup.attr('transform', d3.event.transform);
+               this.dendrozoom.attr('transform', d3.event.transform);
            });
 
        // svg container for the dendrogram
