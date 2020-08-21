@@ -2021,13 +2021,21 @@ export class SpatialView extends Drawer{
       });
   }
   h_listeners() {
+      var checkbox;
 
-      $('.hiearchy-checkbox').on('change', ()=> {
-          let checkbox = $('.hiearchy-checkbox');
+      // Store given checkbox in variable
+      $('.hiearchy-checkbox').on('change', function() {
+          checkbox = $(this);
+        });
+
+      // Use checkbox to draw dendrogram
+      $('.hiearchy-checkbox').on('change', ()=>{
+          console.log('jumps');
 
           let id = checkbox.attr('data');
           let name = checkbox.attr('name');
           let checked = checkbox.prop('checked');
+          console.log(checked);
 
           if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
               disablePlayButton();
