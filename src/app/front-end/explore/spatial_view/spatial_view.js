@@ -19,6 +19,7 @@ import {
     setNetworLimit,
     networkLimit,
     showNetworkHierarchy,
+    setnetworkColor
     // networkID,
     // networkBackground,
     // networkBackgroundLimit
@@ -203,6 +204,7 @@ export class Drawer {
              [this.tankWidth, this.tankHeight]
          ]);
      this.dendrozoom = this.zoomGroup;
+     this.networkColor = {};
 
 
 
@@ -1017,6 +1019,46 @@ export class Drawer {
      // TODO catch cases < 0 and bigger than overall height
      this.hierarchyLevels['h' + hierarchy] = level;
     }
+   setHierarchyColor(hierarchy) {
+        // check if the hierarchy is already shown as network
+        // take the same color
+        for (let key in this.networkColor) {
+            if (key === ('h' + hierarchy)) {
+                hierarchyColors['h' + hierarchy] = this.networkColor[key];
+                return;
+            }
+        }
+        // hierarchy is not visualized already as a network
+        for (let i = 0; i < colors.length; i++) {
+            let tmp_boolean = true;
+            for (let key in hierarchyColors) {
+                if (hierarchyColors.hasOwnProperty(key)) {
+                    if (hierarchyColors[key] === colors[i]) {
+                        tmp_boolean = false;
+                    }
+                }
+            }
+            if (tmp_boolean) {
+                // check if a network is depicted
+                // if so skip the color which is already choosen for the network
+                if (Object.keys(this.networkColor).length !== 0) {
+                    for (let key in this.networkColor) {
+                        if (this.networkColor[key] !== colors[i]) {
+                            hierarchyColors['h' + hierarchy] = colors[i];
+                            return;
+                        }
+                    }
+                } else {
+                    hierarchyColors['h' + hierarchy] = colors[i];
+                    return;
+                }
+
+            }
+        }
+    }
+   removeHierarchyColor(hierarchy) {
+        delete hierarchyColors['h' + hierarchy];
+    }
    removeHierarchyLevel(hierarchy) {
       // TODO catch cases < 0 and bigger than overall height
       delete this.hierarchyLevels['h' + hierarchy];
@@ -1382,6 +1424,103 @@ export class Drawer {
            // draw the hierarchy in spatial view
            this.drawHierarchy();
        }
+   }
+
+   changeHierarchyLegend() {
+       let legend; // the color legend
+       let legendText; // color legend text
+       // vars for the legend
+       let legendSwatchWidth = 50;
+       let legendSwatchHeight = 20;
+
+       // Show or hide the svg element
+       if (Object.keys(hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
+           $('#hierarchy-legend-div').show();
+       } else {
+           $('#hierarchy-legend-div').hide();
+       }
+
+       let legendData = [];
+       let legendTextData = [];
+       // get the required data
+       $('.show-dendrogram').each(function(i, obj) {
+           // check if data is not undefined
+           if (hierarchyColors['h' + $(obj).attr('data')] != null && $(obj).attr('name') != null) {
+               legendData.push(hierarchyColors['h' + $(obj).attr('data')]);
+               legendTextData.push($(obj).attr('name'));
+           }
+       });
+       // add the network color
+       if (Object.keys(this.networkColor).length !== 0) {
+           for (let key in this.networkColor) {
+               if (legendData.indexOf(this.networkColor[key]) === -1) {
+                   legendData.push(this.networkColor[key]);
+                   legendTextData.push('Network');
+               }
+           }
+       }
+       // DATA JOIN
+       legend = this.svgLegend.selectAll('rect.legend')
+           .data(legendData);
+       legendText = this.svgLegend.selectAll('text.legend-text')
+           .data(legendTextData);
+
+       // --------------- Legend swatches  -------------------
+       // UPDATE - legend
+       legend.style('fill', function(d) {
+           return d;
+       });
+       // ENTER - legend
+       legend
+           .enter()
+           .append('rect')
+           .attr('class', 'legend')
+           .attr('width', legendSwatchWidth)
+           .attr('height', legendSwatchHeight)
+           .attr('y', 0)
+           .attr('x', function(d, i) {
+               return (legendSwatchWidth + 2.5 * i * legendSwatchWidth) + 'px';
+           })
+           .style('fill', function(d) {
+               return d;
+           });
+       // EXIT - legend
+       legend.exit()
+           .remove();
+
+       // --------------- Text  -------------------
+       // UPDATE - legend text
+       legendText.text(function(d) {
+           return d;
+       });
+       // ENTER - legend text
+       legendText
+           .enter()
+           .append('text')
+           .attr('class', 'legend-text')
+           .attr('y', 2 * legendSwatchHeight)
+           .attr('x', function(d, i) {
+               return (legendSwatchWidth + 2.5 * i * legendSwatchWidth) + 'px';
+           })
+           .text(function(d) {
+               return d;
+           });
+
+       // EXIT - legend text
+       legendText.exit()
+           .remove();
+
+   }
+
+
+   setnetworkColor(network_id) {
+       // if id = -1 set the color to nothing
+       if (network_id >= 0) {
+           this.networkColor['h' + network_id] = '#08306b';
+       } else {
+           this.networkColor = {};
+       }
+       this.changeHierarchyLegend();
    }
 
 
@@ -2105,27 +2244,31 @@ export class SpatialView extends Drawer{
     /**
      * Network buttons clicked - get the data
      */
-    $('#networks-modal-body button').click(function() {
-        let network_id = $(this).attr('data');
+    var network_id;
 
+    $('#networks-modal-body button').click(function() {
+        network_id = $(this).attr('data');
+      });
+
+    $('#networks-modal-body button').click(()=>{
         // add the name of the choosen network to the Network modal
         $('#active-network-name').text($(this).attr('name'));
 
         disablePlayButton();
         getNetworkData(network_id);
         // set the color of the network
-        setnetworkColor(network_id);
+        this.setnetworkColor(network_id);
         $('#network-div').modal('toggle');
     });
 
     /**
      * Network buttons clicked - get the data
      */
-    $('#network-remove').click(function() {
+    $('#network-remove').click(()=>{
         setNetworkData({});
         setNetworkID(-1);
         // remove the network color
-        setnetworkColor(-1);
+        this.setnetworkColor(-1);
         $('#active-network-name').text('');
     });
 
