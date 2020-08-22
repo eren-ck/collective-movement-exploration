@@ -189,6 +189,7 @@ export class Drawer {
          .attr('id', 'main-vis-legend')
          .attr('width', this.legendWidth)
          .attr('height', this.legendHeight);
+
      this.medoidAnimal = -1; // which animal is the medoid (-1 is no animal)
      this.activeAnimals = []; // active selected animals
      this.arrayAnimals = dataset.filter((d)=>{
@@ -203,6 +204,7 @@ export class Drawer {
              [0, 0],
              [this.tankWidth, this.tankHeight]
          ]);
+     this.svgLegend_netw = d3.select('#hierarchy-legend-div');
      this.dendrozoom = this.zoomGroup;
      this.networkColor = {};
 
@@ -311,6 +313,7 @@ export class Drawer {
        let legendSwatchWidth = 50;
        let legendSwatchHeight = 20;
        // let differentColors = 0;
+
 
        // Show the svg first of all
        $('#main-vis-legend-div')
@@ -943,7 +946,7 @@ export class Drawer {
        let legendWidth = maxNumberHierarchies * 100;
        let legendHeight = 60;
 
-       let svgLegend = d3.select('#hierarchy-legend-div')
+       this.svgLegend_netw = d3.select('#hierarchy-legend-div')
            .append('svg')
            .attr('id', 'hierarchy-legend')
            .attr('width', legendWidth)
@@ -1435,6 +1438,7 @@ export class Drawer {
 
        // Show or hide the svg element
        if (Object.keys(hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
+           console.log('applys');
            $('#hierarchy-legend-div').show();
        } else {
            $('#hierarchy-legend-div').hide();
@@ -1460,9 +1464,9 @@ export class Drawer {
            }
        }
        // DATA JOIN
-       legend = this.svgLegend.selectAll('rect.legend')
+       legend = this.svgLegend_netw.selectAll('rect.legend')
            .data(legendData);
-       legendText = this.svgLegend.selectAll('text.legend-text')
+       legendText = this.svgLegend_netw.selectAll('text.legend-text')
            .data(legendTextData);
 
        // --------------- Legend swatches  -------------------
@@ -1518,6 +1522,7 @@ export class Drawer {
        if (network_id >= 0) {
            this.networkColor['h' + network_id] = '#08306b';
        } else {
+           console.log('color nothing');
            this.networkColor = {};
        }
        this.changeHierarchyLegend();
