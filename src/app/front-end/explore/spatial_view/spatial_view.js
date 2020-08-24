@@ -1131,6 +1131,8 @@ export class Drawer {
 
        }
        let spatialView = d3.select('.tank');
+
+
        // DATA Join
        let hierarchies = spatialView
            .selectAll('g.hierarchy-group')
