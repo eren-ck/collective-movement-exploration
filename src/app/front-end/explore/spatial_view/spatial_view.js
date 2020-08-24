@@ -208,7 +208,7 @@ export class Drawer {
      this.svgLegend_netw = d3.select('#hierarchy-legend-div');
      this.dendrozoom = this.zoomGroup;
      this.networkColor = {};
-     this.hierarchyColors = this.networkColor;
+     this.hierarchyColors = 'empty';
 
 
 
