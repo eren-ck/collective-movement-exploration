@@ -8,7 +8,7 @@ import {
     animalIds,
     datasetMetadata,
     setNetworkData,
-    setHierarchyData,
+    //setHierarchyData,
     dataSetPercentile,
     networkHierarchy
 } from '../explore.js';
@@ -64,11 +64,12 @@ import {
     //updateDendrogram,
     //setHierarchyLevel,
     //getHierarchyLevel,
-    drawHierarchy,
+    //drawHierarchy,
     initDendrogramLegend,
     addHierarchyButton,
     removeHierarchyButton,
     hierarchyColors,
+    colors,
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
     resethierarchyGroupStdev,
@@ -94,7 +95,7 @@ import {
     getDatasetFeature,
     getNetworkData,
     getSwarmDatasetFeature,
-    getNetworkHierarchyData
+    //getNetworkHierarchyData
 } from '../ajax_queries.js';
 
 
@@ -111,7 +112,7 @@ import {
 
 
 
-
+let JSONAPI_MIMETYPE = 'application/vnd.api+json';
 let trendChartsZoom = {};
 //let this.trendChartsElem = ['lower-outer-area', 'lower-inner-area', 'median-line', 'upper-inner-area', 'upper-outer-area'];
 //let lineChartWidth = 5000;
@@ -1096,6 +1097,8 @@ export class Drawer {
        return result;
    }
    drawHierarchy() {
+      console.log('hierarchy drawn');
+
        // id of the hierarchy e.g. [1,5,3]
        let hierarchyIds = Object.keys(networkHierarchy).map(function(x) {
            return x.replace('h', '');
@@ -1152,6 +1155,7 @@ export class Drawer {
            .style('fill', function(d, i) {
                return hierarchyColors['h' + hierarchyIds[i]];
            })
+           console.log(hierarchyColors);
            .attr('stroke', function(d, i) {
                return hierarchyColors['h' + hierarchyIds[i]];
            })
@@ -1435,7 +1439,7 @@ export class Drawer {
        // vars for the legend
        let legendSwatchWidth = 50;
        let legendSwatchHeight = 20;
-
+       console.log(Object.keys(hierarchyColors).length);
        // Show or hide the svg element
        if (Object.keys(hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
            console.log('applys');
@@ -1526,6 +1530,40 @@ export class Drawer {
            this.networkColor = {};
        }
        this.changeHierarchyLegend();
+   }
+
+   setHierarchyData(value, network_id) {
+       // if the element is empty remove the element from the netwrokHierarchy object
+       if (Object.keys(value).length === 0 && value.constructor === Object) {
+           delete networkHierarchy['h' + network_id];
+           this.removeHierarchyLevel(network_id);
+           this.removeHierarchyColor(network_id);
+       } // add it to the network hierarchy
+       else {
+           networkHierarchy['h' + network_id] = value;
+          this.setHierarchyLevel(network_id, 2);
+          this.setHierarchyColor(network_id);
+       } // too many elements cant be added
+
+       this.changeHierarchyLegend();
+   }
+
+   getNetworkHierarchyData(network_id) {
+       $.ajax({
+           url: '/api/dataset/network/hierarchy/' + parameters['id'] + '/' + network_id,
+           dataType: 'json',
+           type: 'GET',
+           contentType: 'application/json; charset=utf-8',
+           headers: {
+               'Accept': JSONAPI_MIMETYPE
+           },
+           success: (data)=>{
+               if (data.length) {
+                   this.setHierarchyData(JSON.parse(data[0]['hierarchy']), network_id);
+               }
+               enablePlayButton();
+           }
+       });
    }
 
 
@@ -2183,7 +2221,7 @@ export class SpatialView extends Drawer{
 
           if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
               disablePlayButton();
-              getNetworkHierarchyData(id);
+              this.getNetworkHierarchyData(id);
 
               addHierarchyButton(id, name);
               this.initShowDendrogramListener(id);
@@ -2201,7 +2239,7 @@ export class SpatialView extends Drawer{
               // tmp variable to save if the button which is going to be removed
               // was active
               let tmpActive = $('#show-dendrogram-' + id).hasClass('btn-primary');
-              setHierarchyData({}, id);
+              this.setHierarchyData({}, id);
 
               removeHierarchyButton(id);
               // TODO find better way here
