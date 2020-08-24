@@ -1138,7 +1138,7 @@ export class Drawer {
        let hierarchies = spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
-       console.log(hierarchies);
+
        // ENTER the groups - adds a specific id and color
        hierarchies
            .enter()
