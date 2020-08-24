@@ -68,7 +68,7 @@ import {
     initDendrogramLegend,
     addHierarchyButton,
     removeHierarchyButton,
-    hierarchyColors,
+    //hierarchyColors,
     colors,
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
@@ -208,6 +208,9 @@ export class Drawer {
      this.svgLegend_netw = d3.select('#hierarchy-legend-div');
      this.dendrozoom = this.zoomGroup;
      this.networkColor = {};
+     this.hierarchyColors = {};
+     this.networkHierarchy = networkHierarchy;
+     this.spatialView = d3.select('.tank');
 
 
 
@@ -908,7 +911,7 @@ export class Drawer {
            .size([(height - 10 * margin), (width - 10 * margin)]);
 
        // set the spatial view - needed to add the clustering to the spatial view window
-       let spatialView = d3.select('.tank');
+       this.spatialView = d3.select('.tank');
 
        // init dendrogram slider
        // initialize the Network slider
@@ -954,7 +957,7 @@ export class Drawer {
            .attr('height', legendHeight);
 
        // add pattern for striped background of intersections etc.
-       spatialView.append('defs')
+       this.spatialView.append('defs')
            .append('svg:pattern')
            .attr('id', 'striped')
            .attr('patternUnits', 'userSpaceOnUse')
@@ -1026,19 +1029,25 @@ export class Drawer {
    setHierarchyColor(hierarchy) {
         // check if the hierarchy is already shown as network
         // take the same color
+        console.log('sets color');
         for (let key in this.networkColor) {
             if (key === ('h' + hierarchy)) {
-                hierarchyColors['h' + hierarchy] = this.networkColor[key];
+                console.log('same color');
+                this.hierarchyColors['h' + hierarchy] = this.networkColor[key];
                 return;
             }
+
         }
+        console.log(this.hierarchyColors);
         // hierarchy is not visualized already as a network
         for (let i = 0; i < colors.length; i++) {
             let tmp_boolean = true;
-            for (let key in hierarchyColors) {
-                if (hierarchyColors.hasOwnProperty(key)) {
-                    if (hierarchyColors[key] === colors[i]) {
+            for (let key in this.hierarchyColors) {
+
+                if (this.hierarchyColors.hasOwnProperty(key)) {
+                    if (this.hierarchyColors[key] === colors[i]) {
                         tmp_boolean = false;
+
                     }
                 }
             }
@@ -1048,12 +1057,12 @@ export class Drawer {
                 if (Object.keys(this.networkColor).length !== 0) {
                     for (let key in this.networkColor) {
                         if (this.networkColor[key] !== colors[i]) {
-                            hierarchyColors['h' + hierarchy] = colors[i];
+                            this.hierarchyColors['h' + hierarchy] = colors[i];
                             return;
                         }
                     }
                 } else {
-                    hierarchyColors['h' + hierarchy] = colors[i];
+                    this.hierarchyColors['h' + hierarchy] = colors[i];
                     return;
                 }
 
@@ -1061,7 +1070,7 @@ export class Drawer {
         }
     }
    removeHierarchyColor(hierarchy) {
-        delete hierarchyColors['h' + hierarchy];
+        delete this.hierarchyColors['h' + hierarchy];
     }
    removeHierarchyLevel(hierarchy) {
       // TODO catch cases < 0 and bigger than overall height
@@ -1100,7 +1109,7 @@ export class Drawer {
       console.log('hierarchy drawn');
 
        // id of the hierarchy e.g. [1,5,3]
-       let hierarchyIds = Object.keys(networkHierarchy).map(function(x) {
+       let hierarchyIds = Object.keys(this.networkHierarchy).map(function(x) {
            return x.replace('h', '');
        });
        //  The clustering in an 2D array with which animal id belongs to which group
@@ -1108,7 +1117,7 @@ export class Drawer {
 
        // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
        for (let i = 0; i < hierarchyIds.length; i++) {
-           let treeData = networkHierarchy['h' + hierarchyIds[i]][this.indexTime];
+           let treeData = this.networkHierarchy['h' + hierarchyIds[i]][this.indexTime];
            //console.log(treeData);
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
@@ -1133,12 +1142,13 @@ export class Drawer {
        if (hierarchyVertices.length > 0) {
 
        }
-       let spatialView = d3.select('.tank');
+       //console.log(hierarchyVertices);
+       this.spatialView = d3.select('.tank');
        // DATA Join
-       let hierarchies = spatialView
+       let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
-
+       console.log(hierarchyIds);
        // ENTER the groups - adds a specific id and color
        hierarchies
            .enter()
@@ -1152,11 +1162,11 @@ export class Drawer {
                    return 'hierarchy-group h' + hierarchyIds[i];
                }
            })
-           .style('fill', function(d, i) {
-               return hierarchyColors['h' + hierarchyIds[i]];
+           .style('fill', (d, i)=>{
+               return this.hierarchyColors['h' + hierarchyIds[i]];
            })
-           .attr('stroke', function(d, i) {
-               return hierarchyColors['h' + hierarchyIds[i]];
+           .attr('stroke', (d, i)=>{
+               return this.hierarchyColors['h' + hierarchyIds[i]];
            })
            .moveToBack();
 
@@ -1227,9 +1237,9 @@ export class Drawer {
        // get the active dendrogram
        let id = $('.show-dendrogram.btn-primary').attr('data');
        // if data is avaiable draw hierarchy clusters and a button is active selcted
-       if (!$.isEmptyObject(networkHierarchy) && id) {
+       if (!$.isEmptyObject(this.networkHierarchy) && id) {
            // get the data and transform it
-           let treeData = networkHierarchy['h' + id][this.indexTime];
+           let treeData = this.networkHierarchy['h' + id][this.indexTime];
 
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
@@ -1426,7 +1436,7 @@ export class Drawer {
                }
            }
        }
-       if (!$.isEmptyObject(networkHierarchy)) {
+       if (!$.isEmptyObject(this.networkHierarchy)) {
            // draw the hierarchy in spatial view
            this.drawHierarchy();
        }
@@ -1439,9 +1449,9 @@ export class Drawer {
        // vars for the legend
        let legendSwatchWidth = 50;
        let legendSwatchHeight = 20;
-       console.log(Object.keys(hierarchyColors).length);
+       console.log(Object.keys(this.hierarchyColors).length);
        // Show or hide the svg element
-       if (Object.keys(hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
+       if (Object.keys(this.hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
            console.log('applys');
            $('#hierarchy-legend-div').show();
        } else {
@@ -1451,10 +1461,10 @@ export class Drawer {
        let legendData = [];
        let legendTextData = [];
        // get the required data
-       $('.show-dendrogram').each(function(i, obj) {
+       $('.show-dendrogram').each((i, obj)=>{
            // check if data is not undefined
-           if (hierarchyColors['h' + $(obj).attr('data')] != null && $(obj).attr('name') != null) {
-               legendData.push(hierarchyColors['h' + $(obj).attr('data')]);
+           if (this.hierarchyColors['h' + $(obj).attr('data')] != null && $(obj).attr('name') != null) {
+               legendData.push(this.hierarchyColors['h' + $(obj).attr('data')]);
                legendTextData.push($(obj).attr('name'));
            }
        });
@@ -1535,12 +1545,12 @@ export class Drawer {
    setHierarchyData(value, network_id) {
        // if the element is empty remove the element from the netwrokHierarchy object
        if (Object.keys(value).length === 0 && value.constructor === Object) {
-           delete networkHierarchy['h' + network_id];
+           delete this.networkHierarchy['h' + network_id];
            this.removeHierarchyLevel(network_id);
            this.removeHierarchyColor(network_id);
        } // add it to the network hierarchy
        else {
-           networkHierarchy['h' + network_id] = value;
+           this.networkHierarchy['h' + network_id] = value;
           this.setHierarchyLevel(network_id, 2);
           this.setHierarchyColor(network_id);
        } // too many elements cant be added
