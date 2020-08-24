@@ -1123,7 +1123,6 @@ export class Drawer {
            nodes = treemap(nodes);
            let root = nodes['children'][0];
            if (showNetworkHierarchy === hierarchyIds[i]) {
-                console.log('gets hlevel');
                networkHierarchyIds = this.getHierarchyLevel(root, hierarchyIds[i]);
            }
            // add the vertices into the array
@@ -1139,7 +1138,7 @@ export class Drawer {
        let hierarchies = spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
-
+       console.log(hierarchies);
        // ENTER the groups - adds a specific id and color
        hierarchies
            .enter()
