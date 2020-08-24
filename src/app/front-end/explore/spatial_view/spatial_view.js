@@ -68,7 +68,7 @@ import {
     initDendrogramLegend,
     addHierarchyButton,
     removeHierarchyButton,
-    hierarchyColors,
+    //hierarchyColors,
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
     resethierarchyGroupStdev,
@@ -198,6 +198,7 @@ export class Drawer {
      this.id = $('.show-dendrogram.btn-primary').attr('data');
      this.playBoolean = true;
      this.hierarchyLevels = {};
+
      this.hierarchyGroupStdev = {};
      this.brush = d3.brush()
          .extent([
@@ -207,6 +208,7 @@ export class Drawer {
      this.svgLegend_netw = d3.select('#hierarchy-legend-div');
      this.dendrozoom = this.zoomGroup;
      this.networkColor = {};
+     this.hierarchyColors = this.networkColor;
 
 
 
@@ -1027,16 +1029,16 @@ export class Drawer {
         // take the same color
         for (let key in this.networkColor) {
             if (key === ('h' + hierarchy)) {
-                hierarchyColors['h' + hierarchy] = this.networkColor[key];
+                this.hierarchyColors['h' + hierarchy] = this.networkColor[key];
                 return;
             }
         }
         // hierarchy is not visualized already as a network
         for (let i = 0; i < colors.length; i++) {
             let tmp_boolean = true;
-            for (let key in hierarchyColors) {
-                if (hierarchyColors.hasOwnProperty(key)) {
-                    if (hierarchyColors[key] === colors[i]) {
+            for (let key in this.hierarchyColors) {
+                if (this.hierarchyColors.hasOwnProperty(key)) {
+                    if (this.hierarchyColors[key] === colors[i]) {
                         tmp_boolean = false;
                     }
                 }
@@ -1047,12 +1049,12 @@ export class Drawer {
                 if (Object.keys(this.networkColor).length !== 0) {
                     for (let key in this.networkColor) {
                         if (this.networkColor[key] !== colors[i]) {
-                            hierarchyColors['h' + hierarchy] = colors[i];
+                            this.hierarchyColors['h' + hierarchy] = colors[i];
                             return;
                         }
                     }
                 } else {
-                    hierarchyColors['h' + hierarchy] = colors[i];
+                    this.hierarchyColors['h' + hierarchy] = colors[i];
                     return;
                 }
 
@@ -1060,7 +1062,7 @@ export class Drawer {
         }
     }
    removeHierarchyColor(hierarchy) {
-        delete hierarchyColors['h' + hierarchy];
+        delete this.hierarchyColors['h' + hierarchy];
     }
    removeHierarchyLevel(hierarchy) {
       // TODO catch cases < 0 and bigger than overall height
@@ -1151,11 +1153,11 @@ export class Drawer {
                    return 'hierarchy-group h' + hierarchyIds[i];
                }
            })
-           .style('fill', function(d, i) {
-               return hierarchyColors['h' + hierarchyIds[i]];
+           .style('fill', (d, i)=>{
+               return this.hierarchyColors['h' + hierarchyIds[i]];
            })
-           .attr('stroke', function(d, i) {
-               return hierarchyColors['h' + hierarchyIds[i]];
+           .attr('stroke', (d, i)=>{
+               return this.hierarchyColors['h' + hierarchyIds[i]];
            })
            .moveToBack();
 
@@ -1439,7 +1441,7 @@ export class Drawer {
        let legendSwatchHeight = 20;
 
        // Show or hide the svg element
-       if (Object.keys(hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
+       if (Object.keys(this.hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
            console.log('applys');
            $('#hierarchy-legend-div').show();
        } else {
@@ -1449,10 +1451,10 @@ export class Drawer {
        let legendData = [];
        let legendTextData = [];
        // get the required data
-       $('.show-dendrogram').each(function(i, obj) {
+       $('.show-dendrogram').each((i, obj)=>{
            // check if data is not undefined
-           if (hierarchyColors['h' + $(obj).attr('data')] != null && $(obj).attr('name') != null) {
-               legendData.push(hierarchyColors['h' + $(obj).attr('data')]);
+           if (this.hierarchyColors['h' + $(obj).attr('data')] != null && $(obj).attr('name') != null) {
+               legendData.push(this.hierarchyColors['h' + $(obj).attr('data')]);
                legendTextData.push($(obj).attr('name'));
            }
        });
