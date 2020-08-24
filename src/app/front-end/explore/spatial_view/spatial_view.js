@@ -1148,7 +1148,7 @@ export class Drawer {
        let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
-       console.log(hierarchyIds);
+       //console.log(hierarchyIds);
        // ENTER the groups - adds a specific id and color
        hierarchies
            .enter()
@@ -1218,6 +1218,30 @@ export class Drawer {
        hieraryHulls.exit()
            .remove();
 
+   }
+   addHighlightSpatialView(animals) {
+       console.log('highlights');
+       // points to calculate the convex hull of the highlight cluster
+       let vertices = [];
+       // iterate through the objects in the cluster
+       // get the points and highlight the animals
+       for (let i = 0; i < animals.length; i++) {
+           let tmpAnimal = this.spatialView.select('#animal-' + animals[i]);
+           let point = tmpAnimal.data()[0]['p'];
+           vertices.push([point[0], -point[1]]);
+
+           tmpAnimal.classed('animal-highlight', true);
+       }
+       // add a polygon hull in the spatial view
+       this.spatialView.append('path')
+           .attr('class', 'highlight-hierarchy')
+           .attr('d', ('M' + d3.polygonHull(vertices).join('L') + 'Z'));
+   }
+
+   removeHighlightSpatialView() {
+       // remove the coloring and the hierarchy highlight hull
+       d3.selectAll('.animal').classed('animal-highlight', false);
+       d3.selectAll('.highlight-hierarchy').remove();
    }
    drawDendrogram() {
 
@@ -1328,7 +1352,7 @@ export class Drawer {
                    })
                    // TODO find a nice function for the on click method
                    .on('click', this.click)
-                   .on('mouseover', function(d) {
+                   .on('mouseover', (d)=>{
                        // tooltip position and text
                        tooltipDiv
                            .style('left', (d3.event.pageX + 5) + 'px')
@@ -1337,14 +1361,14 @@ export class Drawer {
                        tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
                        // add highlight in the spatial view
                        // the undion of the paths makes this complicated
-                       addHighlightSpatialView(d['data']['name']);
+                       this.addHighlightSpatialView(d['data']['name']);
                    })
                    .on('mouseout', function() {
                        tooltipDiv.transition()
                            .duration(500)
                            .style('opacity', 0);
                        // remove highlight in the spatial view
-                       removeHighlightSpatialView();
+                       this.removeHighlightSpatialView();
                    });
 
                // add the text - # number of animals in the cluster
