@@ -1145,10 +1145,11 @@ export class Drawer {
        //console.log(hierarchyVertices);
        //this.spatialView = d3.select('.tank');
        // DATA Join
-       console.log(this.spatialView);
+       //console.log(this.spatialView);
        let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
+       console.log(hierarchies);
        //console.log(hierarchyIds);
        // ENTER the groups - adds a specific id and color
        hierarchies
