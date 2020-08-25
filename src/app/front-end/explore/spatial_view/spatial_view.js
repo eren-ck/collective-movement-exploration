@@ -911,7 +911,7 @@ export class Drawer {
            .size([(height - 10 * margin), (width - 10 * margin)]);
 
        // set the spatial view - needed to add the clustering to the spatial view window
-       this.spatialView = d3.select('.tank');
+       //this.spatialView = d3.select('.tank');
 
        // init dendrogram slider
        // initialize the Network slider
@@ -1143,8 +1143,9 @@ export class Drawer {
 
        }
        //console.log(hierarchyVertices);
-       this.spatialView = d3.select('.tank');
+       //this.spatialView = d3.select('.tank');
        // DATA Join
+       console.log(this.spatialView);
        let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
