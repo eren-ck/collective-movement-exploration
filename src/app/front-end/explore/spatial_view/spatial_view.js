@@ -143,9 +143,23 @@ export let zoomFunction;
  */
 export class Drawer {
    constructor(){
+     this.minPoint = parameters['min']['geometry']['coordinates'];
+     this.maxPoint = parameters['max']['geometry']['coordinates'];
+     // let coordinateOrigin = parameters['coordinate_origin']['geometry']['coordinates'];
+     // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
+     this.tankWidth = (this.maxPoint[0] - this.minPoint[0]) * 1.02;
+     this.tankHeight = (this.maxPoint[1] - this.minPoint[1]) * 1.02;
      this.indexTime=0;
      // Tank Base
      this.svgContainer = d3.select('#main-vis')
+     .classed('svg-container', true)
+     // to make it responsive with css
+     .append('svg')
+     .attr('preserveAspectRatio', 'xMinYMin meet')
+     .attr('viewBox', '0 0 ' + this.tankWidth + ' ' + this.tankHeight)
+     // add the class svg-content
+     .classed('svg-content', true)
+     .attr('id', 'main-vis-svg')
 
 
      this.zoom = d3.zoom()
@@ -166,6 +180,7 @@ export class Drawer {
              gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
              gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
          });
+
      this.zoomGroup = this.svgContainer.append('svg:g');
      this.tank = this.zoomGroup.append('svg:g')
                .attr('class', 'tank')
@@ -1145,11 +1160,11 @@ export class Drawer {
        //console.log(hierarchyVertices);
        //this.spatialView = d3.select('.tank');
        // DATA Join
-       //console.log(this.spatialView);
+       console.log(this.spatialView);
        let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
-       console.log(hierarchies);
+       //console.log(hierarchies);
        //console.log(hierarchyIds);
        // ENTER the groups - adds a specific id and color
        hierarchies
