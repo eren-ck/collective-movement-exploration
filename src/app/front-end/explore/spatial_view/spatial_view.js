@@ -226,6 +226,13 @@ export class Drawer {
      this.hierarchyColors = {};
      this.networkHierarchy = networkHierarchy;
      this.spatialView = d3.select('.tank');
+     this.tooltipDiv = d3.select('#dendrogram-tooltip')
+         .style('left', 0 + 'px')
+         .style('top', 0 + 'px')
+         .on('mouseover', ()=>{
+             this.tooltipDiv
+                 .style('opacity', 1);
+         });
 
 
 
@@ -540,7 +547,6 @@ export class Drawer {
                var triangulation;
                if ($('#draw-triangulation')
                    .is(':checked')) {
-                   //console.log([swarmData[this.indexTime]['triangulation']]);
                    triangulation = this.tank.select('#delaunay-triangulation-group')
                        .selectAll('path.delaunay-triangulation')
                        .data([swarmData[this.indexTime]['triangulation']]);
@@ -569,9 +575,7 @@ export class Drawer {
                var voronoi;
                if ($('#draw-voronoi')
                    .is(':checked')) {
-                   //console.log(this.indexTime);
-                   //console.log('ho');
-                   //console.log([swarmData[this.indexTime]['voronoi']]);
+
 
                 //append the group for the voronoi paths
                 // This is a workaround to avoid voronoi stopping at split if empty value.
@@ -588,7 +592,6 @@ export class Drawer {
                        .data(swarmData[this.indexTime]['voronoi'].split(';'));
                 }
 
-                   //console.log(swarmData[this.indexTime]['voronoi']);
 
                    // UPDATE - voronoi
                    voronoi
@@ -664,7 +667,6 @@ export class Drawer {
                        return -d['p'][1];
                    })
                    .attr('r', animalScale);
-                //console.log(svgAnimals.select('circle'));
                // Append for each group the arrow, needed for coloring
                animalGroupings.append('svg:defs')
                    .append('svg:marker')
@@ -875,8 +877,6 @@ export class Drawer {
                    this.draw();
                } else if (this.playBoolean) {
                    //measure execution time
-                   //   let t1 = performance.now();
-                   //   console.log(t1 - t0); // in milliseconds
                    this.draw();
                }
            },
@@ -952,15 +952,8 @@ export class Drawer {
                    }
                }
            });
-       let tooltipDiv;
        // init the tooltip for the dendrogram
-       tooltipDiv = d3.select('#dendrogram-tooltip')
-           .style('left', 0 + 'px')
-           .style('top', 0 + 'px')
-           .on('mouseover', function() {
-               tooltipDiv
-                   .style('opacity', 1);
-           });
+
        // init the hierarchy legend
        let legendWidth = maxNumberHierarchies * 100;
        let legendHeight = 60;
@@ -1044,16 +1037,13 @@ export class Drawer {
    setHierarchyColor(hierarchy) {
         // check if the hierarchy is already shown as network
         // take the same color
-        console.log('sets color');
         for (let key in this.networkColor) {
             if (key === ('h' + hierarchy)) {
-                console.log('same color');
                 this.hierarchyColors['h' + hierarchy] = this.networkColor[key];
                 return;
             }
 
         }
-        console.log(this.hierarchyColors);
         // hierarchy is not visualized already as a network
         for (let i = 0; i < colors.length; i++) {
             let tmp_boolean = true;
@@ -1121,8 +1111,6 @@ export class Drawer {
        return result;
    }
    drawHierarchy() {
-      console.log('hierarchy drawn');
-
        // id of the hierarchy e.g. [1,5,3]
        let hierarchyIds = Object.keys(this.networkHierarchy).map(function(x) {
            return x.replace('h', '');
@@ -1133,7 +1121,6 @@ export class Drawer {
        // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
        for (let i = 0; i < hierarchyIds.length; i++) {
            let treeData = this.networkHierarchy['h' + hierarchyIds[i]][this.indexTime];
-           //console.log(treeData);
            let nodes = d3.hierarchy(treeData, function(d) {
                return d.children;
            });
@@ -1157,15 +1144,10 @@ export class Drawer {
        if (hierarchyVertices.length > 0) {
 
        }
-       //console.log(hierarchyVertices);
-       //this.spatialView = d3.select('.tank');
        // DATA Join
-       console.log(this.spatialView);
        let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
            .data(hierarchyVertices);
-       //console.log(hierarchies);
-       //console.log(hierarchyIds);
        // ENTER the groups - adds a specific id and color
        hierarchies
            .enter()
@@ -1237,7 +1219,6 @@ export class Drawer {
 
    }
    addHighlightSpatialView(animals) {
-       console.log('highlights');
        // points to calculate the convex hull of the highlight cluster
        let vertices = [];
        // iterate through the objects in the cluster
@@ -1264,8 +1245,6 @@ export class Drawer {
 
 
          var collapse = (d)=>{
-          //console.log(this.hierarchyLevels);
-          //console.log(d.children);
           //if (d.children && d.depth <= this.hierarchyLevels['h' + this.id])
           if (d.children && d.depth <= 2) {
               d._children = d.children;
@@ -1302,11 +1281,8 @@ export class Drawer {
 
            // maps the node data to the tree layout
            nodes = treemap(nodes);
-           //console.log(nodes);
-
            // hide if no network is choosen
            if ($('.show-dendrogram.btn-primary').length) {
-              //console.log(hierarchyLevels);
                // set the new slider max
                $('#dendrogram-panel-level-slider')
                    .slider('option', 'max', (nodes['height'] - 1))
@@ -1371,17 +1347,17 @@ export class Drawer {
                    .on('click', this.click)
                    .on('mouseover', (d)=>{
                        // tooltip position and text
-                       tooltipDiv
+                       this.tooltipDiv
                            .style('left', (d3.event.pageX + 5) + 'px')
                            .style('top', (d3.event.pageY + 5) + 'px')
                            .style('opacity', 1);
-                       tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
+                       this.tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
                        // add highlight in the spatial view
                        // the undion of the paths makes this complicated
                        this.addHighlightSpatialView(d['data']['name']);
                    })
-                   .on('mouseout', function() {
-                       tooltipDiv.transition()
+                   .on('mouseout', ()=>{
+                       this.tooltipDiv.transition()
                            .duration(500)
                            .style('opacity', 0);
                        // remove highlight in the spatial view
@@ -1419,8 +1395,6 @@ export class Drawer {
                    })
                    .attr('class', (d)=> {
                        if (d['depth'] === this.hierarchyLevels['h' + id]) {
-                           // console.log('active-level');
-                           // console.log(('h' + d['data']['name'].toString().hashCode()));
                            return 'active-level';
                        } else {
                            return '';
@@ -1439,10 +1413,8 @@ export class Drawer {
                // EXIT
                node.exit()
                    .remove();
-              //console.log(hierarchyGroupStdev);
                // color the dendrogram nodes using the standardDeviation in the cluster
                if (Object.keys(this.hierarchyGroupStdev).length) {
-                   console.log('runs');
                    // show the legend for the coloring
                    // console.log(hierarchyGroupStdev);
                    // TODO legend here
@@ -1490,10 +1462,8 @@ export class Drawer {
        // vars for the legend
        let legendSwatchWidth = 50;
        let legendSwatchHeight = 20;
-       console.log(Object.keys(this.hierarchyColors).length);
        // Show or hide the svg element
        if (Object.keys(this.hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
-           console.log('applys');
            $('#hierarchy-legend-div').show();
        } else {
            $('#hierarchy-legend-div').hide();
@@ -1577,7 +1547,6 @@ export class Drawer {
        if (network_id >= 0) {
            this.networkColor['h' + network_id] = '#08306b';
        } else {
-           console.log('color nothing');
            this.networkColor = {};
        }
        this.changeHierarchyLegend();
@@ -1692,7 +1661,6 @@ export class SpatialView extends Drawer{
                                // Point is in the brush
                                this.activeAnimals.push(animal['a']);
                          }})
-                         console.log(this.activeAnimals);
                          //setActiveAnimals(activeAnimals);
 
 
@@ -1944,15 +1912,11 @@ export class SpatialView extends Drawer{
       $('#draw-voronoi').click(()=>{
           if ($('#draw-voronoi').is(':checked')) {
               if (!('voronoi' in swarmData[0])) {
-                  //console.log('ere');
                   getSwarmDatasetFeature('voronoi');
-                  //console.log(swarmData[this.indexTime]['voronoi']);
-
               }
               if (!$('#play-button').hasClass('active')) {
                   //go back one second and draw the next frame
                   //this applys the changes
-                  //console.log('there');
                   this.decIndexTime();
                   //this.draw();
               }
@@ -2041,21 +2005,18 @@ export class SpatialView extends Drawer{
           $('.draw-details').hide()
               .find('input:checkbox').prop('checked', true).click();
           if ($('#draw-distance_centroid').is(':checked')) {
-              console.log('checked');
               // load absolute feature distance_centroid data once
               if (!('distance_centroid' in dataset[0])) {
                   disablePlayButton();
                   // ajax query to get the absolute feature distance_centroid
                   getDatasetFeature('distance_centroid');
               }
-              console.log(dataset);
               $('#draw-distance_centroid-details').show();
               $('#draw-speed').prop('checked', false);
               $('#draw-acceleration').prop('checked', false);
               $('#draw-midline_offset').prop('checked', false);
               this.setActiveScale('distance_centroid');
           } else {
-            console.log('black');
               $('#draw-distance_centroid-details').hide();
               this.setActiveScale('black');
 
@@ -2263,12 +2224,10 @@ export class SpatialView extends Drawer{
 
       // Use checkbox to draw dendrogram
       $('.hiearchy-checkbox').on('change', ()=>{
-          console.log('jumps');
 
           let id = checkbox.attr('data');
           let name = checkbox.attr('name');
           let checked = checkbox.prop('checked');
-          console.log(checked);
 
           if (checked && $('.show-dendrogram').length < maxNumberHierarchies) {
               disablePlayButton();
