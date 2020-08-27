@@ -211,7 +211,7 @@ export class Drawer {
      this.arrayAnimals = dataset.filter((d)=>{
          return d['t'] === this.indexTime;
      });// array of animals for the specific time frame
-     this.id = $('.show-dendrogram.btn-primary').attr('data');
+     //this.id = $('.show-dendrogram.btn-primary').attr('data');
      this.playBoolean = true;
      this.hierarchyLevels = {};
      this.hierarchyGroupStdev = {};
@@ -1224,6 +1224,7 @@ export class Drawer {
        // iterate through the objects in the cluster
        // get the points and highlight the animals
        for (let i = 0; i < animals.length; i++) {
+           console.log(this.spatialView.select('#animal-' + animals[i]));
            let tmpAnimal = this.spatialView.select('#animal-' + animals[i]);
            let point = tmpAnimal.data()[0]['p'];
            vertices.push([point[0], -point[1]]);
@@ -1245,8 +1246,9 @@ export class Drawer {
 
 
          var collapse = (d)=>{
+           let id = $('.show-dendrogram.btn-primary').attr('data');
           //if (d.children && d.depth <= this.hierarchyLevels['h' + this.id])
-          if (d.children && d.depth <= 2) {
+          if (d.children && d.depth <= this.hierarchyLevels['h' + id]) {
               d._children = d.children;
               d._children.forEach(collapse);
           } else {
@@ -1437,7 +1439,7 @@ export class Drawer {
                                    // console.log('hello');
                                    // console.log(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
                                    return standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
-                               } else if (d['depth'] !== hierarchyLevels['h' +this.id]) {
+                               } else if (d['depth'] !== this.hierarchyLevels['h' +id]) {
                                    return '';
                                } else {
                                    return '#000';
