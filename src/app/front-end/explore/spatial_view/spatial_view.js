@@ -1223,7 +1223,9 @@ export class Drawer {
        let vertices = [];
        // iterate through the objects in the cluster
        // get the points and highlight the animals
+       console.log(this.spatialView);
        for (let i = 0; i < animals.length; i++) {
+
            //console.log(this.spatialView.select('#animal-' + animals[i]));
            let tmpAnimal = this.spatialView.select('#animal-' + animals[i]);
            console.log(tmpAnimal);
