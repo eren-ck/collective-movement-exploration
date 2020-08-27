@@ -69,10 +69,7 @@ import {
     addHierarchyButton,
     removeHierarchyButton,
     //hierarchyColors,
-<<<<<<< HEAD
-=======
     colors,
->>>>>>> final_steps
     // networkHierarchyIds,
     // sethierarchyGroupStdev,
     resethierarchyGroupStdev,
@@ -227,9 +224,6 @@ export class Drawer {
      this.svgLegend_netw = d3.select('#hierarchy-legend-div');
      this.dendrozoom = this.zoomGroup;
      this.networkColor = {};
-<<<<<<< HEAD
-     this.hierarchyColors = 'empty';
-=======
      this.hierarchyColors = {};
      this.networkHierarchy = networkHierarchy;
      this.spatialView = d3.select('.tank');
@@ -240,7 +234,6 @@ export class Drawer {
              this.tooltipDiv
                  .style('opacity', 1);
          });
->>>>>>> final_steps
 
 
 
@@ -1056,10 +1049,7 @@ export class Drawer {
         for (let i = 0; i < colors.length; i++) {
             let tmp_boolean = true;
             for (let key in this.hierarchyColors) {
-<<<<<<< HEAD
-=======
 
->>>>>>> final_steps
                 if (this.hierarchyColors.hasOwnProperty(key)) {
                     if (this.hierarchyColors[key] === colors[i]) {
                         tmp_boolean = false;
@@ -1155,12 +1145,6 @@ export class Drawer {
        if (hierarchyVertices.length > 0) {
 
        }
-<<<<<<< HEAD
-       let spatialView = d3.select('.tank');
-
-
-=======
->>>>>>> final_steps
        // DATA Join
        let hierarchies = this.spatialView
            .selectAll('g.hierarchy-group')
@@ -1485,10 +1469,6 @@ export class Drawer {
        let legendSwatchHeight = 20;
        // Show or hide the svg element
        if (Object.keys(this.hierarchyColors).length !== 0 || Object.keys(this.networkColor).length !== 0) {
-<<<<<<< HEAD
-           console.log('applys');
-=======
->>>>>>> final_steps
            $('#hierarchy-legend-div').show();
        } else {
            $('#hierarchy-legend-div').hide();
