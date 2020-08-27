@@ -509,10 +509,7 @@ export function setHierarchyLevel(hierarchy, level) {
  * Remove the entry for the hierarch level
  * @param {number} hierarchy - Hierarchy
  */
-export function removeHierarchyLevel(hierarchy) {
-    // TODO catch cases < 0 and bigger than overall height
-    delete hierarchyLevels['h' + hierarchy];
-}
+
 
 /**
  * Set the active color for a specific dendrogram
