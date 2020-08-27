@@ -1224,13 +1224,9 @@ export class Drawer {
        let spatialView = d3.select('.tank');
        // iterate through the objects in the cluster
        // get the points and highlight the animals
-       console.log(this.spatialView);
-       console.log(animals.length);
        for (let i = 0; i < animals.length; i++) {
-           console.log(i);
            //console.log(this.spatialView.select('#animal-' + animals[i]));
-           let tmpAnimal = spatialView.select('#animal-' + animals[i]);
-           console.log(tmpAnimal);
+           let tmpAnimal = d3.select('#animal-' + animals[i]);
            let point = tmpAnimal.data()[0]['p'];
            vertices.push([point[0], -point[1]]);
 
