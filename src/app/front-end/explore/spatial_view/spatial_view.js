@@ -1224,8 +1224,9 @@ export class Drawer {
        // iterate through the objects in the cluster
        // get the points and highlight the animals
        for (let i = 0; i < animals.length; i++) {
-           console.log(this.spatialView.select('#animal-' + animals[i]));
+           //console.log(this.spatialView.select('#animal-' + animals[i]));
            let tmpAnimal = this.spatialView.select('#animal-' + animals[i]);
+           console.log(tmpAnimal);
            let point = tmpAnimal.data()[0]['p'];
            vertices.push([point[0], -point[1]]);
 
@@ -1354,6 +1355,7 @@ export class Drawer {
                            .style('top', (d3.event.pageY + 5) + 'px')
                            .style('opacity', 1);
                        this.tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
+                       console.log(d['data']['name']);
                        // add highlight in the spatial view
                        // the undion of the paths makes this complicated
                        this.addHighlightSpatialView(d['data']['name']);
