@@ -2416,7 +2416,7 @@ export class SpatialView extends Drawer{
       let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
       $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
-      this.zoomGroup = this.svgContainer.append('svg:g');
+      //this.zoomGroup = this.svgContainer.append('svg:g');
 
       // Visualize the background image if it is uploaded
       if (parameters.background_image) {
