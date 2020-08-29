@@ -115,7 +115,24 @@ let y;
 //export let zoomFunction;
 
 
+let zoom = d3.zoom()
+    .scaleExtent([1, 6])
+    .on('zoom', ()=>{
+        //constrained zooming
+        // modify the translate so that it never exits the tank
+        d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
+            Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
 
+        d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
+            Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+
+        // translate and scale
+        this.zoomGroup.attr('transform', d3.event.transform);
+
+        // rescale the axis
+        gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+        gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
+    });
 
 
 /**
@@ -1344,7 +1361,6 @@ export class Drawer {
                            .style('top', (d3.event.pageY + 5) + 'px')
                            .style('opacity', 1);
                        this.tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
-                       console.log(d['data']['name']);
                        // add highlight in the spatial view
                        // the undion of the paths makes this complicated
                        this.addHighlightSpatialView(d['data']['name']);
