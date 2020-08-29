@@ -905,7 +905,6 @@ export class SpatialView extends Drawer{
       let zoom = d3.zoom()
           .scaleExtent([1, 6])
           .on('zoom', () => {
-              console.log('zooms');
               //constrained zooming
               // modify the translate so that it never exits the tank
               d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),

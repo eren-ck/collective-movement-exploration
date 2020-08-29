@@ -163,7 +163,7 @@ export class LineChart extends Chart {
               [this.lineChartWidth, lineChartHeight]
           ])
           .on('zoom', ()=>{
-              console.log('zooms');
+              //console.log('zooms');
               // get the transform factor
               let t = d3.event.transform;
               // change scaling function
