@@ -163,6 +163,7 @@ export class Drawer {
      .attr('id', 'main-vis-svg')
 
 
+
      this.zoom = d3.zoom()
          .scaleExtent([1, 6])
          .on('zoom', ()=>{
@@ -982,14 +983,7 @@ export class Drawer {
            .style('fill', '#67000d');
 
    };
-   click(d) {
-       setActiveAnimals(d['data']['name']);
-       // if no animation is active draw the draw one step
-       if (!$('#play-button').hasClass('active')) {
-           this.decIndexTime();
-           this.draw();
-       }
-   }
+
    sethierarchyGroupStdev(key, value) {
        if (key in this.hierarchyGroupStdev) {
            this.hierarchyGroupStdev[key].push(value);
@@ -1350,7 +1344,13 @@ export class Drawer {
                        return 'h' + d['data']['name'].toString().hashCode();
                    })
                    // TODO find a nice function for the on click method
-                   .on('click', this.click)
+                   .on('click', (d)=>{
+                          this.setActiveAnimals(d['data']['name']);
+                          // if no animation is active draw the draw one step
+                          if (!$('#play-button').hasClass('active')) {
+                              this.decIndexTime();
+                              this.draw();
+                          }})
                    .on('mouseover', (d)=>{
                        // tooltip position and text
                        this.tooltipDiv
@@ -1603,9 +1603,8 @@ export class Drawer {
 
 
 export class SpatialView extends Drawer{
-  constructor(data){
-    super(data);
-
+  constructor(){
+    super();
 
     this.spatialViewInit();
     //this.cp_listener();
@@ -2392,6 +2391,7 @@ export class SpatialView extends Drawer{
       let zoom = d3.zoom()
           .scaleExtent([1, 6])
           .on('zoom', () => {
+              console.log('zooms');
               //constrained zooming
               // modify the translate so that it never exits the tank
               d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
@@ -2409,16 +2409,8 @@ export class SpatialView extends Drawer{
           });
 
       //the svg container
-      this.svgContainer = d3.select('#main-vis')
-            .classed('svg-container', true)
-            // to make it responsive with css
-            .append('svg')
-            .attr('preserveAspectRatio', 'xMinYMin meet')
-            .attr('viewBox', '0 0 ' + this.tankWidth + ' ' + this.tankHeight)
-            // add the class svg-content
-            .classed('svg-content', true)
-            .attr('id', 'main-vis-svg')
-            .call(zoom);
+
+
 
       /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
       let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
@@ -2662,6 +2654,7 @@ export class LineChart extends Chart {
               [this.lineChartWidth, lineChartHeight]
           ])
           .on('zoom', ()=>{
+              console.log('zooms');
               // get the transform factor
               let t = d3.event.transform;
               // change scaling function
