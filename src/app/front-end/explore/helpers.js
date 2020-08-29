@@ -3,8 +3,7 @@
 // import * as spv from './spatial_view.js';
 
 import {
-    draw,
-    TrendChart
+    draw
 } from './spatial_view/spatial_view.js';
 
 import {
@@ -15,6 +14,10 @@ import {
 import {
     swarmData
 } from './explore.js';
+
+import {
+    TrendChart
+} from './line_chart.js'
 /**
  * Disable the play button --> Loading symbol
  */
