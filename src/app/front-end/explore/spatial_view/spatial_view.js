@@ -19,7 +19,8 @@ import {
     setNetworLimit,
     networkLimit,
     showNetworkHierarchy,
-    setnetworkColor
+    setnetworkColor,
+    //setNetworkID
     // networkID,
     // networkBackground,
     // networkBackgroundLimit
@@ -234,6 +235,7 @@ export class Drawer {
              this.tooltipDiv
                  .style('opacity', 1);
          });
+     this.networkID = -1
 
 
 
@@ -1591,6 +1593,10 @@ export class Drawer {
        });
    }
 
+   setNetworkID(value) {
+       this.networkID = value;
+   }
+
 
 
  }
@@ -2324,7 +2330,7 @@ export class SpatialView extends Drawer{
      */
     $('#network-remove').click(()=>{
         setNetworkData({});
-        setNetworkID(-1);
+        this.setNetworkID(-1);
         // remove the network color
         this.setnetworkColor(-1);
         $('#active-network-name').text('');
