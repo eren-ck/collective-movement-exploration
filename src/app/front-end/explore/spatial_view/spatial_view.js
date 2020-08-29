@@ -902,24 +902,6 @@ export class SpatialView extends Drawer{
 
       // ZOOMING AND PANNING STUFF
 
-      let zoom = d3.zoom()
-          .scaleExtent([1, 6])
-          .on('zoom', () => {
-              //constrained zooming
-              // modify the translate so that it never exits the tank
-              d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
-                  Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
-
-              d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
-                  Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
-
-              // translate and scale
-              this.zoomGroup.attr('transform', d3.event.transform);
-
-              // rescale the axis
-              gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
-              gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
-          });
 
       //the svg container
 
@@ -929,7 +911,7 @@ export class SpatialView extends Drawer{
       let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
       $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
 
-      this.zoomGroup = this.svgContainer.append('svg:g');
+      //this.zoomGroup = this.svgContainer.append('svg:g');
 
       // Visualize the background image if it is uploaded
       if (parameters.background_image) {
@@ -999,14 +981,7 @@ export class SpatialView extends Drawer{
           .attr('y', 30)
           .text('-- : -- : -- ');
 
-      // add the axis
-      let gXaxis = this.svgContainer.append('g')
-          .attr('class', 'x axis')
-          .call(xAxis);
 
-      let gYaxis = this.svgContainer.append('g')
-          .attr('class', 'y axis')
-          .call(yAxis);
 
       // init stuff from other modules
       initTooltip();

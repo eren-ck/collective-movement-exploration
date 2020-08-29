@@ -101,6 +101,8 @@ import {
     zoomFunction
 } from '../line_chart.js'
 
+
+
 // Drawer Setup
 
 
@@ -114,25 +116,6 @@ let x;
 let y;
 //export let zoomFunction;
 
-
-let zoom = d3.zoom()
-    .scaleExtent([1, 6])
-    .on('zoom', ()=>{
-        //constrained zooming
-        // modify the translate so that it never exits the tank
-        d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
-            Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
-
-        d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
-            Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
-
-        // translate and scale
-        this.zoomGroup.attr('transform', d3.event.transform);
-
-        // rescale the axis
-        gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
-        gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
-    });
 
 
 /**
@@ -151,6 +134,24 @@ export class Drawer {
      // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
      this.tankWidth = (this.maxPoint[0] - this.minPoint[0]) * 1.02;
      this.tankHeight = (this.maxPoint[1] - this.minPoint[1]) * 1.02;
+
+     this.x = d3.scaleLinear()
+         .domain([this.minPoint[0], this.maxPoint[0]])
+         .range([this.minPoint[0], this.maxPoint[0]]);
+
+     this.xAxis = d3.axisBottom(this.x)
+         .ticks(10)
+         .tickSize(10)
+         .tickPadding(5);
+
+     this.y = d3.scaleLinear()
+         .domain([this.minPoint[1], this.maxPoint[1]])
+         .range([this.minPoint[1], this.maxPoint[1]]);
+
+     this.yAxis = d3.axisRight(this.y)
+         .ticks(7)
+         .tickSize(10)
+         .tickPadding(5);
      this.indexTime=0;
      // Tank Base
      this.svgContainer = d3.select('#main-vis')
@@ -162,9 +163,32 @@ export class Drawer {
      // add the class svg-content
      .classed('svg-content', true)
      .attr('id', 'main-vis-svg')
-     .call(d3.zoom().on('zoom', ()=>{console.log('hi')}));
-     // this is where I cannot place the zoom function
+     .call(d3.zoom()
+         .scaleExtent([1, 6])
+         .on('zoom', ()=>{
+             //constrained zooming
+             // modify the translate so that it never exits the tank
+             d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
+                 Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
 
+             d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
+                 Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+
+             // translate and scale
+             this.zoomGroup.attr('transform', d3.event.transform);
+
+             // rescale the axis
+             this.gXaxis.call(this.xAxis.scale(d3.event.transform.rescaleX(this.x)));
+             this.gYaxis.call(this.yAxis.scale(d3.event.transform.rescaleY(this.y)));
+         }));
+     // this is where I cannot place the zoom function
+     this.gXaxis = this.svgContainer.append('g')
+         .attr('class', 'x axis')
+         .call(this.xAxis);
+
+     this.gYaxis = this.svgContainer.append('g')
+         .attr('class', 'y axis')
+         .call(this.yAxis);
 
 
      this.zoom = d3.zoom()
