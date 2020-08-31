@@ -165,7 +165,8 @@ export class Drawer {
      .attr('id', 'main-vis-svg')
      .call(d3.zoom()
          .scaleExtent([1, 6])
-         .on('zoom', ()=>{
+         .on('zoom', () => {
+            console.log('hello');
              //constrained zooming
              // modify the translate so that it never exits the tank
              d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
@@ -180,7 +181,8 @@ export class Drawer {
              // rescale the axis
              this.gXaxis.call(this.xAxis.scale(d3.event.transform.rescaleX(this.x)));
              this.gYaxis.call(this.yAxis.scale(d3.event.transform.rescaleY(this.y)));
-         }));
+         }))
+
      // this is where I cannot place the zoom function
      this.gXaxis = this.svgContainer.append('g')
          .attr('class', 'x axis')
@@ -190,25 +192,6 @@ export class Drawer {
          .attr('class', 'y axis')
          .call(this.yAxis);
 
-
-     this.zoom = d3.zoom()
-         .scaleExtent([1, 6])
-         .on('zoom', ()=>{
-             //constrained zooming
-             // modify the translate so that it never exits the tank
-             d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
-                 Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
-
-             d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
-                 Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
-
-             // translate and scale
-             this.zoomGroup.attr('transform', d3.event.transform);
-
-             // rescale the axis
-             gXaxis.call(xAxis.scale(d3.event.transform.rescaleX(x)));
-             gYaxis.call(yAxis.scale(d3.event.transform.rescaleY(y)));
-         });
 
      this.zoomGroup = this.svgContainer.append('svg:g');
      this.tank = this.zoomGroup.append('svg:g')
@@ -978,7 +961,7 @@ export class Drawer {
                        //go back one second and draw the next frame
                        //this applys the changes
                        this.decIndexTime();
-                       this.draw();
+                       //this.draw();
                        this.drawDendrogram();
                    }
                }
@@ -1623,6 +1606,143 @@ export class Drawer {
 
    setNetworkID(value) {
        this.networkID = value;
+   }
+
+   firststeps(){
+          console.log('firststeps');
+
+           let minPoint = parameters['min']['geometry']['coordinates'];
+           let maxPoint = parameters['max']['geometry']['coordinates'];
+           // let coordinateOrigin = parameters['coordinate_origin']['geometry']['coordinates'];
+           // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
+           this.tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
+           this.tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
+           //X and Y axis
+           let x = d3.scaleLinear()
+               .domain([minPoint[0], maxPoint[0]])
+               .range([minPoint[0], maxPoint[0]]);
+
+           let xAxis = d3.axisBottom(x)
+               .ticks(10)
+               .tickSize(10)
+               .tickPadding(5);
+
+           let y = d3.scaleLinear()
+               .domain([minPoint[1], maxPoint[1]])
+               .range([minPoint[1], maxPoint[1]]);
+
+           let yAxis = d3.axisRight(y)
+               .ticks(7)
+               .tickSize(10)
+               .tickPadding(5);
+
+           // ZOOMING AND PANNING STUFF
+
+
+           //the svg container
+
+           let zoom = d3.zoom()
+               .scaleExtent([1, 6])
+               .on('zoom', () => {
+                  console.log('hello');
+                   //constrained zooming
+                   // modify the translate so that it never exits the tank
+                   d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
+                       Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
+
+                   d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
+                       Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
+
+                   // translate and scale
+                   this.zoomGroup.attr('transform', d3.event.transform);
+
+                   // rescale the axis
+                   gXaxis.call(this.xAxis.scale(d3.event.transform.rescaleX(this.x)));
+                   gYaxis.call(this.yAxis.scale(d3.event.transform.rescaleY(this.y)));
+               });
+
+           //the svg container
+           this.svgContainer = this.svgContainer
+                 .call(zoom);
+
+           this.zoomGroup = this.svgContainer.append('svg:g');
+
+           /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
+           let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
+           $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
+
+           //this.zoomGroup = this.svgContainer.append('svg:g');
+
+           // Visualize the background image if it is uploaded
+           if (parameters.background_image) {
+               this.zoomGroup
+                   .append('image')
+                   .attr('xlink:href', '/' + parameters.background_image)
+                   .attr('class', 'background-image')
+                   .attr('height', this.tankHeight)
+                   .attr('width', this.tankWidth)
+                   .attr('x', '0')
+                   .attr('y', '0');
+           }
+
+           //append the tank group with a transformation which rotates the y axis
+           this.tank = this.zoomGroup.append('svg:g')
+               .attr('class', 'tank')
+               .attr('transform', ()=>{
+                   let x = parameters.inverted_x ? -1 : 1;
+                   let y = parameters.inverted_y ? -1 : 1;
+                   return 'scale(' + x + ',' + y + ')';
+               });
+
+           //add the centroid
+           this.tank.append('g')
+               .attr('id', 'g-centroid')
+               .append('circle')
+               .attr('class', 'centroid')
+               .attr('r', 6)
+               .attr('cx', 0)
+               .attr('cy', 0);
+
+           // arrow for the centroid direction
+           this.tank.select('#g-centroid')
+               .append('svg:defs')
+               .append('svg:marker')
+               .attr('id', 'centroid-arrow')
+               .attr('refX', 2)
+               .attr('refY', 6)
+               .attr('markerWidth', 13)
+               .attr('markerHeight', 13)
+               .attr('orient', 'auto')
+               .append('svg:path')
+               .attr('d', 'M2,2 L2,11 L10,6 L2,2');
+
+           // Append the line for the direction arrow
+           this.tank.select('#g-centroid')
+               .append('line')
+               .attr('id', 'centroid-line')
+               .attr('marker-end', 'url(#centroid-arrow)');
+
+           //append network  group
+           this.tank.append('g')
+               .attr('id', 'network-group');
+
+           //append delaunay-triangulation group
+           this.tank.append('g')
+               .attr('id', 'delaunay-triangulation-group');
+
+           //append voronoi group
+           this.tank.append('g')
+               .attr('id', 'vornoi-group');
+
+           //append the frame time text
+           this.svgContainer.append('text')
+               .attr('class', 'frame-text')
+               .attr('x', 30)
+               .attr('y', 30)
+               .text('-- : -- : -- ');
+
+
+
    }
 
 
