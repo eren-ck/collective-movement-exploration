@@ -176,7 +176,9 @@ export class Drawer {
                  Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
 
              // translate and scale
-             this.zoomGroup.attr('transform', d3.event.transform);
+             console.log(this);
+             console.log(this.zoomGroup.select('.tank'));
+             this.zoomGroup.select('.tank').attr('transform', d3.event.transform);
 
              // rescale the axis
              this.gXaxis.call(this.xAxis.scale(d3.event.transform.rescaleX(this.x)));
@@ -1641,31 +1643,9 @@ export class Drawer {
 
            //the svg container
 
-           let zoom = d3.zoom()
-               .scaleExtent([1, 6])
-               .on('zoom', () => {
-                  console.log('hello');
-                   //constrained zooming
-                   // modify the translate so that it never exits the tank
-                   d3.event.transform.x = Math.min(0, this.tankWidth * (d3.event.transform.k - 1),
-                       Math.max(this.tankWidth * (1 - d3.event.transform.k), d3.event.transform.x));
 
-                   d3.event.transform.y = Math.min(0, this.tankHeight * (d3.event.transform.k - 1),
-                       Math.max(this.tankHeight * (1 - d3.event.transform.k), d3.event.transform.y));
 
-                   // translate and scale
-                   this.zoomGroup.attr('transform', d3.event.transform);
-
-                   // rescale the axis
-                   gXaxis.call(this.xAxis.scale(d3.event.transform.rescaleX(this.x)));
-                   gYaxis.call(this.yAxis.scale(d3.event.transform.rescaleY(this.y)));
-               });
-
-           //the svg container
-           this.svgContainer = this.svgContainer
-                 .call(zoom);
-
-           this.zoomGroup = this.svgContainer.append('svg:g');
+           //this.zoomGroup = this.svgContainer.append('svg:g');
 
            /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
            let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
