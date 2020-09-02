@@ -33,10 +33,9 @@ let y;
 export let zoomFunction;
 
 
-class Chart extends Drawer {
+class Chart{
 
     constructor(data) {
-    super()
       // load in arguments from config object
     this.swarmData = data;
     this.swarm_features = Object.keys(this.swarmData[0]);
@@ -55,6 +54,7 @@ class Chart extends Drawer {
 export class LineChart extends Chart {
     constructor(data){
     super(data)
+    //this.zoomGroup = zoomGroup;
     this.lineChart();
 
     }

@@ -177,8 +177,8 @@ export class Drawer {
 
              // translate and scale
              console.log(this);
-             console.log(this.zoomGroup.select('.tank'));
-             this.zoomGroup.select('.tank').attr('transform', d3.event.transform);
+             //console.log(this.zoomGroup.select('.tank'));
+             this.zoomGroup.attr('transform', d3.event.transform);
 
              // rescale the axis
              this.gXaxis.call(this.xAxis.scale(d3.event.transform.rescaleX(this.x)));
@@ -1610,120 +1610,7 @@ export class Drawer {
        this.networkID = value;
    }
 
-   firststeps(){
-          console.log('firststeps');
 
-           let minPoint = parameters['min']['geometry']['coordinates'];
-           let maxPoint = parameters['max']['geometry']['coordinates'];
-           // let coordinateOrigin = parameters['coordinate_origin']['geometry']['coordinates'];
-           // width = width *1.02 --> so there is a margin in the spatial view where no animal is ever
-           this.tankWidth = (maxPoint[0] - minPoint[0]) * 1.02;
-           this.tankHeight = (maxPoint[1] - minPoint[1]) * 1.02;
-           //X and Y axis
-           let x = d3.scaleLinear()
-               .domain([minPoint[0], maxPoint[0]])
-               .range([minPoint[0], maxPoint[0]]);
-
-           let xAxis = d3.axisBottom(x)
-               .ticks(10)
-               .tickSize(10)
-               .tickPadding(5);
-
-           let y = d3.scaleLinear()
-               .domain([minPoint[1], maxPoint[1]])
-               .range([minPoint[1], maxPoint[1]]);
-
-           let yAxis = d3.axisRight(y)
-               .ticks(7)
-               .tickSize(10)
-               .tickPadding(5);
-
-           // ZOOMING AND PANNING STUFF
-
-
-           //the svg container
-
-
-
-           //this.zoomGroup = this.svgContainer.append('svg:g');
-
-           /* depends on svg ratio, for e.g 1240/1900 = 0.65 so padding-bottom = 65% */
-           let percentage = Math.ceil((this.tankHeight / this.tankWidth) * 100);
-           $('#main-vis').append($('<style>#main-vis::after {padding-top: ' + percentage + '%;display: block;content: "";}</style> '));
-
-           //this.zoomGroup = this.svgContainer.append('svg:g');
-
-           // Visualize the background image if it is uploaded
-           if (parameters.background_image) {
-               this.zoomGroup
-                   .append('image')
-                   .attr('xlink:href', '/' + parameters.background_image)
-                   .attr('class', 'background-image')
-                   .attr('height', this.tankHeight)
-                   .attr('width', this.tankWidth)
-                   .attr('x', '0')
-                   .attr('y', '0');
-           }
-
-           //append the tank group with a transformation which rotates the y axis
-           this.tank = this.zoomGroup.append('svg:g')
-               .attr('class', 'tank')
-               .attr('transform', ()=>{
-                   let x = parameters.inverted_x ? -1 : 1;
-                   let y = parameters.inverted_y ? -1 : 1;
-                   return 'scale(' + x + ',' + y + ')';
-               });
-
-           //add the centroid
-           this.tank.append('g')
-               .attr('id', 'g-centroid')
-               .append('circle')
-               .attr('class', 'centroid')
-               .attr('r', 6)
-               .attr('cx', 0)
-               .attr('cy', 0);
-
-           // arrow for the centroid direction
-           this.tank.select('#g-centroid')
-               .append('svg:defs')
-               .append('svg:marker')
-               .attr('id', 'centroid-arrow')
-               .attr('refX', 2)
-               .attr('refY', 6)
-               .attr('markerWidth', 13)
-               .attr('markerHeight', 13)
-               .attr('orient', 'auto')
-               .append('svg:path')
-               .attr('d', 'M2,2 L2,11 L10,6 L2,2');
-
-           // Append the line for the direction arrow
-           this.tank.select('#g-centroid')
-               .append('line')
-               .attr('id', 'centroid-line')
-               .attr('marker-end', 'url(#centroid-arrow)');
-
-           //append network  group
-           this.tank.append('g')
-               .attr('id', 'network-group');
-
-           //append delaunay-triangulation group
-           this.tank.append('g')
-               .attr('id', 'delaunay-triangulation-group');
-
-           //append voronoi group
-           this.tank.append('g')
-               .attr('id', 'vornoi-group');
-
-           //append the frame time text
-           this.svgContainer.append('text')
-               .attr('class', 'frame-text')
-               .attr('x', 30)
-               .attr('y', 30)
-               .text('-- : -- : -- ');
-
-
-
-   }
 
 
 
