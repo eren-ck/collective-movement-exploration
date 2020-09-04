@@ -1,5 +1,5 @@
 /*eslint-disable no-unused-lets*/
-/*global window,$, d3, PolyBool*/
+/*global window,$, d3, PolyBool, parameters, Set*/
 // import * as spv from './spatial_view.js';
 
 import {
@@ -11,20 +11,38 @@ import {
     arrayAnimals,
     setActiveAnimals,
     decIndexTime,
-    draw
-} from './spatial_view/spatial_view';
+    Drawer
+} from './spatial_view/spatial_view.js';
 
 import {
     showNetworkHierarchy,
-    networkColor
+    networkColor,
+    networkColorScale,
+    networkAuto,
+    setNetworLimit,
+    networkLimit,
 } from './network.js';
 
 import {
     standardDeviation
 } from './helpers.js';
 
-let zoomGroup; // zoom group for the specific dendrogram
-let treemap;
+import {
+    setTimeSlider,
+    initTooltip,
+    tooltipFunction,
+    initSliders,
+    tooltip
+} from './spatial_view/interaction.js';
+
+import {
+    //lineChart,
+    updateLineChart,
+    LineChart
+} from './line_chart.js';
+
+//let zoomGroup; // zoom group for the specific dendrogram
+let treemap; // beide
 let tooltipDiv;
 let spatialView; // get the spatial view svg from the main vis
 let svgLegend;
@@ -45,318 +63,139 @@ export let hierarchyGroupStdev = {};
 // TODO add more colors
 export let colors = ['#7fc97f', '#386cb0', '#e7298a', '#ff9900'];
 
+
+
+
+
+
+export class Dendrogram extends Drawer{
+  constructor(){
+    super();
+    this.initDendrogram()
+  }
+
+  initDendrogram() {
+      // constanct factors for the dendgrogram
+      let margin = 20,
+          width = 5000,
+          height = 5000;
+
+      // zoom function for the dendrogram
+      let zoom = d3.zoom()
+          .scaleExtent([1, 10])
+          .on('zoom', ()=>{
+              //constrained zooming
+              d3.event.transform.x = Math.min(0, width * (d3.event.transform.k - 1),
+                  Math.max(width * (1 - d3.event.transform.k), d3.event.transform.x));
+
+              d3.event.transform.y = Math.min(0, height * (d3.event.transform.k - 1),
+                  Math.max(height * (1 - d3.event.transform.k), d3.event.transform.y));
+
+              // translate and scale
+              this.zoomGroup.attr('transform', d3.event.transform);
+          });
+
+      // svg container for the dendrogram
+      let svg = d3.select('#dendrogram-panel')
+          .classed('svg-dendrogram-container', true)
+          .append('svg')
+          .attr('preserveAspectRatio', 'xMinYMin meet')
+          .attr('viewBox', '0 0 ' + width + ' ' + height)
+          // add the class svg-content
+          .classed('svg-content-dendrogram', true)
+          .call(zoom);
+
+      initDendrogramLegend();
+
+      // append the zoom group to the svg
+      this.zoomGroup = svg.append('g')
+          .attr('transform', 'translate(' + margin + ',' + margin + ')')
+          .append('svg:g');
+
+      // d3 tree
+      treemap = d3.tree() //d3.cluster()
+          .size([(height - 10 * margin), (width - 10 * margin)]);
+
+      // set the spatial view - needed to add the clustering to the spatial view window
+      spatialView = d3.select('.tank');
+
+      // init dendrogram slider
+      // initialize the Network slider
+      $('#dendrogram-panel-level-slider')
+          .slider({
+              range: 'max',
+              min: 2,
+              max: 2,
+              step: 1,
+              value: this.hierarchyLevels['h0'],
+              slide: (event, ui)=>{
+                  let id = $('.show-dendrogram.btn-primary').attr('data');
+                  this.setHierarchyLevel(id, ui.value);
+                  this.updateDendrogram();
+                  // if no animation is active draw the new clustering and dendrogram
+                  // drawDendrogram();
+                  if (!$('#play-button').hasClass('active')) {
+                      //go back one second and draw the next frame
+                      //this applys the changes
+                      this.decIndexTime();
+                      this.draw();
+                      this.drawDendrogram();
+                  }
+              }
+          });
+
+      // init the tooltip for the dendrogram
+      tooltipDiv = d3.select('#dendrogram-tooltip')
+          .style('left', 0 + 'px')
+          .style('top', 0 + 'px')
+          .on('mouseover', function() {
+              tooltipDiv
+                  .style('opacity', 1);
+          });
+      // init the hierarchy legend
+      let legendWidth = maxNumberHierarchies * 100;
+      let legendHeight = 60;
+
+      svgLegend = d3.select('#hierarchy-legend-div')
+          .append('svg')
+          .attr('id', 'hierarchy-legend')
+          .attr('width', legendWidth)
+          .attr('height', legendHeight);
+
+      // add pattern for striped background of intersections etc.
+      spatialView.append('defs')
+          .append('svg:pattern')
+          .attr('id', 'striped')
+          .attr('patternUnits', 'userSpaceOnUse')
+          .attr('width', '20')
+          .attr('height', '5')
+          .attr('patternTransform', 'rotate(60)')
+          .append('rect')
+          .attr('width', 5)
+          .attr('height', 10)
+          .attr('transform', 'translate(0,0)')
+          .style('fill', '#67000d');
+
+  };
+
+}
+
+
 /**
  * Initialize the dendrogram
  */
-export function initDendrogram() {
-    // constanct factors for the dendgrogram
-    let margin = 20,
-        width = 5000,
-        height = 5000;
 
-    // zoom function for the dendrogram
-    let zoom = d3.zoom()
-        .scaleExtent([1, 10])
-        .on('zoom', function() {
-            //constrained zooming
-            d3.event.transform.x = Math.min(0, width * (d3.event.transform.k - 1),
-                Math.max(width * (1 - d3.event.transform.k), d3.event.transform.x));
-
-            d3.event.transform.y = Math.min(0, height * (d3.event.transform.k - 1),
-                Math.max(height * (1 - d3.event.transform.k), d3.event.transform.y));
-
-            // translate and scale
-            zoomGroup.attr('transform', d3.event.transform);
-        });
-
-    // svg container for the dendrogram
-    let svg = d3.select('#dendrogram-panel')
-        .classed('svg-dendrogram-container', true)
-        .append('svg')
-        .attr('preserveAspectRatio', 'xMinYMin meet')
-        .attr('viewBox', '0 0 ' + width + ' ' + height)
-        // add the class svg-content
-        .classed('svg-content-dendrogram', true)
-        .call(zoom);
-
-    initDendrogramLegend();
-
-    // append the zoom group to the svg
-    zoomGroup = svg.append('g')
-        .attr('transform', 'translate(' + margin + ',' + margin + ')')
-        .append('svg:g');
-
-    // d3 tree
-    treemap = d3.tree() //d3.cluster()
-        .size([(height - 10 * margin), (width - 10 * margin)]);
-
-    // set the spatial view - needed to add the clustering to the spatial view window
-    spatialView = d3.select('.tank');
-
-    // init dendrogram slider
-    // initialize the Network slider
-    $('#dendrogram-panel-level-slider')
-        .slider({
-            range: 'max',
-            min: 2,
-            max: 2,
-            step: 1,
-            value: hierarchyLevels['h0'],
-            slide: function(event, ui) {
-                let id = $('.show-dendrogram.btn-primary').attr('data');
-                setHierarchyLevel(id, ui.value);
-                updateDendrogram();
-                // if no animation is active draw the new clustering and dendrogram
-                // drawDendrogram();
-                if (!$('#play-button').hasClass('active')) {
-                    //go back one second and draw the next frame
-                    //this applys the changes
-                    decIndexTime();
-                    draw();
-                    drawDendrogram();
-                }
-            }
-        });
-
-    // init the tooltip for the dendrogram
-    tooltipDiv = d3.select('#dendrogram-tooltip')
-        .style('left', 0 + 'px')
-        .style('top', 0 + 'px')
-        .on('mouseover', function() {
-            tooltipDiv
-                .style('opacity', 1);
-        });
-    // init the hierarchy legend
-    let legendWidth = maxNumberHierarchies * 100;
-    let legendHeight = 60;
-
-    svgLegend = d3.select('#hierarchy-legend-div')
-        .append('svg')
-        .attr('id', 'hierarchy-legend')
-        .attr('width', legendWidth)
-        .attr('height', legendHeight);
-
-    // add pattern for striped background of intersections etc.
-    spatialView.append('defs')
-        .append('svg:pattern')
-        .attr('id', 'striped')
-        .attr('patternUnits', 'userSpaceOnUse')
-        .attr('width', '20')
-        .attr('height', '5')
-        .attr('patternTransform', 'rotate(60)')
-        .append('rect')
-        .attr('width', 5)
-        .attr('height', 10)
-        .attr('transform', 'translate(0,0)')
-        .style('fill', '#67000d');
-
-}
 
 /**
  * Draw the dendgrogram for one step
  * Further calls the drawHierarchy function
  */
-export function drawDendrogram() {
-    // get the active dendrogram
-    id = $('.show-dendrogram.btn-primary').attr('data');
-    // if data is avaiable draw hierarchy clusters and a button is active selcted
-    if (!$.isEmptyObject(networkHierarchy) && id) {
-        // get the data and transform it
-        let treeData = networkHierarchy['h' + id][indexTime];
-        let nodes = d3.hierarchy(treeData, function(d) {
-            return d.children;
-        });
-        // skip the root node
-        nodes = nodes.children[0];
-        // collapse the tree
-        nodes.children.forEach(collapse);
 
-        // maps the node data to the tree layout
-        nodes = treemap(nodes);
-        console.log(nodes);
-
-        // hide if no network is choosen
-        if ($('.show-dendrogram.btn-primary').length) {
-
-            // set the new slider max
-            $('#dendrogram-panel-level-slider')
-                .slider('option', 'max', (nodes['height'] - 1))
-                .slider('value', hierarchyLevels['h' + id]);
-
-            // DATA JOIN - links (edges)
-            let link = zoomGroup
-                .selectAll('path.link')
-                .data(nodes.descendants().slice(1));
-
-            // ENTER
-            link
-                .enter()
-                .append('path')
-                .attr('class', 'link')
-                .attr('d', diagonalLines);
-
-            // Transition links to their new position.
-            link
-                .attr('d', diagonalLines);
-
-            // EXIT
-            link.exit()
-                .remove();
-
-            // DATA JOIN - nodes
-            // adds each node as a group
-            let node = zoomGroup
-                .selectAll('.node')
-                .data(nodes.descendants());
-
-            // add the groups to the dendgrogram
-            var nodeEnter = node.enter()
-                .append('g')
-                .attr('class', function(d) {
-                    return 'node' +
-                        (d.children ? ' node--internal' : ' node--leaf');
-                })
-                .attr('transform', function(d) {
-                    return 'translate(' + d.x + ',' + d.y + ')';
-                });
-
-            // ENTER - append for each group a node (circle)
-            // with highlighting for the active choosen level
-            nodeEnter.append('circle')
-                .attr('r', function(d) {
-                    if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 40 + d.data.name.length;
-                    } else {
-                        return 20 + d.data.name.length;
-                    }
-                })
-                .attr('class', function(d) {
-                    if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 'active-level';
-                    }
-                })
-                .attr('id', function(d) {
-                    return 'h' + d['data']['name'].toString().hashCode();
-                })
-                // TODO find a nice function for the on click method
-                .on('click', click)
-                .on('mouseover', function(d) {
-                    // tooltip position and text
-                    tooltipDiv
-                        .style('left', (d3.event.pageX + 5) + 'px')
-                        .style('top', (d3.event.pageY + 5) + 'px')
-                        .style('opacity', 1);
-                    tooltipDiv.select('.tooltip-span').html(d['data']['name'].toString());
-                    // add highlight in the spatial view
-                    // the undion of the paths makes this complicated
-                    addHighlightSpatialView(d['data']['name']);
-                })
-                .on('mouseout', function() {
-                    tooltipDiv.transition()
-                        .duration(500)
-                        .style('opacity', 0);
-                    // remove highlight in the spatial view
-                    removeHighlightSpatialView();
-                });
-
-            // add the text - # number of animals in the cluster
-            nodeEnter.append('text')
-                .attr('class', 'dendrogram-text')
-                .attr('x', 150)
-                .attr('y', -150)
-                .text(function(d) {
-                    return d.data.name.length;
-                });
-
-            // UPDATE -- update the groups
-            nodeEnter
-                .attr('transform', function(d) {
-                    return 'translate(' + d.x + ',' + d.y + ')';
-                });
-
-            // updae the node and circles
-            // with active-level function to highlight which level is chosen
-            node
-                .attr('transform', function(d) {
-                    return 'translate(' + d.x + ',' + d.y + ')';
-                })
-                .select('circle')
-                .attr('r', function(d) {
-                    if (d['depth'] === hierarchyLevels['h' + id]) {
-                        return 40 + d.data.name.length;
-                    } else {
-                        return 20 + d.data.name.length;
-                    }
-                })
-                .attr('class', function(d) {
-                    if (d['depth'] === hierarchyLevels['h' + id]) {
-                        // console.log('active-level');
-                        // console.log(('h' + d['data']['name'].toString().hashCode()));
-                        return 'active-level';
-                    } else {
-                        return '';
-                    }
-                })
-                .attr('id', function(d) {
-                    return 'h' + d['data']['name'].toString().hashCode();
-                });
-
-            // update the text of number of entities
-            node.select('text')
-                .text(function(d) {
-                    return d.data.name.length;
-                });
-
-            // EXIT
-            node.exit()
-                .remove();
-
-            // color the dendrogram nodes using the standardDeviation in the cluster
-            if (Object.keys(hierarchyGroupStdev).length) {
-                // show the legend for the coloring
-                // console.log(hierarchyGroupStdev);
-                // TODO legend here
-                // console.log('JUMPS HERE');
-                if ($('#dendrogram-legend').css('display') == 'none') {
-                    $('#dendrogram-legend').show();
-                }
-                // IMPORTANT - async problems
-                // TODO solve this - very slow
-                setTimeout(function() {
-                    node.select('circle')
-                        .style('fill', function(d) {
-                            // console.log(hierarchyGroupStdev);
-                            // console.log(('h' + d['data']['name'].toString().hashCode()));
-                            // console.log(('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev)
-                            // color the nodes by calculating the standardDeviation
-                            // for each cluster
-                            // only active is show in cluster is choosen
-                            if (('h' + d['data']['name'].toString().hashCode()) in hierarchyGroupStdev) {
-                                // console.log('hello');
-                                // console.log(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
-                                return standardDeviationColorScale(standardDeviation(hierarchyGroupStdev[('h' + d['data']['name'].toString().hashCode())]));
-                            } else if (d['depth'] !== hierarchyLevels['h' + id]) {
-                                return '';
-                            } else {
-                                return '#000';
-                            }
-                        });
-                }, 250);
-            } else if ($('#dendrogram-legend').css('display') !== 'none') {
-                $('#dendrogram-legend').hide();
-            }
-        }
-    }
-    if (!$.isEmptyObject(networkHierarchy)) {
-        // draw the hierarchy in spatial view
-        drawHierarchy();
-    }
-}
 
 /**
  * Collapse function - only show the active level and one sub level
  */
-function collapse(d) {
+export function collapse(d) {
     if (d.children && d.depth <= hierarchyLevels['h' + id]) {
         d._children = d.children;
         d._children.forEach(collapse);
@@ -370,7 +209,7 @@ function collapse(d) {
  * add a group with the ids of the animals in it to the view
  * with path child elements
  */
-function drawHierarchy() {
+export function drawHierarchy() {
     // id of the hierarchy e.g. [1,5,3]
     let hierarchyIds = Object.keys(networkHierarchy).map(function(x) {
         return x.replace('h', '');
@@ -381,6 +220,7 @@ function drawHierarchy() {
     // iterate over the hierarchy data to get the hierarchy animal ids per clustering and grouping
     for (let i = 0; i < hierarchyIds.length; i++) {
         let treeData = networkHierarchy['h' + hierarchyIds[i]][indexTime];
+        console.log(treeData);
         let nodes = d3.hierarchy(treeData, function(d) {
             return d.children;
         });
@@ -578,7 +418,7 @@ function drawHierarchy() {
  * Edge drawing method of the dendrogram
  * @param {object} d - Treemap element
  */
-function diagonalLines(d) {
+export function diagonalLines(d) {
     return 'M' + d.x + ',' + d.y +
         'V' + d.parent.y + 'H' + d.parent.x;
 }
@@ -602,7 +442,7 @@ function click(d) {
  * @param {object} root - Root of the treemap
  * @param {number} hiearchy - Number of hierarchy from [0-3]
  */
-function getHierarchyLevel(root, hierarchy) {
+export function getHierarchyLevel(root, hierarchy) {
     let result = [];
     let level = hierarchyLevels['h' + hierarchy];
 
@@ -637,7 +477,7 @@ function getHierarchyLevel(root, hierarchy) {
  * Return an array of points [[x,y][x,y]...]
  * @param {Array} hierarchies - Array of arrays with each array contains all the ids for a specific clustering
  */
-function getHierarchyVertices(hierarchies) {
+export function getHierarchyVertices(hierarchies) {
     let result = []; // result set
     hierarchies.forEach(function(cluster) {
         let vertices = []; // vertices of the clusters in the spatial view
@@ -669,10 +509,7 @@ export function setHierarchyLevel(hierarchy, level) {
  * Remove the entry for the hierarch level
  * @param {number} hierarchy - Hierarchy
  */
-export function removeHierarchyLevel(hierarchy) {
-    // TODO catch cases < 0 and bigger than overall height
-    delete hierarchyLevels['h' + hierarchy];
-}
+
 
 /**
  * Set the active color for a specific dendrogram
@@ -859,7 +696,7 @@ export function changeHierarchyLegend() {
 /**
  * Initialize the dendrogram legend
  */
-function initDendrogramLegend() {
+export function initDendrogramLegend() {
     let legendWidth = 550;
     let legendHeight = 60;
 

@@ -1,8 +1,12 @@
 /*eslint-disable no-unused-lets*/
 /*global window, d3, $, parameters*/
 import {
-    setIndexTime
+    setIndexTime,
 } from './spatial_view/spatial_view.js';
+
+import {
+   Drawer
+} from './spatial_view/drawer.js'
 
 import {
     swarmData,
@@ -18,29 +22,27 @@ import {
     indexTime,
 } from './spatial_view/spatial_view';
 
-
-
-
-export let zoomFunction;
-
+// Chart
 let trendChartsZoom = {};
-//let this.trendChartsElem = ['lower-outer-area', 'lower-inner-area', 'median-line', 'upper-inner-area', 'upper-outer-area'];
-//let lineChartWidth = 5000;
+
+// Linechart Setup
 let ratio = 1;
 let zoomGroup;
 let x;
 let y;
+export let zoomFunction;
 
 
-class Chart {
+class Chart{
 
     constructor(data) {
-        // load in arguments from config object
-        this.swarmData = data;
-        this.swarm_features = Object.keys(this.swarmData[0]);
-        this.lineChartWidth = 5000;
-        this.trendChartsElem = ['lower-outer-area', 'lower-inner-area', 'median-line', 'upper-inner-area', 'upper-outer-area'];
+      // load in arguments from config object
+    this.swarmData = data;
+    this.swarm_features = Object.keys(this.swarmData[0]);
+    this.lineChartWidth = 5000;
+    this.trendChartsElem = ['lower-outer-area', 'lower-inner-area', 'median-line', 'upper-inner-area', 'upper-outer-area'];
     }
+
 
         /**
      * init the line chart and also the trend chart
@@ -52,6 +54,7 @@ class Chart {
 export class LineChart extends Chart {
     constructor(data){
     super(data)
+    //this.zoomGroup = zoomGroup;
     this.lineChart();
 
     }
@@ -136,7 +139,7 @@ export class LineChart extends Chart {
           .tickSize(10)
           .tickPadding(5);
 
-      let dragged = function() {
+      let dragged = ()=>{
           // dragged function get the coordinates and calculate the time moment from this
           let coords = d3.mouse(this);
           if (coords[0] < margin.left || coords[0] > this.lineChartWidth || coords[1] < 0 || coords[1] > lineChartHeight) {
@@ -147,7 +150,7 @@ export class LineChart extends Chart {
               .domain(zoomFunction.range())
               .range(zoomFunction.domain());
           // set the new time
-          setIndexTime(Math.floor((tmpScale(coords[0] - margin.left)) * ratio));
+          this.setIndexTime(Math.floor((tmpScale(coords[0] - margin.left)) * ratio));
       };
       let zoom = d3.zoom()
           .scaleExtent([1, 20])
@@ -159,7 +162,8 @@ export class LineChart extends Chart {
               [0, 0],
               [this.lineChartWidth, lineChartHeight]
           ])
-          .on('zoom', function() {
+          .on('zoom', ()=>{
+              //console.log('zooms');
               // get the transform factor
               let t = d3.event.transform;
               // change scaling function
@@ -380,6 +384,7 @@ export class LineChart extends Chart {
       });
   }
 
+
 }
 
 /**
@@ -536,46 +541,3 @@ export class TrendChart extends Chart{
     }
 }
 }
-
-/**
- * Update the line chart fields and the line chart time line
- */
-export function updateLineChart() {
-    if (d3.select('#lineChartTimeLine') && swarmData[Math.ceil(indexTime / ratio)]) {
-        let tmp = Math.ceil(indexTime / ratio);
-        //update the line chart legend text values per second
-        if (indexTime % 25 === 0) {
-            // TODO change this to a more modular way
-            d3.select('#convex_hull_areaLineValue')
-                .text((swarmData[tmp]['convex_hull_area']) + 'mm²');
-            d3.select('#speedLineValue')
-                .text(swarmData[tmp]['speed'] + 'mm/s');
-            d3.select('#accelerationLineValue')
-                .text(swarmData[tmp]['acceleration'] + 'mm/s²');
-            d3.select('#distance_centroidLineValue')
-                .text(swarmData[tmp]['distance_centroid'] + 'mm');
-            d3.select('#directionLineValue')
-                .text(swarmData[tmp]['direction'] + '°');
-            d3.select('#polarisationLineValue')
-                .text(swarmData[tmp]['polarisation']);
-        }
-        d3.select('#lineChartTimeLine')
-            .attr('transform', 'translate(' + zoomFunction(tmp) + ',0)');
-    }
-}
-
-
-
-
-
-//ratio = Math.ceil(swarmData.length / this.lineChartWidth);
-    //console.log(swarmData);
-    //let result = swarmData.map(obj => ({time:obj.time, dist_cen:obj.distance_centroid}));
-    //console.log(result);
-
-
-
-
-
-//linechart.draw();
-//let swarmDat = new swarmData();

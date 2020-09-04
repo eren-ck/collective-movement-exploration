@@ -27,7 +27,7 @@ import {
 } from './helpers.js';
 
 import {
-    spatialViewInit
+    SpatialView
 } from './spatial_view/spatial_view.js';
 
 // import {
@@ -39,6 +39,7 @@ import {
  * Stream the movement data from the API
  * Loads only the explicit movement data
  */
+//console.log(data);
 export function streamMovementData() {
     if (window.EventSource) {
         source = new EventSource('/api/movement_only/' + parameters['id']);
@@ -51,7 +52,8 @@ export function streamMovementData() {
                         if ($.active > 0) {
                             window.setTimeout(checkPendingRequest, 100);
                         } else {
-                            spatialViewInit();
+
+                            var view = new SpatialView();
                         }
                     }
                     window.setTimeout(checkPendingRequest, 100);
