@@ -152,8 +152,7 @@ def calculate_mkit_feats(id, session):
     df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
 
     # calculate the centroids and medoids, store in group data
-    #movement = mkit.centroid_medoid_computation(df, object_output = True)
-
+    movement = mkit.centroid_medoid_computation(df, object_output = True)
     # prepare for merge
     movement = movement.rename(columns = {'distance_to_centroid':'distance_centroid'})
 
@@ -179,10 +178,10 @@ def calculate_mkit_feats(id, session):
     # merge computed values into group-dataframe
     data_frames = [group, pol, mov, cen_dir]
     group = reduce(lambda  left,right: pd.merge(left,right,on=['time'],
-                                                how='outer'), data_frames)
+                                                how='left'), data_frames)
     # prepare for merging with database
     group = group.rename(columns = {'mean_distance_centroid':'distance_centroid','centroid_direction':'direction','mean_speed':'speed','mean_acceleration':'acceleration','mean_distance_centroid':'distance_centroid', 'total_dist': 'metric_distance', 'polarization': 'polarisation'})
-
+    print(group)
     # first convert centroid coordinates to shape and delete them, then run query.
     for index, row in group.iterrows():
         query = Group_data(dataset_id=id,**OrderedDict(row))
