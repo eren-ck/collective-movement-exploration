@@ -152,7 +152,7 @@ def calculate_mkit_feats(id, session):
     df.rename(columns={'ST_X_1': 'x', 'ST_Y_1': 'y'}, inplace=True)
 
     # calculate the centroids and medoids, store in group data
-    movement = mkit.centroid_medoid_computation(df, object_output = True)
+    #movement = mkit.centroid_medoid_computation(df, object_output = True)
 
     # prepare for merge
     movement = movement.rename(columns = {'distance_to_centroid':'distance_centroid'})

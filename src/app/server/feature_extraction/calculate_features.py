@@ -28,7 +28,7 @@ def calculate_features(id, movement_file_filename, metadata_file_filename, image
     """
     # Upload the dataset
     upload_data(id, movement_file_filename, metadata_file_filename, image_name)
-
+    #print('UPLOADED')
     # Calculate the absolute features
     # Starts multiple processes to speed up the calculation
     calculate_absolute_features(id)
