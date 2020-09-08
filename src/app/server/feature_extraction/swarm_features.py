@@ -181,7 +181,7 @@ def calculate_mkit_feats(id, session):
                                                 how='left'), data_frames)
     # prepare for merging with database
     group = group.rename(columns = {'mean_distance_centroid':'distance_centroid','centroid_direction':'direction','mean_speed':'speed','mean_acceleration':'acceleration','mean_distance_centroid':'distance_centroid', 'total_dist': 'metric_distance', 'polarization': 'polarisation'})
-    print(group)
+    
     # first convert centroid coordinates to shape and delete them, then run query.
     for index, row in group.iterrows():
         query = Group_data(dataset_id=id,**OrderedDict(row))
