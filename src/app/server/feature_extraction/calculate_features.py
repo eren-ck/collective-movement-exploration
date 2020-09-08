@@ -93,6 +93,7 @@ def upload_data(id, movement_file_filename, metadata_file_filename, image_name):
         mapping[time] = index
         index = index + 1
     # transform the frame numbers
+
     for row in csv_data:
         row['time'] = mapping[int(row['time'])]
 
