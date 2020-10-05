@@ -1,13 +1,14 @@
-certifi
-flask-security
-flask-sqlalchemy
-geoalchemy2
-geojson
-mkl-fft
-mkl-random
-pandas
-psutil
-psycopg2
-sklearn
-wincertstore
-chardet
+certifi >= 2020.6.20
+flask-security >= 3.0.0
+flask-sqlalchemy >= 2.4.4
+geoalchemy2 >= 0.8.4
+geojson >= 2.5.0
+pandas >= 1.1.2
+psutil >= 5.7.2
+psycopg2 >= 2.8.6
+scikit-learn >= 0.23.2
+wincertstore >= 0.2
+chardet >= 3.0.4
+email_validator >= 1.1.1
+Shapely >= 1.7.1
+movekit >= 0.1.10
