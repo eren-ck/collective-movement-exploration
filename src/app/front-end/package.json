@@ -12,20 +12,20 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "clean-webpack-plugin": "^0.1.19",
-    "css-loader": "^3.6.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^4.3.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
-    "file-loader": "^1.1.11",
-    "node-sass": "^4.8.3",
-    "sass-loader": "^7.0.1",
-    "style-loader": "^0.21.0",
-    "uglifyjs-webpack-plugin": "^1.2.5",
-    "webpack": "^4.43.0",
+    "file-loader": "^6.1.0",
+    "node-sass": "^4.14.1",
+    "sass-loader": "^10.0.3",
+    "style-loader": "^2.0.0",
+    "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.1.5"
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "d3": "^5.5.0",
-    "jquery": "^3.3.1"
+    "d3": "^6.2.0",
+    "jquery": "^3.5.1",
+    "terser-webpack-plugin": "^4.2.3"
   }
 }

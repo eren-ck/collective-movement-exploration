@@ -27,7 +27,7 @@ def calculate_absolute_features(id):
     dataset[0].status = 'Calculating absolute features'
     dataset[0].progress = 5
     # commit status and progress bar changes
-    session.commit()
+    #session.commit()
 
     # tmp query to get all distinct animal ids from the dataset
     query = session.query(Movement_data.time, Movement_data.animal_id,
