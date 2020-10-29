@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+   web:
+    build: ./src/
+    command: gunicorn --bind 0.0.0.0:5000 app:app
+    volumes:
+      - ./src:/usr/src/app/
+    ports:
+      - 5000:5000
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
+   db:
+    image: postgres:12-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=hello_flask
+    env_file:
+      - ./.env.prod.db
+volumes:
+  postgres_data:
