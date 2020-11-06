@@ -5,7 +5,7 @@ services:
     build: ./src/
     command: flask run
     volumes:
-      - ./src:/usr/src/app/
+      - ./src:/usr/src/app/server
     ports:
       - 5000:5000
     env_file:
