@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.7'
 
 services:
    web:
@@ -6,23 +6,17 @@ services:
     command: gunicorn --bind 0.0.0.0:5000 app:app
     volumes:
       - ./src/app/server:/usr/src/app/server
-    expose:
-      - 5000
+    ports:
+      - 5000:5000
     env_file:
       - ./.env.prod
     depends_on:
       - db
    db:
-    image: postgres:12-alpine
+    image: kartoza/postgis:13.0
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.prod.db
-   nginx:
-    build: ./nginx
-    ports:
-      - 1337:80
-    depends_on:
-      - web
 volumes:
   postgres_data:

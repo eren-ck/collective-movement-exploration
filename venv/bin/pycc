@@ -1,0 +1,3 @@
+#!/home/lukas/Documents/collective-movement-exploration/venv/bin/python
+from numba.pycc import main
+main()

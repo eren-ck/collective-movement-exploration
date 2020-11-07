@@ -1,7 +1,7 @@
 SECRET_KEY = '123456789'
 
 DATABASE_FILE = ''
-SQLALCHEMY_DATABASE_URI = 'postgresql://luke:Fogo2426@localhost/animaldb'
+SQLALCHEMY_DATABASE_URI = 'postgresql://admin:admin@db/animaldb'
 SQLALCHEMY_ECHO = True
 
 SECURITY_URL_PREFIX = "/view"
