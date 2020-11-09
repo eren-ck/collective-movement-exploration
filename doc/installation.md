@@ -135,14 +135,20 @@ server {
 
 
 ## Run via Docker on a local machine
-1. cd into project root
-2. To create and run the Docker Containers run the following command:
+1. install Docker on your machine
+2. cd into project root
+3. create a virtualenv
+```
+venv env
+source env/bin/activate
+```
+4. To create and use the Docker Containers run the following command:
 ```
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
-3. Check the logs via the following command:
+Ignore the "Error October 2020" message for now.
+5. Check the logs via the following command:
 ```
 docker-compose -f docker-compose.prod.yml logs -f
 ```
 The app runs in http://0.0.0.0:5000
-
