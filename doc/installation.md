@@ -131,3 +131,18 @@ server {
     }
 }
 ```
+
+
+
+## Run via Docker on a local machine
+1. cd into project root
+2. To create and run the Docker Containers run the following command:
+```
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+3. Check the logs via the following command:
+```
+docker-compose -f docker-compose.prod.yml logs -f
+```
+The app runs in http://0.0.0.0:5000
+
