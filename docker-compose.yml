@@ -3,23 +3,20 @@ version: '3.7'
 services:
    web:
     build: ./src/
-    command: python app/server/app.py run 0.0.0.0
+    command: gunicorn --bind 0.0.0.0:5000 app:app
     volumes:
-      - ./src:/usr/src/app/server
+      - ./src/app/server:/usr/src/app/server
     ports:
       - 5000:5000
     env_file:
-      - ./.env.dev
+      - ./.env.prod
     depends_on:
       - db
    db:
     image: kartoza/postgis:13.0
-    container_name: postgres_db_container
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=animaldb
+    env_file:
+      - ./.env.prod.db
 volumes:
   postgres_data:

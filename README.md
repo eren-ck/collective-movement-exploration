@@ -54,12 +54,13 @@ You can test a fully working live demo [here](https://animals.dbvis.de/)
 ## Authors
 
 * **Eren Cakmak** - *Initial work*
+* **Lukas Weixler**
 
 See also the list of [contributors](https://github.com/dbvis-eren-ck/collective-movement-exploration/graphs/contributors)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+Released under a GNU General Public License. See the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 

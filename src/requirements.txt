@@ -14,4 +14,3 @@ chardet >= 3.0.4
 email_validator >= 1.1.1
 Shapely >= 1.7.1
 movekit >= 0.1.11
-django-filter
