@@ -3,9 +3,9 @@ src/.idea/*
 src/app/.idea/*
 src/app/server/files/*
 src/app/server/config.py
-src/app/server/templates/imprint.html
 src/app/front-end/node_modules/*
 src/tests/vps/data/*
+venv/*
 
 # Compiled source #
 ###################
